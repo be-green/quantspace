@@ -1,0 +1,18 @@
+Package: quantspace
+Type: Package
+Title: Quantile Regression via Quantile Spacing
+Version: 0.1.0
+Author: Lawrence D.W. Schmidt, Yinchu Zhu
+Maintainer: Brice Green <bcg@mit.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    quantreg,
+    foreach,
+    doParallel,
+    data.table,
+    assertthat
+RoxygenNote: 7.1.0
