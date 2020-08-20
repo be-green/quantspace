@@ -28,7 +28,8 @@ Set to NULL to take a random subsample.}
 \item{draw_weights}{If true, draw a vector of exponential weights to use in subsample}
 }
 \value{
-list of n subsample_rows: Boolean vector of selected rows of sampled clusters
+list of
+subsample_rows: Boolean vector of selected rows of sampled clusters
 subsample_weights: either NULL, or vector of cluster weights
 }
 \description{

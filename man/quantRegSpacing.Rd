@@ -39,10 +39,11 @@ else, only use rows with residuals greater than small}
 \item{p}{Length of alpha.}
 }
 \value{
-list of coef: num_betas x p matrix of estimated parameters for each supplied quantiles,
-        pseudo_r: 1 x p matrix of psuedo R^2 values for each quantile estimate,
-        warnings: 1 x p matrix of warnings produced by each quantile regression call,
-        iter: 1 x p matrix of iterations ran by each quantile regression call
+Returns a list of coefficients.
+num_betas is an x by p matrix of estimated parameters for each supplied quantiles.
+pseudo_r is a  1 by p matrix of psuedo R^2 values for each quantile estimate.
+warnings is a 1 by p matrix of warnings produced by each quantile regression call.
+iter: is a 1 by p matrix of iterations ran by each quantile regression call.
 }
 \description{
 Computes coefficients for the quantile regression spacing method.

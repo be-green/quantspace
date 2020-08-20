@@ -139,13 +139,13 @@ rq.fit.sfn_start_val <- function(a,y,tau=.5,
 #' Runs quantile regression on residuals of the model (calculates spaces around jstar quantile)
 #' @param reg_spec_data result of ensureSpecRank function; regression matrix with full rank
 #' @param ehat current residuals; subset of which to be used as dependent column
-#' @param sv starting values (can be NA's) to be fd into sfn_start_val function
 #' @param ind_hat column vector indicating which rows to be used in quantile regression
 #' @param tau estimated quantile
 #' @param trunc Boolean value; if true, replace those dependent values less than small with small itself;
 #' else, only use rows with residuals greater than small
 #' @param small Value used with trunc; values less than small 'blow up' too greatly when logged
-#' @param control control list to be fed to sfn_start_val function
+#' @param sv starting values (can be NA's) to be passed to sfn_start_val function
+#' @param control control list to be passed to sfn_start_val function
 #' @param weight_vec vector of optional weights
 #' @return List of estimated coefficients, warnings, iterations, and controls as in
 #' standard quantile regression function
@@ -160,14 +160,6 @@ quantRegress = function(reg_spec_data,
                         control,
                         weight_vec = NULL) {
   if (trunc) {
-    # then replace values using pmax
-    #     if(missing(sv)){
-    #       j_model <- rq.fit.sfn_start_val(
-    #         a = reg_spec_data$spec_matrix,
-    #         y = log(pmax(ehat[ind_hat],small)),
-    #         tau = tau,
-    #         control = control) # Model the quantile
-    #     }
     if (!is.null(weight_vec)){
       weight_vec = as.matrix(weight_vec[ind_hat])
     }
@@ -226,10 +218,11 @@ quantRegress = function(reg_spec_data,
 #' @param start_list Starting values for regression optimization.
 #' @param weight_vec vector of optional weights
 #' @return
-#' list of coef: num_betas x p matrix of estimated parameters for each supplied quantiles,
-#'         pseudo_r: 1 x p matrix of psuedo R^2 values for each quantile estimate,
-#'         warnings: 1 x p matrix of warnings produced by each quantile regression call,
-#'         iter: 1 x p matrix of iterations ran by each quantile regression call
+#' Returns a list of coefficients.
+#' num_betas is an x by p matrix of estimated parameters for each supplied quantiles.
+#' pseudo_r is a  1 by p matrix of psuedo R^2 values for each quantile estimate.
+#' warnings is a 1 by p matrix of warnings produced by each quantile regression call.
+#' iter: is a 1 by p matrix of iterations ran by each quantile regression call.
 #' @export
 quantRegSpacing = function(
   dep_col,
