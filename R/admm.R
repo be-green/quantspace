@@ -20,7 +20,9 @@ calc_r <- function(rho, u, Y, Gamma, tau, One) {
 #' @param W Number of groups at a given time
 #' @param nu Penalization parameter used in optimization
 #' @param E Proportion of observed values at a given time (correction for imbalanced panel)
-#' @param err_g_thresh
+#' @param err_g_thresh error threshold for gamma calculation
+#' @importFrom data.table setnames
+#' @importFrom data.table as.data.table
 update_gamma <- function(Gamma, tune, W, E, nu, err_g_thresh = 0.01) {
   err_g <- 1000
   while (err_g > err_g_thresh) {
@@ -30,10 +32,10 @@ update_gamma <- function(Gamma, tune, W, E, nu, err_g_thresh = 0.01) {
     Gamma_New <-  S$u %*% diag(D, nrow(S$v)) %*% t(S$v)
 
     err_g <- (norm(as.matrix(Gamma)-Gamma_New)/(norm(as.matrix(Gamma))+1))
-    Gamma <- as.data.table(Gamma_New)
+    Gamma <- data.table::as.data.table(Gamma_New)
     # print(Error_G)
   }
-  setnames(Gamma, colnames(Gamma), as.character(1:ncol(Gamma)))
+  data.table::setnames(Gamma, colnames(Gamma), as.character(1:ncol(Gamma)))
   Gamma
 }
 

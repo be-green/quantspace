@@ -16,6 +16,8 @@ update_gamma(Gamma, tune, W, E, nu, err_g_thresh = 0.01)
 \item{E}{Proportion of observed values at a given time (correction for imbalanced panel)}
 
 \item{nu}{Penalization parameter used in optimization}
+
+\item{err_g_thresh}{error threshold for gamma calculation}
 }
 \description{
 Update gamma given an initial matrix
