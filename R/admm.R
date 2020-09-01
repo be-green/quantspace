@@ -68,7 +68,7 @@ calc_gamma <- function(Y,
                        Gamma = NULL,
                        tau = 0.5,
                        rho = 0.1,
-                       k = 0,
+                       k = 1,
                        err_u_thresh = 0.01,
                        err_g_thresh = 0.01,
                        verbose = F) {
@@ -77,17 +77,20 @@ calc_gamma <- function(Y,
     Gamma <- as.data.table(matrix(0, J, Time))
   }
 
+  J_levels <- factor(unique(J_vec))
+  T_levels <- factor(unique(T_vec))
 
-  DT <- data.table(Y = Y,
-                   Group = J_vec,
-                   Year = T_vec)
+  DT <- data.table::data.table(Y = Y,
+                               Group = factor(J_vec, levels = J_levels),
+                               Year = factor(T_vec, levels = T_levels))
 
+  data.table::setorder(DT, Year, Group)
 
   NT <- length(Y)
 
-  interactions <- data.table(Interactions = get_combos(DT$Group, DT$Year))
+  interactions <- data.table(Interactions = get_combos(T_levels,J_levels))
 
-  DT[,Interactions := paste0(Group, ".", Year)]
+  DT[,Interactions := paste0(Year, ".", Group)]
 
   data.table::setkey(DT, "Interactions")
   data.table::setkey(interactions, "Interactions")
@@ -97,7 +100,7 @@ calc_gamma <- function(Y,
 
   err_u <- 1000
   iter <- 1
-  Gamma_Vec <- rep(0, NT)
+  DT[,Gamma := 0]
   nu <- k*max(sqrt(N), sqrt(Time))
 
 
@@ -125,17 +128,22 @@ calc_gamma <- function(Y,
       # Initial u
       DT[,u := rep(0, NT)]
     } else {
-      err_u <- norm(as.matrix(DT$u + rho * (DT$Y - DT$r - Gamma_Vec)-DT$u))/(sum(abs(DT$u)) + 1)
-      DT[,u := u + rho * (Y - r - Gamma_Vec)]
+      bottom_err <- (sum(abs(DT$u)) + 1)
+      top_err <- norm(as.matrix(rho * (DT$Y - DT$r - DT$Gamma)))
+      err_u <- log(top_err)
+      DT[,u := u + rho * (Y - r - Gamma)]
+
       if(verbose) {
         message(paste0("Iteration: ", iter, "\n",
+                       "Numerator: ", signif(top_err, 4), "\n",
+                       "Denominator: ", signif(bottom_err, 4), "\n",
                        "Error: ", signif(err_u, 4)))
       }
 
     }
 
     # Append to data frame
-    DT[,r := calc_r(rho, u, Y, Gamma_Vec, tau, One)]
+    DT[,r := calc_r(rho, u, Y, Gamma, tau, One)]
     DT[,e := Y - r + u / rho]
 
     # Ugly but fast
@@ -156,9 +164,13 @@ calc_gamma <- function(Y,
                           E = E,
                           err_g_thresh = err_g_thresh)
 
-    # Format Gamma
-    interactions$Gamma_Vec <- as.numeric(as.matrix(Gamma))
-    DT <- interactions[DT, on = "Interactions"]
+    merge_gamma <- data.table::melt(copy(Gamma)[,Group := factor(1:.N, labels = levels(J_levels))],
+                                    id.vars = "Group", variable.factor = F, variable.name = "Year",
+                                    value.name = "Gamma")[,
+                                                          Year := factor(as.integer(Year),
+                                                                         labels = T_levels)]
+
+    DT <- merge_gamma[DT, on = c("Group", "Year")]
     iter = iter + 1
   }
   return(t(Gamma))
