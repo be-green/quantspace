@@ -59,6 +59,16 @@ replace_nas <- function(DT) {
 #' @param k penalization parameter used in iteration, defaults to no penalization
 #' @param err_u_thresh error threshold for u
 #' @param err_g_thresh error threshold for g
+#' @importFrom data.table setkey
+#' @importFrom data.table melt
+#' @importFrom data.table dcast
+#' @importFrom data.table data.table
+#' @importFrom data.table as.data.table
+#' @importFrom data.table `:=`
+#' @importFrom data.table setorder
+#' @importFrom data.table setnames
+#' @importFrom data.table copy
+#' @import data.table
 calc_gamma <- function(Y,
                        T_vec,
                        J_vec,
@@ -74,7 +84,7 @@ calc_gamma <- function(Y,
                        verbose = F) {
 
   if(is.null(Gamma)) {
-    Gamma <- as.data.table(matrix(0, J, Time))
+    Gamma <- data.table::as.data.table(matrix(0, J, Time))
   }
 
   J_levels <- factor(unique(J_vec))
@@ -128,15 +138,12 @@ calc_gamma <- function(Y,
       # Initial u
       DT[,u := rep(0, NT)]
     } else {
-      bottom_err <- (sum(abs(DT$u)) + 1)
-      top_err <- norm(as.matrix(rho * (DT$Y - DT$r - DT$Gamma)))
-      err_u <- log(top_err)
+
+      err_u <- norm(as.matrix(rho * (DT$Y - DT$r - DT$Gamma)))/(sum(abs(DT$u)) + 1)
       DT[,u := u + rho * (Y - r - Gamma)]
 
       if(verbose) {
         message(paste0("Iteration: ", iter, "\n",
-                       "Numerator: ", signif(top_err, 4), "\n",
-                       "Denominator: ", signif(bottom_err, 4), "\n",
                        "Error: ", signif(err_u, 4)))
       }
 
@@ -164,7 +171,7 @@ calc_gamma <- function(Y,
                           E = E,
                           err_g_thresh = err_g_thresh)
 
-    merge_gamma <- data.table::melt(copy(Gamma)[,Group := factor(1:.N, labels = levels(J_levels))],
+    merge_gamma <- data.table::melt(data.table::copy(Gamma)[,Group := factor(1:.N, labels = levels(J_levels))],
                                     id.vars = "Group", variable.factor = F, variable.name = "Year",
                                     value.name = "Gamma")[,
                                                           Year := factor(as.integer(Year),
