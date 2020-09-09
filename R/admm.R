@@ -33,6 +33,9 @@ update_gamma <- function(Gamma, tune, W, E, nu, err_g_thresh = 0.01) {
 
     err_g <- (norm(as.matrix(Gamma)-Gamma_New)/(norm(as.matrix(Gamma))+1))
     Gamma <- data.table::as.data.table(Gamma_New)
+    if(is.na(err_g)) {
+      browser()
+    }
     # print(Error_G)
   }
   data.table::setnames(Gamma, colnames(Gamma), as.character(1:ncol(Gamma)))
@@ -71,7 +74,6 @@ admm <- function(Y, X, est, vec, rho, tau, iterfun, k, err_u_thresh, verbose, ..
 
   # Big matrix of ones if needed
   One <- matrix(1, nrow = length(Y), ncol = 1)
-
 
   while(err_u > err_u_thresh) {
 
@@ -118,6 +120,10 @@ admm <- function(Y, X, est, vec, rho, tau, iterfun, k, err_u_thresh, verbose, ..
 #' @param err_g_thresh threshold for convergence of gamma updates
 gamma_admm_iter <- function(e, vec, est, W, Year, Group, tune, nu, J_levels, T_levels,
                             err_g_thresh) {
+
+  if(anyNA(est) | anyNA(vec)) {
+    browser()
+  }
 
   e_dt <- data.table::data.table(e, Year, Group)
 
@@ -215,7 +221,9 @@ calc_gamma <- function(Y,
 
 
   nu <- k*max(sqrt(N), sqrt(Time))
-
+  if(is.na(nu)) {
+    browser()
+  }
 
   # W is simply the counts of firms in each group
   W <- DT[,.(w = .N),
@@ -236,8 +244,8 @@ calc_gamma <- function(Y,
   W <- sqrt(W)
 
   if(is.null(Gamma)) {
-    vec <- rep(0, length(Y))
-    Gamma <- data.table::as.data.table(matrix(0, J, Time))
+    vec <- rnorm(length(Y), mean = 0, sd = 1)
+    Gamma <- data.table::as.data.table(matrix(rnorm(J * Time), J, Time))
   } else {
     vec <- predict(Gamma, DT[,.(Y, Group, Year)], J_levels, T_levels)
   }
@@ -319,48 +327,142 @@ calc_reduce_rank_gamma <- function(Y,
                               Gamma = NULL,
                               tau = 0.5,
                               rho = 0.1,
-                              init_k = 2,
+                              init_k_high = 30,
+                              init_k_low = 1,
                               desired_dim = NULL,
                               err_u_thresh = 0.01,
                               err_g_thresh = 0.01,
                               verbose = F,
-                              maxiter = 100) {
+                              maxiter = 100,
+                              parallel = T) {
 
   if(is.null(desired_dim)) {
     stop("Must specify target dimensionality for Gamma.")
   }
 
-  iter = 1
-  k <- init_k
+
+
+  # initial window for k
+  lk <- init_k_low
+  hk <- init_k_high
+
+  high_gamma <- NULL
+  low_gamma <- NULL
 
   stop <- 0
   RANK <- "Unknown"
 
-  while (stop == 0 | iter >= maxiter) {
+  if(parallel == T) {
+    future::plan(future::multiprocess(workers = 2))
+  }
+
+  lr <- vector(mode = "numeric")
+  hr <- vector(mode = "numeric")
+
+
+  i = 1
+
+  cur_hr <- NA
+  cur_lr <- NA
+
+  while(is.na(cur_hr) | cur_hr > desired_dim | is.na(cur_lr) | cur_lr < desired_dim) {
+    message("Iteration: ", i, "\n", "Low Rank: ", lr[i], "\n High Rank: ",
+            hr[i], "\n Target Rank: ",
+            desired_dim)
+    if(parallel == T) {
+      if(is.null(high_gamma)) {
+        l <- furrr::future_map(c(hk[i], lk[i]),
+                               function(k)
+                               {
+                                 calc_gamma(Y, T_vec, J_vec, N, J, Time, Gamma = NULL, k = k,
+                                            verbose = F)
+                               })
+      } else {
+        l <- furrr::future_map2(list(hk[i], lk[i]),
+                                list(high_gamma, low_gamma),
+                                function(k, Gamma)
+                                {
+                                  calc_gamma(Y, T_vec, J_vec, N, J, Time, Gamma = Gamma, k = k,
+                                             verbose = F)
+                                })
+      }
+
+      high_gamma <- l[[1]]
+      low_gamma <- l[[2]]
+
+    } else {
+      high_gamma <- calc_gamma(Y, T_vec, J_vec, N, J, Time, Gamma = high_gamma, k = hk[i],
+                               verbose = verbose)
+      low_gamma <- calc_gamma(Y, T_vec, J_vec, N, J, Time, Gamma = low_gamma, k = lk[i],
+                              verbose = verbose)
+    }
+
+
+    hr[i] <- Matrix::rankMatrix(high_gamma)
+    lr[i] <- Matrix::rankMatrix(low_gamma)
+
+    cur_hr <- hr[i]
+    cur_lr <- lr[i]
+
+    # if rank under high k is too high (not <= to desired)
+    # raise it because the desired rank is outside the bracket
+    if(hr[i] > desired_dim) {
+      hk[i + 1] <- hk[i] * 4
+    } else {
+      hk[i + 1] <- hk[i]
+    }
+
+    # if rank under low k is too low (not >= to desired)
+    # lower it because the desired rank is outside the lower bracket
+    if (lr[i] < desired_dim) {
+      lk[i + 1] <- lk[i] / 4
+    } else {
+      lk[i + 1] <- lk[i]
+    }
+    i = i + 1
+  }
+
+  middle_gamma <- low_gamma
+
+  while (stop == 0 & i <= maxiter) {
 
     if(verbose) {
-      message("K Iteration: ", iter, "\n",
-              "Penalization Parameter: ", signif(k, 3), "\n",
-              "Current Rank: ", RANK)
+      message("K Iteration: ", i, "\n",
+              "Lower Penalization Parameter: ", signif(lk[i], 3), "\n",
+              "Upper Penalization Parameter: ", signif(hk[i], 3), "\n",
+              "Lower Penalization Rank: ", signif(lr[i-1], 3), "\n",
+              "Upper Penalization Rank: ", signif(hr[i-1], 3), "\n")
+    }
+    # some version of the bisection method
+    mk <- (hk[i] + lk[i])/2
+
+    middle_gamma <- calc_gamma(Y, T_vec, J_vec, N, J, Time,
+                               Gamma = middle_gamma, k = mk,
+                               verbose = verbose)
+
+    mr <- Matrix::rankMatrix(middle_gamma)
+
+    rank_diff <- mr - desired_dim
+    if(rank_diff > 0) {
+      lk[i + 1] <- mk
+      hk[i + 1] <- hk[i]
+      low_gamma <- middle_gamma
+      lr[i] <- Matrix::rankMatrix(low_gamma)
+      hr[i] <- hr[i - 1]
+    } else {
+      hk[i + 1] <- mk
+      lk[i + 1] <- lk[i]
+      high_gamma <- middle_gamma
+      hr[i] <- Matrix::rankMatrix(high_gamma)
+      lr[i] <- lr[i - 1]
     }
 
-    Gamma <- calc_gamma(Y, T_vec, J_vec, N, J, Time, Gamma = Gamma, k = k,
-                        verbose = verbose)
-    RANK <- Matrix::rankMatrix(Gamma)
-    if (RANK > desired_dim) {
-      k_old <- k
-      k = 1.5 * k_old
-    } else if (RANK < desired_dim) {
-      k_old <- k
-      k = 0.5 * k_old
-    }
-    if (RANK == desired_dim) {
-      if(round(k) <= init_k) {
-        stop <- 1
-      }
+
+    if(lr[i] == desired_dim) {
+      return(low_gamma)
     }
 
-    iter = iter + 1
+    i = i + 1
   }
 
   Gamma
@@ -421,7 +523,7 @@ predict.group_ols <- function(est, DT, ...) {
   est
 }
 
-#' Given Gamma, recover latent factor structure via principal components and admm
+#' Recover gamma through latent time and group factor structures
 #' @param Y vector of outcomes
 #' @param T_vec vector of time assignment
 #' @param J_vec vector of group assignments

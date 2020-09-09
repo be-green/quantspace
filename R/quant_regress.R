@@ -171,8 +171,7 @@ quantRegress = function(reg_spec_data,
       sv = sv,
       control = control,
       weight_vec = weight_vec) # Model the quantile
-  }
-  else {
+  } else {
     resids = ehat[ind_hat]
 
     if (!is.null(weight_vec)){
