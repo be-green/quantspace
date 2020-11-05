@@ -20,16 +20,7 @@ rho <- function(u,tau=.5,weight_vec = NULL){
 #' @param m A matrix, m
 #' @param TOL tolerance for rank calculation
 #' @return The rank of the matrix m
-getRank = function(m, TOL = 0.000000001) {
-
-  #
-  # Args:
-  #   A matrix m.
-  #
-  # Returns:
-  #   The rank of m.
-  #
-
+getRank = function(m, TOL = 1e-10) {
   transp_prod <- as.matrix(t(m) %*% (m))
   return(sum(abs(diag(qr.R(qr(transp_prod)))) > TOL))
 }
@@ -159,7 +150,6 @@ getColNums = function(start_list,
                       j){
 
   if(!any(is.na(start_list))){
-    #get the columns appropriate for starting values
     cols = reg_spec_data$var_names
     cols = paste(alpha[j], cols, sep = '_')
     col_nums = colnames(start_list) %in% cols
@@ -167,3 +157,41 @@ getColNums = function(start_list,
   }
   return(NULL)
 }
+
+#' For copying matrices as in Matlab (works for sparse matrices)
+repMat <- function(X, m, n){
+  Y <- do.call(rbind, rep(list(X), m))
+  do.call(cbind, rep(list(Y), n))
+}
+
+#' Create sparse diagonal matrix with vector x on diagonal
+#' @import SparseM
+spDiag <- function(v){
+  return(as(as.vector(v),"matrix.diag.csr"))
+}
+
+#' Return column sums of matrix
+spSums <- function(m){
+  N <- dim(m)[1]
+  ones <- denseMatrixToSparse(repMat(1,1,N))
+  return(denseMatrixToSparse(ones%*%m))
+}
+
+#' Inverse of a matrix, but catches the error
+inv <- function (a)
+{
+  if (length(a) == 0)
+    return(matrix(0, nrow = 0, ncol = 0))
+  if ((!is.numeric(a) && !is.complex(a)) || !is.matrix(a))
+    stop("Argument 'a' must be a numeric or complex matrix.")
+  if (nrow(a) != ncol(a))
+    stop("Matrix 'a' must be square.")
+  e <- try(b <- solve(a), silent = TRUE)
+  if (inherits(e, "try-error")) {
+    warning("Matrix appears to be singular.")
+    b <- rep(Inf, length(a))
+    dim(b) <- dim(a)
+  }
+  return(b)
+}
+
