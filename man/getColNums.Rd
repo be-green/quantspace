@@ -9,9 +9,11 @@ getColNums(start_list, reg_spec_data, alpha, j)
 \arguments{
 \item{start_list}{starting values (can be NA's) to be fd into sfn_start_val function}
 
-\item{reg_spec_data}{result of ensureSpecRank function; regression matrix with full rank
-alpha: column vector of quantiles to be estimated
-j: index of quantile currently being calculated}
+\item{reg_spec_data}{result of ensureSpecRank function; regression matrix with full rank}
+
+\item{alpha}{column vector of quantiles to be estimated}
+
+\item{j}{index of quantile currently being calculated}
 }
 \value{
 If start_list is supplied, then returns the correct column numbers

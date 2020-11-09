@@ -10,6 +10,8 @@ ols_sparse_fit(a, y, weight_vec = NULL)
 \item{a}{Regression specification matrix}
 
 \item{y}{Dependent variable}
+
+\item{weight_vec}{Optional vector of weights}
 }
 \value{
 OLS coefficients

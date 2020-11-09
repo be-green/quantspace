@@ -2,16 +2,21 @@ Package: quantspace
 Type: Package
 Title: Quantile Regression via Quantile Spacing
 Version: 0.1.0
-Author: Lawrence D.W. Schmidt, Yinchu Zhu
+Author: Lawrence D.W. Schmidt, Yinchu Zhu, Luxi Han, Brice Green
 Maintainer: Brice Green <bcg@mit.edu>
-Description: Quantile regression via the quantile spacing method.
-License: MIT
+Description: Runs quantile regressions by modeling log-differences between quantiles, a fast, robust and asymptotically normal method that prevents quantile crossings.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports: 
     quantreg,
     foreach,
     doParallel,
-    data.table,
-    assertthat
+    assertthat,
+    stringr,
+    testthat,
+    SparseM,
+    methods,
+    RConics,
+    Matrix.utils
 RoxygenNote: 7.1.0

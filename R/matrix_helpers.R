@@ -20,16 +20,7 @@ rho <- function(u,tau=.5,weight_vec = NULL){
 #' @param m A matrix, m
 #' @param TOL tolerance for rank calculation
 #' @return The rank of the matrix m
-getRank = function(m, TOL = 0.000000001) {
-
-  #
-  # Args:
-  #   A matrix m.
-  #
-  # Returns:
-  #   The rank of m.
-  #
-
+getRank = function(m, TOL = 1e-10) {
   transp_prod <- as.matrix(t(m) %*% (m))
   return(sum(abs(diag(qr.R(qr(transp_prod)))) > TOL))
 }
@@ -64,6 +55,7 @@ findRedundantCols = function(m, TOL = 0.000000001) {
 #' @return A full-rank specification matrix. If the input is full-rank, returns the
 #' input unmodified. Otherwise, returns a matrix with a subset of the columns
 #' from the input.
+#' @importFrom methods as
 ensureSpecFullRank = function(spec_mat, col_names) {
 
   # Check if input is already matrix full rank
@@ -149,8 +141,8 @@ addMissingSpecColumns = function(df, names) {
 #' Get column numbers given starting values and regression specification
 #' @param start_list starting values (can be NA's) to be fd into sfn_start_val function
 #' @param reg_spec_data result of ensureSpecRank function; regression matrix with full rank
-#' alpha: column vector of quantiles to be estimated
-#' j: index of quantile currently being calculated
+#' @param alpha column vector of quantiles to be estimated
+#' @param j index of quantile currently being calculated
 #' @return If start_list is supplied, then returns the correct column numbers
 #' to be used in regression. Otherwise, it returns NULL.
 getColNums = function(start_list,
@@ -159,7 +151,6 @@ getColNums = function(start_list,
                       j){
 
   if(!any(is.na(start_list))){
-    #get the columns appropriate for starting values
     cols = reg_spec_data$var_names
     cols = paste(alpha[j], cols, sep = '_')
     col_nums = colnames(start_list) %in% cols
@@ -167,3 +158,47 @@ getColNums = function(start_list,
   }
   return(NULL)
 }
+
+#' For copying matrices as in Matlab (works for sparse matrices)
+#' @param X matrix to replicate
+#' @param m number of times replicate the matrix rows
+#' @param n number of times replicate the matrix columns
+repMat <- function(X, m, n){
+  Y <- do.call(rbind, rep(list(X), m))
+  do.call(cbind, rep(list(Y), n))
+}
+
+#' Create sparse diagonal matrix with vector x on diagonal
+#' @import SparseM
+#' @param v Vector to use as the diagonal of the matrix
+spDiag <- function(v){
+  return(as(as.vector(v),"matrix.diag.csr"))
+}
+
+#' Return column sums of matrix
+#' @param m matrix to sum up
+spSums <- function(m){
+  N <- dim(m)[1]
+  ones <- denseMatrixToSparse(repMat(1,1,N))
+  return(denseMatrixToSparse(ones%*%m))
+}
+
+#' Inverse of a matrix, but catches the error
+#' @param a matrix to invert
+inv <- function (a)
+{
+  if (length(a) == 0)
+    return(matrix(0, nrow = 0, ncol = 0))
+  if ((!is.numeric(a) && !is.complex(a)) || !is.matrix(a))
+    stop("Argument 'a' must be a numeric or complex matrix.")
+  if (nrow(a) != ncol(a))
+    stop("Matrix 'a' must be square.")
+  e <- try(b <- solve(a), silent = TRUE)
+  if (inherits(e, "try-error")) {
+    warning("Matrix appears to be singular.")
+    b <- rep(Inf, length(a))
+    dim(b) <- dim(a)
+  }
+  return(b)
+}
+

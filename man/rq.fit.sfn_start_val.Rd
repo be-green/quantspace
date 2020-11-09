@@ -27,6 +27,8 @@ See e.g. Section 6.8 of Koenker (2005).}
 
 \item{control}{control parameters for fitting routines: see [quantreg::sfn.control()]}
 
+\item{sv}{startin value for optimization, useful when boostrapping}
+
 \item{weight_vec}{Optional vector of weights for regression}
 }
 \description{

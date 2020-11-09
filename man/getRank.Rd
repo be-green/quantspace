@@ -5,7 +5,7 @@
 \title{Computes the rank of a matrix. Outputs consistent results across
 various matrix types.}
 \usage{
-getRank(m, TOL = 1e-09)
+getRank(m, TOL = 1e-10)
 }
 \arguments{
 \item{m}{A matrix, m}

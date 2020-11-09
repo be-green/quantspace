@@ -12,8 +12,10 @@ quantRegSpacing(
   jstar,
   small = 0.001,
   trunc = FALSE,
-  start_list,
-  weight_vec = NULL
+  start_list = NA,
+  weight_vec = NULL,
+  outputQuantiles = FALSE,
+  calculateAvgME = FALSE
 )
 }
 \arguments{
@@ -36,7 +38,9 @@ else, only use rows with residuals greater than small}
 
 \item{weight_vec}{vector of optional weights}
 
-\item{p}{Length of alpha.}
+\item{outputQuantiles}{TRUE or FALSE, whether to output quantiles}
+
+\item{calculateAvgME}{TRUE or FALSE, whether to output average marginal effects}
 }
 \value{
 Returns a list of coefficients.
