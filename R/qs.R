@@ -277,3 +277,38 @@ print.qs_summary <- function(x, d = 4, ...) {
   cat("R2: ", signif(x$R2$ols_r_squared, d))
 }
 
+
+#' Predict quantiles given fitted spacings model
+#' @param object fitted `qs` model
+#' @param newdata optional new data to pass
+#' @param ... additional arguments, ignored for now
+#' @return This function returns a set of predictive quantiles
+#' for each data point, at the quantiles where spacings were
+#' estimated.
+#' @importFrom SparseM model.matrix
+#' @importFrom stats as.formula
+#' @export
+predict.qs <- function(object, newdata = NULL, ...) {
+  if(is.null(newdata)) {
+    if(!is.null(object$quantreg_fit$quantiles)) {
+      p_q <- object$quantreg_fit$quantiles
+    } else {
+      X <- SparseM::model.matrix(stats::as.formula(object$specs$formula),
+                                 data = object$specs$X)
+      p_q <- spacingsToQuantiles(matrix(as.numeric(object$quantreg_fit$coef),
+                                        ncol = length(object$specs$alpha)),
+                                 X,
+                                 jstar = object$specs$jstar)
+    }
+  } else {
+    X <- SparseM::model.matrix(as.formula(object$specs$formula),
+                              data = newdata)
+    p_q <- spacingsToQuantiles(matrix(as.numeric(object$quantreg_fit$coef),
+                                      ncol = length(object$specs$alpha)),
+                               X,
+                               jstar = object$specs$jstar)
+  }
+
+  colnames(p_q) <- object$specs$alpha
+  p_q
+}
