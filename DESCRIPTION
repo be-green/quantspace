@@ -12,7 +12,6 @@ Imports:
     quantreg,
     foreach,
     doParallel,
-    data.table,
     assertthat,
     stringr,
     testthat,

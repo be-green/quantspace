@@ -21,7 +21,7 @@ qs(
   draw_weights = FALSE,
   num_bs = 100,
   parallel = TRUE,
-  num_cores = getCores(),
+  num_cores = NULL,
   save_rows = FALSE,
   seed = NULL,
   outToCsv = FALSE,

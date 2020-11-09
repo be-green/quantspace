@@ -27,7 +27,6 @@
 #' @param csv_filename filename of csv outfile
 #' @param ... additional arguments, ignored for now
 #' @importFrom assertthat assert_that
-#' @importFrom data.table dcast
 #' @importFrom SparseM model.matrix
 #' @importFrom stats model.frame
 #' @importFrom SparseM model.response
