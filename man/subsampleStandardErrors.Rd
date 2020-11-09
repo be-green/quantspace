@@ -16,8 +16,8 @@ subsampleStandardErrors(
   M = 0.2,
   draw_weights = FALSE,
   num_bs = 100,
-  parallelize = F,
-  num_cores = 1,
+  parallel = F,
+  num_cores = getCores(),
   small = 1e-06,
   trunc = FALSE,
   save_rows = FALSE,
@@ -54,6 +54,10 @@ weights to use in subsample}
 
 \item{num_bs}{Number of subsample draws (must be greater than 1).}
 
+\item{parallel}{whether to run in parallel or not}
+
+\item{num_cores}{number of cores to use, defaults to option set by `options(mc.cores)` if not specified}
+
 \item{small}{Minimum size of residuals for computational accuracy.}
 
 \item{trunc}{Boolean value; if true, replace those dependent values less than small with small itself;
@@ -69,8 +73,6 @@ that triggered warnings by quantile regression}
 of itself and a random vector of weights)}
 
 \item{square_ols_weights}{boolean value; if true, square user-supplied weight_vec for OLS}
-
-\item{p}{Length of alpha.}
 }
 \value{
 list of cov: num_betas x num_betas covariance matrix using

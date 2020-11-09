@@ -13,7 +13,7 @@ get_ols_r_squared(a, y, betas, weight_vec = NULL)
 
 \item{betas}{Parameters from OLS fit}
 
-\item{weight_vec}{Optional vector of weights'}
+\item{weight_vec}{Optional vector of weights}
 }
 \description{
 Get R^2 of OLS fit

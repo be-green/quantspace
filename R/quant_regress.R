@@ -10,6 +10,7 @@
 #' @param rhs the right-hand-side of the dual problem; regular users shouldn't need to specify this,
 #' but in special cases can be quite usefully altered to meet special needs.
 #' See e.g. Section 6.8 of Koenker (2005).
+#' @param sv startin value for optimization, useful when boostrapping
 #' @param control control parameters for fitting routines: see [quantreg::sfn.control()]
 #' @param weight_vec Optional vector of weights for regression
 rq.fit.sfn_start_val <- function(a,y,tau=.5,
@@ -173,8 +174,7 @@ quantRegress = function(reg_spec_data,
       sv = sv,
       control = control,
       weight_vec = weight_vec) # Model the quantile
-  }
-  else {
+  } else {
     resids = ehat[ind_hat]
 
     if (!is.null(weight_vec)){
@@ -191,8 +191,7 @@ quantRegress = function(reg_spec_data,
         sv = sv,
         control = control,
         weight_vec = weight_vec) # Model the quantile
-    }
-    else{
+    } else{
       # else, we splice the correct rows here
       j_model <- rq.fit.sfn_start_val(
         a = reg_spec_data$spec_matrix[resids > small,],
@@ -236,7 +235,7 @@ quantRegSpacing = function(
   jstar,
   small = 1e-3,
   trunc = FALSE,
-  start_list,
+  start_list = NA,
   weight_vec = NULL,
   outputQuantiles = FALSE,
   calculateAvgME = FALSE) {
@@ -267,12 +266,12 @@ quantRegSpacing = function(
 
   # Calculate initial fit
 
-  if(is.na(start_list)){ # if user supplied starting values, then use them
+  if(any(is.na(start_list))){ # if user supplied starting values, then use them
     star_model = rq.fit.sfn_start_val(
       a = reg_spec_starting_data$spec_matrix,
       y = dep_col,
       tau = tau,
-      control = list(tmpmax= tmpmax),
+      control = list(tmpmax = tmpmax),
       weight_vec = weight_vec)
 
    } else {
@@ -282,9 +281,10 @@ quantRegSpacing = function(
        a = reg_spec_starting_data$spec_matrix,
        y = dep_col,
        tau = tau,
-       control = list(tmpmax= tmpmax),
+       control = list(tmpmax = tmpmax),
        sv = as.numeric(start_list[col_nums]),
-       weight_vec = weight_vec)
+       weight_vec = weight_vec
+      )
    }
   printWarnings(star_model)
 
@@ -333,7 +333,7 @@ quantRegSpacing = function(
 
     #run quantile regression
     coef <- NULL
-    if(!is.na(start_list)){ # if user specified a start model, then use it as input
+    if(!any(is.na(start_list))){ # if user specified a start model, then use it as input
       col_nums = getColNums(start_list, reg_spec_data, alpha, j)
       sv = as.numeric(start_list[col_nums])
       j_model <- quantRegress(reg_spec_data = reg_spec_data, ehat = ehat,
@@ -350,17 +350,20 @@ quantRegSpacing = function(
     printWarnings(j_model)
 
     #Calculate R^2
-    V <- sum(rho( u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
-    V0 <- quantRegress(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
-                       ehat = ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                       small = small, weight_vec = weight_vec)
-    V0 <- sum(rho(u = V0$residuals, tau = tau.t, weight_vec = V0$weight_vec))
-
+    V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
+    V0 <- quantRegress(
+      reg_spec_data = list(
+        spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
+                           ),
+      ehat = ehat, ind_hat = ind_hat,
+      tau = tau.t, trunc = trunc,
+      small = small, weight_vec = weight_vec)
+    V0 <- sum(rho(u = V0$residuals, tau = tau.t,
+                  weight_vec = V0$weight_vec))
 
     # Update residuals
     coef = j_model$coefficients
     coef_df <- as.data.frame(t(coef))
-
 
     #get column names
     colnames(coef_df) <- reg_spec_data$var_names
@@ -404,7 +407,7 @@ quantRegSpacing = function(
 
     coef <- NULL
 
-    if(!is.na(start_list)){ # if the user supplied starting values, then use them in the function
+    if(!any(is.na(start_list))) { # if the user supplied starting values, then use them in the function
       col_nums = getColNums(start_list, reg_spec_data, alpha, j)
       sv = as.numeric(start_list[col_nums])
       j_model <- quantRegress(reg_spec_data = reg_spec_data,
@@ -414,8 +417,7 @@ quantRegSpacing = function(
                               tau = tau.t, trunc = trunc, small = small,
                               control = list(tmpmax = tmpmax),
                               weight_vec = weight_vec)
-    }
-    else{
+    } else {
       j_model <- quantRegress(reg_spec_data = reg_spec_data,
                               ehat = -ehat,
                               ind_hat = ind_hat,
@@ -465,9 +467,9 @@ quantRegSpacing = function(
   # calculate average marginal effects if user-specified
   if(calculateAvgME){
     # calculate the average spacing (column-wise average)
-    averageSpacing = calcAvgSpacing(data, rv$coef, alpha, jstar, TRIM=.01)
+    averageSpacing = calcAvgSpacing(data, rv$coef, alpha, jstar, trim=.01)
     qreg_coef = matrix(as.numeric(rv$coef), ncol = p)
-    me = get_marginal_effects(qreg_coeffs = qreg_coef,
+    me = getMarginalEffects(qreg_coeffs = qreg_coef,
                               avg_spacings = as.numeric(averageSpacing[2,]),
                               j_star = jstar,
                               calcSE = FALSE)
@@ -514,22 +516,18 @@ spacingsToQuantiles <- function(spacingCoef, data, jstar) {
   return(quantiles)
 }
 
-calcAvgSpacing = function(x, betas, alpha, jstar, TRIM=.01){
-  # Computes means for various slices of a regression_spec by betas product.
-  #
-  # Args:
-  #  x: Regression specification.
-  #  betas: Fitted quantile coefficients for specification.
-  #  alpha: Quantiles targeted.
-  #  jstar: First quantile to be estimated (usually the center one)
-  #  TRIM: Fraction (0 to 0.5) of observations to be trimmed from each end of
-  #   a given column in the regression_spec by betas product before the mean is computed.
-  #
-  # Returns: Matrix with rows containing means for each quantile for various slices
-  #  of the specification.
-  #
+#' Computes means for various slices of a regression_spec by betas product.
+#' @param x Regression specification.
+#' @param betas Fitted quantile coefficients for specification.
+#' @param alpha Quantiles targeted.
+#' @param jstar First quantile to be estimated (usually the center one)
+#' @param trim Fraction (0 to 0.5) of observations to be trimmed from each end of
+#' a given column in the regression_spec by betas product before the mean is computed.
+#' @return Matrix with rows containing means for each quantile for various slices
+#'  of the specification.
+#' @export
+calcAvgSpacing = function(x, betas, alpha, jstar, trim=.01){
 
-  # First reshape the betas into wide format
   num_quantiles <- length(alpha)
   num_betas <- length(betas) / num_quantiles
   betas_wide <- matrix(as.integer(betas), num_betas, num_quantiles)
@@ -540,33 +538,30 @@ calcAvgSpacing = function(x, betas, alpha, jstar, TRIM=.01){
   x_beta_prod[,-jstar] <- exp(x_beta_prod[,-jstar])
 
   beta_means <- apply(x_beta_prod, 2, mean)
-  beta_trimmed_means <- apply(x_beta_prod, 2, FUN = function(k) { mean(k, trim = TRIM) })
+  beta_trimmed_means <- apply(x_beta_prod, 2, FUN = function(k) { mean(k, trim = trim) })
 
   means_out <- rbind(beta_means, beta_trimmed_means)
-  rownames(means_out) <- c("FitQ_or_S_mean_full_spec", "FitQ_or_S_mean_full_spec_trimmed")
+  rownames(means_out) <- c("FitQ_or_S_mean_full_spec",
+                           "FitQ_or_S_mean_full_spec_trimmed")
   return(means_out)
 }
 
-
-get_marginal_effects = function(qreg_coeffs,
-                                avg_spacings,
-                                j_star,
-                                calcSE = TRUE,
-                                qreg_vcv_vec = NULL){
-  # Calculates the marginal effects  of an N x p matrix (wide-format) of qreg coefficients
-  #
-  # Args:
-  #   qreg_coeffs: wide-format of calculated spacings point estimates
-  #   avg_spacings: average spacings matrix, which can be calculated from setting calculateAvgME = TRUE or using
-  #                 the calcAvgSpacing function directly
-  #   j_star: the first quantile the user wishes to predict (usually the middle one)
-  #   calcSE: boolean value, indicating whether the user wishes to calculate the marginal effect standard errors
-  #   qreg_vcv_vec: variance-covariance matrix from point estimates, only necessary if calculating standard errors
-  #
-  # Returns:
-  #   list of values: avgME: calculated average marginal effects
-  #                   avgME_se (user-specified): standard errors on the calculated marginal effects
-  #
+#' Calculates the marginal effects  of an N x p matrix (wide-format) of qreg coefficients
+#' @param qreg_coeffs wide-format of calculated spacings point estimates
+#' @param avg_spacings average spacings matrix, which can be calculated from setting calculateAvgME = TRUE or using
+#'                 the calcAvgSpacing function directly
+#' @param j_star the first quantile the user wishes to predict (usually the middle one)
+#' @param calcSE boolean value, indicating whether the user wishes to calculate the marginal effect standard errors
+#' @param qreg_vcv_vec variance-covariance matrix from point estimates, only necessary if calculating standard errors
+#
+#' @return list of values: avgME: calculated average marginal effects
+#' avgME_se (user-specified): standard errors on the calculated marginal effects
+#' @export
+getMarginalEffects = function(qreg_coeffs,
+                              avg_spacings,
+                              j_star,
+                              calcSE = TRUE,
+                              qreg_vcv_vec = NULL){
 
   N = dim(qreg_coeffs)[1]
   p = dim(qreg_coeffs)[2]

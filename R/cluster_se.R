@@ -21,7 +21,6 @@ getClusterIndices = function(cluster_col) {
 
 }
 
-
 #' Draws a subsample of clusters and (optionally) assigns
 #' random, exponential weights to each cluster
 #' @param cluster_indices N_cluster x 2 vector with starting
@@ -37,6 +36,7 @@ getClusterIndices = function(cluster_col) {
 #' @return list of
 #' subsample_rows: Boolean vector of selected rows of sampled clusters
 #' subsample_weights: either NULL, or vector of cluster weights
+#' @importFrom stats rexp
 clusterSample = function(cluster_indices,
                          stratum_indices = NULL,
                          M = 1,
@@ -71,7 +71,7 @@ clusterSample = function(cluster_indices,
   if (!draw_weights){
     subsample_weights <- NULL
   } else {
-    cluster_weights <- pmax(rexp(dim(sampled_indices)[1]),5e-3)
+    cluster_weights <- pmax(stats::rexp(dim(sampled_indices)[1]),5e-3)
     subsample_weights <- matrix(0,n_sampled_rows,1)
   }
 
@@ -100,6 +100,16 @@ clusterSample = function(cluster_indices,
 #' @importFrom foreach `%dopar%`
 `%dopar%` <- foreach::`%dopar%`
 
+#' Get user defined cores
+getCores <- function() {
+  mc_cores <- getOption("mc.cores")
+  if(is.null(mc_cores)) {
+    1
+  } else {
+    max(c(1, mc_cores))
+  }
+}
+
 #' Computes standard errors for the quantile regression spacing method using
 #' subsampling.
 #' @param data Regression specification matrix.
@@ -107,7 +117,6 @@ clusterSample = function(cluster_indices,
 #' @param var_names RHS regression variable names.
 #' @param alpha Quantiles to be estimated.
 #' @param jstar First quantile to be estimated (usually the center one)
-#' @param p Length of alpha.
 #' @param cluster_indices N_cluster x 2 vector with starting
 #'                   and ending positions of each cluster.
 #'                   NOTE that this requires that data are
@@ -120,6 +129,8 @@ clusterSample = function(cluster_indices,
 #' @param draw_weights Boolean value; if true, draw a vector of exponential
 #'                 weights to use in subsample
 #' @param num_bs Number of subsample draws (must be greater than 1).
+#' @param parallel whether to run in parallel or not
+#' @param num_cores number of cores to use, defaults to option set by `options(mc.cores)` if not specified
 #' @param small Minimum size of residuals for computational accuracy.
 #' @param trunc Boolean value; if true, replace those dependent values less than small with small itself;
 #'         else, only use rows with residuals greater than small
@@ -149,6 +160,10 @@ clusterSample = function(cluster_indices,
 #' @importFrom foreach `%dopar%`
 #' @importFrom parallel makeCluster
 #' @importFrom parallel stopCluster
+#' @importFrom methods is
+#' @importFrom stats rexp
+#' @importFrom stats cov
+#' @importFrom stats dnorm
 #' @export
 subsampleStandardErrors = function(
   dep_col,
@@ -160,12 +175,12 @@ subsampleStandardErrors = function(
   stratum_indices = NULL,
   M = 0.2,
   draw_weights = FALSE,
-  num_bs = 100, parallelize = F, num_cores = 1, small = 1e-6,
+  num_bs = 100, parallel = F, num_cores = getCores(), small = 1e-6,
   trunc = FALSE, save_rows = FALSE, start_model, weight_vec = NULL,
   square_ols_weights = FALSE) {
 
   # check to see if regression matrix is sparse. If not, then turn into CSR matrix
-  if(!is(data, 'matrix.csr')) data = denseMatrixToSparse(data)
+  if(!methods::is(data, 'matrix.csr')) data = denseMatrixToSparse(data)
 
   num_betas = dim(data)[2]
 
@@ -174,21 +189,16 @@ subsampleStandardErrors = function(
     stop("Subsampling percentage must be between 0 and 1")
   }
 
-  if(parallelize){
+  if(parallel == F) {
+    num_cores <- 1
+    parallel <- T
+  }
+
+  if(parallel){
 
     cl = parallel::makeCluster(num_cores, outfile = '')
 
     doParallel::registerDoParallel(cl)
-
-    message(paste0(
-      "Number of workers for subsampling is: ",
-      foreach::getDoParWorkers()))
-    message(paste0(
-      "Registered parallel backend is: ",
-      foreach::getDoParName()))
-    message(paste0(
-      "Do parallel version is: ",
-      foreach::getDoParVersion()))
 
     fit = foreach::foreach(
       bs = 1:num_bs,
@@ -206,7 +216,7 @@ subsampleStandardErrors = function(
       if (is.null(cluster_indices)) {
         rows = sample(dim(data)[1],floor(M*dim(data)[1]))
         if (draw_weights){
-          if(any(is.null(weight_vec))) rand_weight_vec <- pmax(rexp(length(rows)),5e-3)
+          if(any(is.null(weight_vec))) rand_weight_vec <- pmax(stats::rexp(length(rows)),5e-3)
           else {
             rand_weight_vec <- pmax(rexp(length(rows)),5e-3) * weight_vec[rows]
             if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
@@ -261,124 +271,12 @@ subsampleStandardErrors = function(
     }
     parallel::stopCluster(cl)
   }
-  else{
-    # if no clustering is specified, draw sample here.
-    # Need to provide a cluster_id variable to stratify
-    if (is.null(cluster_indices)) {
-      rows = sample(dim(data)[1],floor(M*dim(data)[1]))
-      if (draw_weights){
-        if(any(is.null(weight_vec))) rand_weight_vec <- pmax(rexp(length(rows)),5e-3)
-        else {
-          rand_weight_vec <- pmax(rexp(length(rows)),5e-3) * weight_vec[rows]
-          if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-          else ols_rand_weight_vec <- rand_weight_vec
-        }
-      }
-      else {
-        rand_weight_vec <- weight_vec[rows]
-        if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-        else ols_rand_weight_vec <- rand_weight_vec
-      }
-    } else{
-      # call clusterSample here to generate clustered standard errors
-      subsample_outputs <- clusterSample(cluster_indices = cluster_indices,
-                                         stratum_indices = stratum_indices,
-                                         M = M,
-                                         draw_weights = draw_weights)
-      rows <- subsample_outputs$subsample_rows
-      if(any(is.null(weight_vec))) rand_weight_vec <- subsample_outputs$subsample_weights
-      else{
-        if(draw_weights) {
-          rand_weight_vec <- subsample_outputs$subsample_weights * weight_vec[rows]
-          if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-          else ols_rand_weight_vec <- rand_weight_vec
-        }
-        else {
-          rand_weight_vec <- weight_vec[rows]
-          if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-          else ols_rand_weight_vec <- rand_weight_vec
-        }
-      }
-    }
-    if (!exists("ols_rand_weight_vec")) ols_rand_weight_vec <- NULL
-    if (!exists("rand_weight_vec"))     rand_weight_vec <- NULL
-    fit <- quantRegSpacing(
-      data = data[rows,],
-      dep_col = dep_col[rows],
-      var_names = var_names,
-      alpha = alpha,
-      jstar = jstar,
-      small = small,
-      trunc = trunc,
-      start_list = start_model,
-      weight_vec = rand_weight_vec)
-    fit$OLS <- as.data.frame(t(ols_sparse_fit(a = data[rows,],
-                                              y = dep_col[rows],
-                                              weight_vec = ols_rand_weight_vec)))
 
-    for(bs in 2:num_bs){
-      # if no clustering is specified, draw sample here.
-      # Need to provide a cluster_id variable to stratify
-      if (is.null(cluster_indices)) {
-        rows = sample(dim(data)[1],floor(M*dim(data)[1]))
-        if (draw_weights){
-          if(any(is.null(weight_vec))) rand_weight_vec <- pmax(rexp(length(rows)),5e-3)
-          else {
-            rand_weight_vec <- pmax(rexp(length(rows)),5e-3) * weight_vec[rows]
-            if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-            else ols_rand_weight_vec <- rand_weight_vec
-          }
-        }
-        else {
-          rand_weight_vec <- weight_vec[rows]
-          if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-          else ols_rand_weight_vec <- rand_weight_vec
-        }
-      } else{
-        # call clusterSample here to generate clustered standard errors
-        subsample_outputs <- clusterSample(cluster_indices = cluster_indices,
-                                           stratum_indices = stratum_indices,
-                                           M = M,
-                                           draw_weights = draw_weights)
-        rows <- subsample_outputs$subsample_rows
-        if(any(is.null(weight_vec))) rand_weight_vec <- subsample_outputs$subsample_weights
-        else{
-          if(draw_weights) {
-            rand_weight_vec <- subsample_outputs$subsample_weights * weight_vec[rows]
-            if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-            else ols_rand_weight_vec <- rand_weight_vec
-          }
-          else {
-            rand_weight_vec <- weight_vec[rows]
-            if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-            else ols_rand_weight_vec <- rand_weight_vec
-          }
-        }
-      }
-      if (!exists("ols_rand_weight_vec")) ols_rand_weight_vec <- NULL
-      if (!exists("rand_weight_vec"))     rand_weight_vec <- NULL
-      cur_fit <- quantRegSpacing(
-        data = data[rows,],
-        dep_col = dep_col[rows],
-        var_names = var_names,
-        alpha = alpha,
-        jstar = jstar,
-        small = small,
-        trunc = trunc,
-        start_list = start_model,
-        weight_vec = rand_weight_vec)
-      cur_fit$OLS <- as.data.frame(t(ols_sparse_fit(a = data[rows,],
-                                                    y = dep_col[rows],
-                                                    weight_vec = ols_rand_weight_vec)))
-      fit = mapply('rbind', fit, cur_fit)
-    }
-  }
-
-  quant_cov_mat <- cov(fit$coef)
+  quant_cov_mat <- stats::cov(fit$coef)
   quant_cov_mat <- quant_cov_mat * (M)
 
   colnames(fit$OLS) <- var_names
-  ols_cov_mat <- cov(fit$OLS)
+  ols_cov_mat <- stats::cov(fit$OLS)
   ols_cov_mat <- ols_cov_mat * (M)
 
   return(list('quant_cov' = quant_cov_mat,

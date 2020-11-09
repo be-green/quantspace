@@ -29,11 +29,11 @@ getDeltas(
 \item{weights}{vector of observations weights. Defaults to 1/N
 for each observation if unspecified}
 
-\item{...}{unused for now}
-
-\item{desired_coefs}{which coefficients to calculate standard errors.
+\item{desired_coeffs}{which coefficients to calculate standard errors.
 If want standard errors for first and second parameters for each quantile,
 should desired_coeffs = c(1,2)}
+
+\item{...}{unused for now}
 }
 \value{
 List w/ p elements, with jth element a

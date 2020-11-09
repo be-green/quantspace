@@ -55,6 +55,7 @@ findRedundantCols = function(m, TOL = 0.000000001) {
 #' @return A full-rank specification matrix. If the input is full-rank, returns the
 #' input unmodified. Otherwise, returns a matrix with a subset of the columns
 #' from the input.
+#' @importFrom methods as
 ensureSpecFullRank = function(spec_mat, col_names) {
 
   # Check if input is already matrix full rank
@@ -140,8 +141,8 @@ addMissingSpecColumns = function(df, names) {
 #' Get column numbers given starting values and regression specification
 #' @param start_list starting values (can be NA's) to be fd into sfn_start_val function
 #' @param reg_spec_data result of ensureSpecRank function; regression matrix with full rank
-#' alpha: column vector of quantiles to be estimated
-#' j: index of quantile currently being calculated
+#' @param alpha column vector of quantiles to be estimated
+#' @param j index of quantile currently being calculated
 #' @return If start_list is supplied, then returns the correct column numbers
 #' to be used in regression. Otherwise, it returns NULL.
 getColNums = function(start_list,
@@ -159,6 +160,9 @@ getColNums = function(start_list,
 }
 
 #' For copying matrices as in Matlab (works for sparse matrices)
+#' @param X matrix to replicate
+#' @param m number of times replicate the matrix rows
+#' @param n number of times replicate the matrix columns
 repMat <- function(X, m, n){
   Y <- do.call(rbind, rep(list(X), m))
   do.call(cbind, rep(list(Y), n))
@@ -166,11 +170,13 @@ repMat <- function(X, m, n){
 
 #' Create sparse diagonal matrix with vector x on diagonal
 #' @import SparseM
+#' @param v Vector to use as the diagonal of the matrix
 spDiag <- function(v){
   return(as(as.vector(v),"matrix.diag.csr"))
 }
 
 #' Return column sums of matrix
+#' @param m matrix to sum up
 spSums <- function(m){
   N <- dim(m)[1]
   ones <- denseMatrixToSparse(repMat(1,1,N))
@@ -178,6 +184,7 @@ spSums <- function(m){
 }
 
 #' Inverse of a matrix, but catches the error
+#' @param a matrix to invert
 inv <- function (a)
 {
   if (length(a) == 0)

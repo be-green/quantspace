@@ -1,3 +1,8 @@
+#' @title Quadratic form of the cubic polynomial
+#' @param a parameter 1 in a cubic equation
+#' @param b parameter 2 in a cubic equation
+#' @param c parameter 3 in a cubic equation
+#' @param discriminant discriminant of the polynomial
 quad_form <- function(a, b, c, discriminant = NULL) {
   if (!is.null(discriminant)) {
     root1 <- (-b + sqrt(discriminant)) / (2*a)
@@ -9,11 +14,23 @@ quad_form <- function(a, b, c, discriminant = NULL) {
   return(cbind(root1, root2))
 }
 
+#' Find cube root of the form ax^3 + bx^2 + cx + d=0
+#' @param a parameter 1 in cubic equation
+#' @param b parameter 2 in cubic equation
+#' @param c parameter 3 in cubic equation
+#' @param d parameter 4 in cubic equation
 cub_root <- function(a, b, c, d) {
   roots <- apply(cbind(d, c, b, a), 1, polyroot)
   return(Re(roots)[abs(Im(roots)) < 1e-6])
 }
 
+#' Find cube root of the form ax^3 + bx^2 + cx + d=0
+#' @param a parameter 1 in cubic equation
+#' @param b parameter 2 in cubic equation
+#' @param c parameter 3 in cubic equation
+#' @param d parameter 4 in cubic equation
+#' @param q_1 lower quantile to bound the root
+#' @param q_2 upper quantile to bound the root
 cub_root_select <- function(a, b, c, d, q_1, q_2) {
   roots <- apply(cbind(d, c, b, a), 1, polyroot)
   roots_clean <- matrix(Re(roots)[abs(Im(roots)) < 1e-6], ncol = 3, byrow = TRUE)
@@ -21,10 +38,18 @@ cub_root_select <- function(a, b, c, d, q_1, q_2) {
   return(roots_clean[select])
 }
 
+#' Calculate cubic roots using the Rconics package
+#' @importFrom RConics cubic
+#' @param a parameter 1 in cubic equation
+#' @param b parameter 2 in cubic equation
+#' @param c parameter 3 in cubic equation
+#' @param d parameter 4 in cubic equation
+#' @param q_1 lower quantile to bound the root
+#' @param q_2 upper quantile to bound the root
 cub_root_select_rconics <- function(a, b, c, d, q_1, q_2) {
   #roots_clean <- matrix(Re(roots)[abs(Im(roots)) < 1e-6], ncol = 3, byrow = TRUE)
   coeff <- cbind(a,b,c,d)
-  roots <- apply(cbind(a,b,c,d), 1, cubic)
+  roots <- apply(cbind(a,b,c,d), 1, RConics::cubic)
   roots_clean <- matrix(roots, ncol = 3, byrow = TRUE)
   roots_clean[abs(Im(roots_clean)) > 1e-6] <- NA
   roots_clean <- Re(roots_clean)
@@ -35,23 +60,31 @@ cub_root_select_rconics <- function(a, b, c, d, q_1, q_2) {
   return(roots_clean)
 }
 
+#' Derivative of a cubic root
+#' @param a parameter 1 in cubic equation
+#' @param b parameter 2 in cubic equation
+#' @param c parameter 3 in cubic equation
+#' @param d parameter 4 in cubic equation
 cub_root_deriv <- function(a, b, c, d) {
   roots <- apply(cbind(d, c, b, a), 1, polyroot)
   root <- Re(roots)[abs(Im(roots)) < 1e-6]
   return(1 / (c + 2 * root * b + 3 * root^2 * a))
 }
 
+#' Computes the tail parameters and the second derivatives
+#' given quantiles
+#' @param quantiles a matrix of size N by p containing the
+#' fitted quantiles
+#' @param alphas quantiles that were computed
+#' @param tails what distribution to use for the tails
+#' @return A list containing the tail parameters and the second
+#' derivatives
+#' @importFrom stats pnorm
+#' @importFrom stats dnorm
+#' @importFrom stats qnorm
+#' @importFrom stats rexp
+#' @importFrom stats cov
 q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
-  ###########################################################
-  #A function to compute the tail parameters and the second derivatives
-  #Input:
-  #quantiles: a matrix of size N b p;  the fitted quantiles computed
-  #           based alphas
-  #tails: based on what distribution to compute the tails
-  #Retrun:
-  #       A list containing the tail parameters and the second
-  #       derivatives
-  ###########################################################
 
   p <- dim(quantiles)[2]
   N <- dim(quantiles)[1]
@@ -64,12 +97,12 @@ q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
 
   # solving for location and scale parameters for a distribtuion for the left and right tails
   if (tails == "gaussian") {
-    tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, qnorm(alphas[1  ]), qnorm(alphas[2])), nrow = 2, ncol = 2)))
-    tail_param_u <- quantiles[, (p-1):p] %*% t(inv(matrix(c(1, 1, qnorm(alphas[p-1]), qnorm(alphas[p])), nrow = 2, ncol = 2)))
+    tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, stats::qnorm(alphas[1  ]), stats::qnorm(alphas[2])), nrow = 2, ncol = 2)))
+    tail_param_u <- quantiles[, (p-1):p] %*% t(inv(matrix(c(1, 1, stats::qnorm(alphas[p-1]), stats::qnorm(alphas[p])), nrow = 2, ncol = 2)))
 
     # calculating derivatives of the pdf -- boundary conditions for the spline
-    yp1 <- dnorm(quantiles[, 2  ], mean = tail_param_l[,1], sd = tail_param_l[,2])
-    ypp <- dnorm(quantiles[, p-1], mean = tail_param_u[,1], sd = tail_param_u[,2])
+    yp1 <- stats::dnorm(quantiles[, 2  ], mean = tail_param_l[,1], sd = tail_param_l[,2])
+    ypp <- stats::dnorm(quantiles[, p-1], mean = tail_param_u[,1], sd = tail_param_u[,2])
   } else if (tails == "exponential") {
     tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, log(alphas[1]), log(alphas[2])), nrow = 2, ncol = 2)))
     tail_param_u <- quantiles[, (p-1):p] %*% t(inv(matrix(c(1, 1, -log(1 - alphas[p-1]), -log(1 - alphas[p])), nrow = 2, ncol = 2)))
@@ -80,7 +113,6 @@ q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
   } else {
     stop("Passed value to tails argument must be either 'gaussian' or 'exponential'.")
   }
-  # print(matrix(c(1, 1, qnorm(alphas[1  ]), qnorm(alphas[2])), nrow = 2, ncol = 2))
 
   # next, we solve for the parameters of the cubic spline characterizing the CDF. Per the numerical recipes text,
   # this can be characterized in terms of the second derivative at each knot
@@ -119,28 +151,32 @@ q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
   return(list(y2 = y2, tail_param_u = tail_param_u, tail_param_l = tail_param_l, q_shift = q_shift, q_stretch = q_stretch))
 
 }
-
-splint_R <- function(y, quantiles, alphas, y2, tail_param_u, tail_param_l,
-                     q_shift, q_stretch, y_rows = NULL,
+#' A function to conduct the interpolation given data and fitted quantiles
+#' @param y a vector of quantile or pdf
+#' @param quantiles a matrix of size N b p;  the fitted quantiles computed
+#           based alphas
+#' @param y2 second derivatives
+#' @param alphas quantiles that were computed
+#' @param tail_param_u the tail parameters for upper quantiles
+#' @param tail_param_l the tail parameters for lower quantiles
+#' @param q_shift normalization parameters
+#' @param q_stretch normalization parameters
+#' @param tails based on what distribution to compute the tails
+#' @param distn a string which indicates what type of distribution to return. See details.
+#' @details the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
+#' and "q" to evaluate a quantile distribution.
+#' @importFrom stats pnorm
+#' @importFrom stats dnorm
+#' @importFrom stats qnorm
+#' @importFrom stats rexp
+#' @importFrom stats cov
+#' @importFrom stats model.frame
+#' @return A vector of quantiles or density corresponding to y
+splint_R <- function(y, quantiles, alphas, y2, tail_param_u,
+                     tail_param_l,
+                     q_shift, q_stretch,
                      tails = "gaussian", distn = "c") {
-  ###########################################################
-  #A function to condut the interpolation given data and fitted quantiles
-  #y: a vector of quantile or pdf
-  #quantiles: a matrix of size N b p;  the fitted quantiles computed
-  #           based alphas
-  #y2: second derivatives
-  #tail_param_u: the tail parameters for upper quantiles
-  #tail_param_l: the tail parameters for lower quantiles
-  #q_shift: normalization parameters
-  #q_stretch: normalization parameters
-  #tails: based on what distribution to compute the tails
-  #distn: a string: takes on value:
-  #       p: pdf
-  #       c: cdf
-  #       q: quantile
-  #Retrun:
-  #       y_hat: A vector of quantiles or density corresponding to y
-  ###########################################################
+
   N <- length(y)
   p <- length(alphas)
 
@@ -163,7 +199,6 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u, tail_param_l,
               (y - q_shift) / q_stretch,
               y)
 
-  ####### These variables can probably be cleaned up a bit ########
   y_hat_prime <- vector(mode = "numeric", length = N)
 
   # preallocating vectors here
@@ -186,7 +221,7 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u, tail_param_l,
       y_hat_low <- rep(NA, N)
     } else {
       y_hat_low <- ifelse(distn == "c",
-                          pnorm(y_low, mean = tail_param_l[, 1], sd = tail_param_l[, 2]),
+                          stats::pnorm(y_low, mean = tail_param_l[, 1], sd = tail_param_l[, 2]),
                           ifelse(distn == "p",
                                  dnorm(y_low, mean = tail_param_l[, 1], sd = tail_param_l[, 2]),
                                  qnorm(y_low, mean = tail_param_l[, 1], sd = tail_param_l[, 2])
@@ -197,10 +232,10 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u, tail_param_l,
       y_hat_hi <- rep(NA, N)
     } else {
       y_hat_hi <- ifelse(distn == "c",
-                         pnorm(y_hi, mean = tail_param_u[, 1], sd = tail_param_u[, 2]),
+                         stats::pnorm(y_hi, mean = tail_param_u[, 1], sd = tail_param_u[, 2]),
                          ifelse(distn == "p",
-                                dnorm(y_hi, mean = tail_param_u[, 1], sd = tail_param_u[, 2]),
-                                qnorm(y_hi, mean = tail_param_u[, 1], sd = tail_param_u[, 2])
+                                stats::dnorm(y_hi, mean = tail_param_u[, 1], sd = tail_param_u[, 2]),
+                                stats::qnorm(y_hi, mean = tail_param_u[, 1], sd = tail_param_u[, 2])
                          )
       )
     }
@@ -238,7 +273,6 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u, tail_param_l,
       if (!any(y_int)) {
         next
       }
-      # print(i)
       h <- quantiles[y_int, i+1] - quantiles[y_int, i]
       a <- (quantiles[y_int, i+1] - y_mid[y_int])/h
       b <- (y_mid[y_int] - quantiles[y_int, i])/h
@@ -299,58 +333,78 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u, tail_param_l,
   return(y_hat)
 }
 
+#' A function to evaluate the quantile or density of
+#' given data based on normal distribution
+#' @param y a vector of quantile or pdf
+#' @param alphas a vector of specifed quantiles to interpolate
+#' @param m mean of the normal distribution
+#' @param s standard deviation of the normal distribution
+#' @param distn a string which indicates what type of distribution to return. See details.
+#' @param tails what distribution to use for the tails
+#' @details the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
+#' and "q" to evaluate a quantile distribution.
+#' @importFrom stats qnorm
+#' @return A vector of quantiles or density corresponding to y
+eval_density_R<-function(y, alphas, m = 1, s = 1, distn = "p",
+                         tails = "gaussian"){
 
-splint <- function(y, quantiles, alphas, y2, tail_param_u, tail_param_l, y_rows = NULL, tails = "gaussian", distn = "c") {
-  if (distn == "c") {
-    splint_R(y, quantiles, alphas, y2, tail_param_u, tail_param_l, y_rows, tails, TRUE)
-  } else {
-    splint_R(y, quantiles, alphas, y2, tail_param_u, tail_param_l, y_rows, tails, FALSE)
-
-  }
-}
-
-
-eval_density_R<-function(y, alphas, m = 1, s = 1, distn = "p"){
-  ###########################################################
-  #A function to evaluate the quantile or density of
-  #given data based on normal distribution
-  #y: a vector of quantile or pdf
-  #alphas: a vector of specifed quantiles to interpolate
-  #m: mean of the normal distribution
-  #s: standard deviation of the normal distribution
-  #distn: a string: takes on value:
-  #       p: pdf
-  #       c: cdf
-  #       q: quantile
-  #Return:
-  #       A vector of quantiles or density corresponding to y
-  ###########################################################
   p<-length(alphas)
   jstar<-round(p/2)
   N<-length(y)
 
   #####set up the quantile parameters
-  eta_theta_temp <- log(qnorm(alphas[-1], mean = m, sd = s) - qnorm(alphas[-length(alphas)], mean = m, sd = s))
-  eta_theta <- matrix(c(eta_theta_temp[1:(round(p/2)-1)], m, eta_theta_temp[round(p/2):(p-1)]), nrow = 1)
+  eta_theta_temp <- log(stats::qnorm(alphas[-1], mean = m, sd = s) -
+                          stats::qnorm(alphas[-length(alphas)], mean = m, sd = s))
+  eta_theta <- matrix(c(eta_theta_temp[1:(round(p/2)-1)], m,
+                        eta_theta_temp[round(p/2):(p-1)]), nrow = 1)
 
   quantiles<-spacingsToQuantiles(eta_theta, matrix(1, N, 1), jstar)
-  spline_params <- q_spline_R(quantiles, alphas, tails = "gaussian")
-  y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]], spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],  spline_params[["q_shift"]], spline_params[["q_stretch"]],tails = "gaussian", distn = distn)
+  spline_params <- q_spline_R(quantiles, alphas, tails = tails)
+  y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]],
+                    spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],
+                    spline_params[["q_shift"]], spline_params[["q_stretch"]],
+                    tails = tails, distn = distn)
   return(y_hat)
 }
 
-eval_PDF <- function(y,quantiles,alphas,distn = "p", tails = "gaussian") {
+#' Evaluate PDF given quantiles and residuals
+#' @param y a vector of quantile or pdf
+#' @param quantiles a matrix of size N b p made up of the previously fitted quantiles
+#' @param alphas which quantiles were previously computed, vector of probs
+#' @param tails what distribution to use when computing the tails
+#' @param distn a string which indicates what type of distribution to return. See details.
+#' @details the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
+#' and "q" to evaluate a quantile distribution.
+eval_PDF <- function(y,quantiles,alphas,distn = "p", tails = tails) {
   spline_params <- q_spline_R(quantiles,alphas,tails)
-  y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]], spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],  spline_params[["q_shift"]], spline_params[["q_stretch"]],tails = tails, distn = distn)
+  y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]],
+                    spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],
+                    spline_params[["q_shift"]], spline_params[["q_stretch"]],tails = tails, distn = distn)
   return(y_hat)
 }
 
+#' Evaluate CDF given quantiles and residuals
+#' @param y a vector of quantile or pdf
+#' @param quantiles a matrix of size N b p made up of the previously fitted quantiles
+#' @param alphas which quantiles were previously computed, vector of probs
+#' @param tails what distribution to use when computing the tails
+#' @param distn a string which indicates what type of distribution to return. See details.
+#' @details the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
+#' and "q" to evaluate a quantile distribution.
 eval_CDF <- function(y,quantiles,alphas,distn = "c", tails = "gaussian") {
   spline_params <- q_spline_R(quantiles,alphas,tails)
   y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]], spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],  spline_params[["q_shift"]], spline_params[["q_stretch"]],tails = tails, distn = distn)
   return(y_hat)
 }
 
+#' Evaluate CDF given quantiles and residuals
+#' @param y a vector of quantile or pdf
+#' @param quantiles a matrix of size N b p made up of the previously fitted quantiles
+#' @param alphas which quantiles were previously computed, vector of probs
+#' @param tails what distribution to use when computing the tails
+#' @param distn a string which indicates what type of distribution to return. See details.
+#' @details the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
+#' and "q" to evaluate a quantile distribution.
 eval_Quantiles <- function(y,quantiles,alphas,distn = "q", tails = "gaussian") {
   spline_params <- q_spline_R(quantiles,alphas,tails)
   y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]], spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],  spline_params[["q_shift"]], spline_params[["q_stretch"]],tails = tails, distn = distn)

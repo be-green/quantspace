@@ -7,7 +7,6 @@
 #' @param varnames vector of variable names for output
 #' @param ols_r_squared R-squared for the OLS fit.
 #' @return Summary output matrix
-#' @export
 summary_output = function(
   quant_fit,
   ols_fit,

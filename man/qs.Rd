@@ -9,7 +9,23 @@ qs(
   data,
   quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
   baseline_quantile = 0.5,
-  se_method = "delta",
+  se_method = "boot",
+  trunc = T,
+  small = 0.001,
+  weight_vec = NULL,
+  outputQuantiles = TRUE,
+  calculateAvgME = TRUE,
+  subsamplePct = 0.2,
+  cluster_indices = NULL,
+  stratum_indices = NULL,
+  draw_weights = FALSE,
+  num_bs = 100,
+  parallel = TRUE,
+  num_cores = getCores(),
+  save_rows = FALSE,
+  seed = NULL,
+  outToCsv = FALSE,
+  csv_filename = NULL,
   ...
 )
 }
@@ -28,6 +44,40 @@ If not found in data, the variables are taken from environment(formula)}
 
 \item{se_method}{one of "delta" or "boot". Delta uses the delta method approximation,
 while boot bootstraps the standard errors.}
+
+\item{trunc}{whether to truncate small values}
+
+\item{small}{level of "small" values to guarentee numerical stability}
+
+\item{weight_vec}{vector of weights for weighted quantile regression}
+
+\item{outputQuantiles}{whether to output the fitted quantiles}
+
+\item{calculateAvgME}{whether to calculated average marginal effects}
+
+\item{subsamplePct}{percent to subsample for standard error calculations}
+
+\item{cluster_indices}{index of clusters for clustered standard errors}
+
+\item{stratum_indices}{index of strata for clustered standard errors}
+
+\item{draw_weights}{whether to use random exponential weights for bootstrap}
+
+\item{num_bs}{number of bootstrap draws}
+
+\item{parallel}{whether to run bootstrap in parallel}
+
+\item{num_cores}{number of cores to use (defaults to setting from `getOption(mc.cores)`)}
+
+\item{save_rows}{whether to save rows, see [subsampleStandardErrors]}
+
+\item{seed}{what seed to use for replicable RNG}
+
+\item{outToCsv}{whether to save fit to a csv file}
+
+\item{csv_filename}{filename of csv outfile}
+
+\item{...}{additional arguments, ignored for now}
 }
 \description{
 Compute quantile regressions via quantile spacings

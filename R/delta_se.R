@@ -6,14 +6,15 @@
 #' @param jstar First quantile to be estimated (usually the center one)
 #' @param weights vector of observations weights. Defaults to 1/N
 #'  for each observation if unspecified
-#' @param desired_coefs which coefficients to calculate standard errors.
+#' @param desired_coeffs which coefficients to calculate standard errors.
 #'   If want standard errors for first and second parameters for each quantile,
 #'   should desired_coeffs = c(1,2)
 #' @param ... unused for now
 #' @return List w/ p elements, with jth element a
 #'        Nxk matrix corresponding to the delta_ij values
 #'        for the jth quantile estimated
-getDeltas <- function(spacing_coef, dep_col,data,alphas,jstar,weights=NULL,desired_coeffs=NULL, ...) {
+getDeltas <- function(spacing_coef, dep_col,data,alphas,jstar,weights=NULL,
+                      desired_coeffs=NULL, ...) {
 
   x <- data #Nxk
   y <- dep_col #Nx1
@@ -175,9 +176,10 @@ getDeltas <- function(spacing_coef, dep_col,data,alphas,jstar,weights=NULL,desir
 #' estimated (would be obtained by running getSEDeltas function)
 #' @param cluster_indices vector of length N corresponding to labels
 #' of which cluster given observation belongs to (defaults to NULL)
-#' weights--observation weights. Defaults to NULL, which corresponds
+#' @param weights observation weights. Defaults to NULL, which corresponds
 #' to using 1/N as the observation weights
 #' @param ... unused for now
+#' @importFrom Matrix.utils aggregate.Matrix
 #' @return A list with two elements: varcov--kp X kp variance covariance matrix of parameters,
 #' se--kp x 1 standard errors of parameters
 getDeltaVarCov <- function(delta,cluster_indices=NULL,weights=NULL, ...){
@@ -224,7 +226,7 @@ getDeltaVarCov <- function(delta,cluster_indices=NULL,weights=NULL, ...){
     }
 
     DATA <- as(repMat(sqrt(obswgt),1,nparams)*deltaCombined,"dgCMatrix")
-    D <- aggregate.Matrix(DATA,groupings = as.factor(clustindex),FUN=spSums)
+    D <- Matrix.utils::aggregate.Matrix(DATA,groupings = as.factor(clustindex),FUN=spSums)
     var_est <- t(D)%*%D
   }
 

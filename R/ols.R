@@ -2,8 +2,8 @@
 #' Computes OLS coefficients without losing "sparse"-ness of inputs
 #' @param a Regression specification matrix
 #' @param y Dependent variable
+#' @param weight_vec Optional vector of weights
 #' @return OLS coefficients
-#' @export
 ols_sparse_fit <- function(a, y, weight_vec = NULL) {
 
   y <- -y
@@ -44,8 +44,7 @@ ols_sparse_fit <- function(a, y, weight_vec = NULL) {
 #' @param a Regression specification matrix
 #' @param y Outcome vector
 #' @param betas Parameters from OLS fit
-#' @param weight_vec Optional vector of weights'
-#' @export
+#' @param weight_vec Optional vector of weights
 get_ols_r_squared <- function(a, y, betas, weight_vec = NULL) {
   if (is.null(weight_vec)) {
     e <- y - (a %*% betas)

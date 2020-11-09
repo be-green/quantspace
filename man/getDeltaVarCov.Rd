@@ -12,8 +12,9 @@ an Nxk matrix of delta_ij values with jth element corresponding to jth quantile
 estimated (would be obtained by running getSEDeltas function)}
 
 \item{cluster_indices}{vector of length N corresponding to labels
-of which cluster given observation belongs to (defaults to NULL)
-weights--observation weights. Defaults to NULL, which corresponds
+of which cluster given observation belongs to (defaults to NULL)}
+
+\item{weights}{observation weights. Defaults to NULL, which corresponds
 to using 1/N as the observation weights}
 
 \item{...}{unused for now}
