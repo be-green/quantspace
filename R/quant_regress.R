@@ -10,7 +10,7 @@
 #' @param rhs the right-hand-side of the dual problem; regular users shouldn't need to specify this,
 #' but in special cases can be quite usefully altered to meet special needs.
 #' See e.g. Section 6.8 of Koenker (2005).
-#' @param sv startin value for optimization, useful when boostrapping
+#' @param sv startin value for optimization, useful when bootstrapping
 #' @param control control parameters for fitting routines: see [quantreg::sfn.control()]
 #' @param weight_vec Optional vector of weights for regression
 rq.fit.sfn_start_val <- function(a,y,tau=.5,
@@ -467,7 +467,8 @@ quantRegSpacing = function(
   # calculate average marginal effects if user-specified
   if(calculateAvgME){
     # calculate the average spacing (column-wise average)
-    averageSpacing = calcAvgSpacing(data, rv$coef, alpha, jstar, trim=.01)
+    averageSpacing = calcAvgSpacing(data, rv$coef, alpha,
+                                    jstar, trim=.01)
     qreg_coef = matrix(as.numeric(rv$coef), ncol = p)
     me = getMarginalEffects(qreg_coeffs = qreg_coef,
                               avg_spacings = as.numeric(averageSpacing[2,]),
@@ -530,7 +531,7 @@ calcAvgSpacing = function(x, betas, alpha, jstar, trim=.01){
 
   num_quantiles <- length(alpha)
   num_betas <- length(betas) / num_quantiles
-  betas_wide <- matrix(as.integer(betas), num_betas, num_quantiles)
+  betas_wide <- matrix(as.numeric(betas), num_betas, num_quantiles)
 
   x_beta_prod <- as.matrix(x %*% betas_wide)
 
@@ -538,7 +539,9 @@ calcAvgSpacing = function(x, betas, alpha, jstar, trim=.01){
   x_beta_prod[,-jstar] <- exp(x_beta_prod[,-jstar])
 
   beta_means <- apply(x_beta_prod, 2, mean)
-  beta_trimmed_means <- apply(x_beta_prod, 2, FUN = function(k) { mean(k, trim = trim) })
+  beta_trimmed_means <- apply(x_beta_prod, 2, FUN = function(k) {
+    mean(k, trim = trim)
+    })
 
   means_out <- rbind(beta_means, beta_trimmed_means)
   rownames(means_out) <- c("FitQ_or_S_mean_full_spec",
