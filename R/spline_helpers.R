@@ -151,10 +151,10 @@ q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
   return(list(y2 = y2, tail_param_u = tail_param_u, tail_param_l = tail_param_l, q_shift = q_shift, q_stretch = q_stretch))
 
 }
+
 #' A function to conduct the interpolation given data and fitted quantiles
 #' @param y a vector of quantile or pdf
-#' @param quantiles a matrix of size N b p;  the fitted quantiles computed
-#           based alphas
+#' @param quantiles a matrix of size N b p
 #' @param y2 second derivatives
 #' @param alphas quantiles that were computed
 #' @param tail_param_u the tail parameters for upper quantiles
@@ -311,7 +311,8 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u,
                a*alphas[i] + b*alphas[i+1] + ((a^3 - a)*y2[y_int, i] + (b^3 - b)*y2[y_int, i+1]) * (h^2) / 6,
                ifelse(distn[y_int] == "p",
                       a_prime*alphas[i] + b_prime*alphas[i+1] + ((3*(a^2)*a_prime - a_prime)*y2[y_int, i] + (3*(b^2)*b_prime - b_prime)*y2[y_int, i+1]) * (h^2) / 6,
-                      cub_root_select_rconics(a1, b1, c1, d1 - y_mid[y_int], quantiles[y_int, i], quantiles[y_int, i+1])
+                      cub_root_select_rconics(a1, b1, c1, d1 - y_mid[y_int],
+                                              quantiles[y_int, i], quantiles[y_int, i+1])
                )
         )
       })
@@ -322,7 +323,7 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u,
   y_hat <- pmin(y_hat_mid, y_hat_low, na.rm = TRUE)
   y_hat <- pmin(y_hat, y_hat_hi, na.rm = TRUE)
 
-  # Undo location scal normalizations from earlier
+  # Undo location scale normalizations from earlier
   y_hat <- ifelse(distn == "q",
                   y_hat * q_stretch + q_shift,
                   ifelse(distn == "p",
@@ -348,9 +349,9 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u,
 eval_density_R<-function(y, alphas, m = 1, s = 1, distn = "p",
                          tails = "gaussian"){
 
-  p<-length(alphas)
-  jstar<-round(p/2)
-  N<-length(y)
+  p <- length(alphas)
+  jstar <- round(p/2)
+  N <- length(y)
 
   #####set up the quantile parameters
   eta_theta_temp <- log(stats::qnorm(alphas[-1], mean = m, sd = s) -
@@ -391,7 +392,7 @@ eval_PDF <- function(y,quantiles,alphas,distn = "p", tails = tails) {
 #' @param distn a string which indicates what type of distribution to return. See details.
 #' @details the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
 #' and "q" to evaluate a quantile distribution.
-eval_CDF <- function(y,quantiles,alphas,distn = "c", tails = "gaussian") {
+eval_CDF <- function(y, quantiles, alphas, distn = "c", tails = "gaussian") {
   spline_params <- q_spline_R(quantiles,alphas,tails)
   y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]], spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],  spline_params[["q_shift"]], spline_params[["q_stretch"]],tails = tails, distn = distn)
   return(y_hat)

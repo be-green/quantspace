@@ -20,7 +20,7 @@ splint_R(
 \arguments{
 \item{y}{a vector of quantile or pdf}
 
-\item{quantiles}{a matrix of size N b p;  the fitted quantiles computed}
+\item{quantiles}{a matrix of size N b p}
 
 \item{alphas}{quantiles that were computed}
 

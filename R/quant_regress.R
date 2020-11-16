@@ -485,7 +485,6 @@ quantRegSpacing = function(
   return(rv)
 }
 
-
 #' Compute quantiles given parameter coefficients and data
 #' @param spacingCoef J by p matrix; row is number of variables, p is number of quantiles
 #' @param data independent variables
@@ -570,8 +569,11 @@ getMarginalEffects = function(qreg_coeffs,
   p = dim(qreg_coeffs)[2]
   avgME = matrix(NA, N, p)
 
-  if(!missing(qreg_vcv_vec))  avgME_se = avg_spacings*0
-  else avgME_se = c()
+  if(!missing(qreg_vcv_vec)) {
+    avgME_se = avg_spacings*0
+  } else {
+    avgME_se = c()
+  }
 
   # matrix with transformations of data that give marginal effects;
   # ME = R_matrix * qreg_coeffs

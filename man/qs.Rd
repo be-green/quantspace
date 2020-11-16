@@ -6,7 +6,7 @@
 \usage{
 qs(
   formula,
-  data,
+  data = NULL,
   quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
   baseline_quantile = 0.5,
   se_method = "boot",

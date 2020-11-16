@@ -11,7 +11,6 @@ fe_calc_admm(
   N,
   J,
   Time,
-  k,
   Gamma = NULL,
   tau = 0.5,
   rho = 0.1,

@@ -4,14 +4,14 @@
 \alias{print.qs}
 \title{Print qs summary}
 \usage{
-\method{print}{qs}(x, d = 4, ...)
+\method{print}{qs}(x, digits = 4, ...)
 }
 \arguments{
 \item{x}{fit from qs}
 
-\item{d}{number of digits to print}
-
 \item{...}{additional arguments, ignored for now}
+
+\item{d}{number of digits to print}
 }
 \description{
 Print qs summary

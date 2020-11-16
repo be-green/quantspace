@@ -285,5 +285,6 @@ subsampleStandardErrors = function(
               'iter' = fit$iter,
               'OLS' = fit$OLS,
               'counts' = fit$counts,
-              'coef_boot' = fit$coef))
+              'coef_boot' = fit$coef,
+              'M' = M))
 }

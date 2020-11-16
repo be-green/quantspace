@@ -31,7 +31,7 @@
 #' @importFrom stats model.frame
 #' @importFrom SparseM model.response
 #' @export
-qs <- function(formula, data,
+qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
                baseline_quantile = 0.5,
                se_method = "boot",
@@ -134,6 +134,7 @@ qs <- function(formula, data,
                            'num_bs' = num_bs,
                            'parallel' = parallel,
                            'num_cores' = num_cores,
+                           'coef_names' = colnames(m),
                            'outToCsv' = outToCsv,
                            'csv_filename' = csv_filename))
 
@@ -144,41 +145,64 @@ qs <- function(formula, data,
 #' @param x an object of class qs
 #' @param ... other arguments to pass to summary
 #' @importFrom utils head
+#' @export
 summary.qs = function(x, ...){
 
   quant_betas <- x$quantreg_fit$coef
   pseudo_r <- x$quantreg_fit$pseudo_r
-
   quant_se <- diag(x$se$quant_cov)^(0.5)
-  quant_out_vec <- c()
-  quant_out_vec[seq(1,length(quant_betas)*2,2)] <- unlist(quant_betas)
-  quant_out_vec[seq(2,length(quant_betas)*2,2)] <- unlist(quant_se)
+
+  coef_names <- x$specs$coef_names
+
+  quant_out_betas <- t(matrix(quant_betas, ncol = length(x$specs$alpha)))
+  quant_out_ses <- t(matrix(quant_se, ncol = length(x$specs$alpha)))
+
+  baseline_quantile <- x$specs$jstar
+
+  baseline_beta <- quant_out_betas[baseline_quantile,]
+  baseline_se <- quant_out_ses[baseline_quantile,]
+
+  baseline_mat <- data.frame(Variable = coef_names,
+                             Quantile = x$specs$alpha[baseline_quantile],
+                             Coefficient = unlist(baseline_beta), SE = baseline_se)
+
+  quant_out_betas[baseline_quantile,] <- rep(0, ncol(quant_out_betas))
+  quant_out_ses[baseline_quantile,] <- rep(NA, ncol(quant_out_ses))
+
+  q_vec <- c()
+  name_vec <- c()
+  beta_vec <- c()
+  se_vec <- c()
+
+  for(i in 1:nrow(quant_out_betas)) {
+
+    for(j in 1:ncol(quant_out_betas)) {
+
+      id = i * ncol(quant_out_betas) - (ncol(quant_out_betas) - j)
+
+      beta_vec[id] <- quant_out_betas[i, j][[1]]
+
+      name_vec[id] <- coef_names[j]
+
+      se_vec[id] <- quant_out_ses[i, j][[1]]
+
+      q_vec[id] <- x$specs$alpha[i]
+    }
+
+  }
+
+  quant_out_mat <- data.frame(Variable = name_vec, Quantile = q_vec,
+                              Coefficient = beta_vec, `Standard Error` = se_vec)
 
   num_betas <- length(x$ols_fit)
-  quant_out <- matrix(quant_out_vec, (num_betas*2), length(x$specs$alpha))
 
   ols_se <- sqrt(diag(x$se$ols_cov))
-  ols_out <- rbind(x$ols_fit, ols_se)
-
-  coef_mat <- cbind(quant_out)
-  colnames(coef_mat) <- c(x$specs$alpha)
-
-  b_names <- gsub("[0-9\\.]+_",
-                  replacement = "",
-                  names(
-                    utils::head(unlist(x$quantreg_fit$coef),
-                         num_betas)
-                    )
-                  )
-
-
-  r_names <- c()
-  r_names[seq(1,num_betas*2,2)] <- b_names
-  r_names[seq(2,num_betas*2,2)] <- paste(b_names, 'se', sep = '_')
-  rownames(coef_mat) <- r_names
+  ols_out <- data.frame(Variable = names(ols_se), Coefficient = x$ols_fit,
+                        Standard.Error = as.numeric(ols_se))
 
   final_output <- list(
-    q_coefs = coef_mat,
+    baseline_coefs = baseline_mat,
+    spacing_coefs = quant_out_mat,
     ols_coefs = ols_out,
     R2 = list(psuedo_r = pseudo_r,
               ols_r_squared = x$ols_r_squared)
@@ -186,28 +210,55 @@ summary.qs = function(x, ...){
 
   structure(final_output, class = "qs_summary")
 }
+
+
+#' Capture print output
+#' @param x object to capture
+#' @importFrom testthat capture_output
+capture_output <- function(x, ...) {
+  testthat::capture_output(print(x, ...))
+}
+
+round_if <- function(df, d){
+  rdf <- purrr::map_df(df, .f = function(x) {
+    if(is.numeric(x)){
+      signif(x, d)
+    } else {
+      x
+    }
+  })
+  structure(rdf, class = class(df))
+}
+
 #' Print qs summary
 #' @param x fit from qs
 #' @param d number of digits to print
 #' @param ... additional arguments, ignored for now
 #' @export
-print.qs <- function(x, d = 4, ...) {
+print.qs <- function(x, digits = 4, ...) {
+
+  d <- digits
 
   # really poor solution, going with it for now
   x <- summary(x, ...)
 
-  q_coefs <- x$q_coefs
-  nms <- rownames(q_coefs)
-  nms[which(1:length(nms) %% 2 == 0)] <- ""
-  rownames(q_coefs) <- nms
-  q_coefs <- make_se_mat(q_coefs, d)
+  spacing_coefs <- round_if(
+    x$spacing_coefs[which(!is.na(x$spacing_coefs$Standard.Error)),], d
+    )
+
+
+  s_coefs <- capture_output(spacing_coefs)
+  b_coefs <- capture_output(round_if(x$baseline_coefs, d))
+  o_coefs <- capture_output(round_if(x$ols_coefs, d))
+
+
+
+
+  cat("Baseline Coefficients:\n",
+      b_coefs, "\n\n")
 
   cat("Quantile Coefficients:\n",
-      paste0(q_coefs, "\n\n"))
-
-  o_coefs <- x$ols_coefs
-  rownames(o_coefs) <- rep("", nrow(o_coefs))
-  o_coefs <- make_se_mat(o_coefs, d)
+      s_coefs, "\n\n")
 
   cat(
     "OLS Coefficients:\n",
@@ -242,41 +293,60 @@ make_se_mat <- function(mat, d) {
   stringr::str_replace_all(msg, "\"", " ")
 }
 
+
+#' Pad vector of strings based on longest length
+#' @param x string vector
+pad_strings <- function(x) {
+  max_len <- max(nchar(x))
+
+  for(i in 1:length(x)) {
+    x[i] <- paste0(paste0(rep(" ", max_len - nchar(x[i])), collapse = ""), x[i])
+  }
+
+  x
+}
+
 #' Print qs summary
 #' @param x fit from qs
 #' @param d number of digits to print
 #' @param ... additional arguments, ignored for now
 #' @export
-print.qs_summary <- function(x, d = 4, ...) {
+print.qs_summary <- function(x, digits = 4, ...) {
   args <- list(...)
+
+
+  d <- digits
+
+  spacing_coefs <- round_if(
+    x$spacing_coefs[which(!is.na(x$spacing_coefs$Standard.Error)),], d
+  )
+
+
+  s_coefs <- capture_output(spacing_coefs)
+  b_coefs <- capture_output(round_if(x$baseline_coefs, d))
+  o_coefs <- capture_output(round_if(x$ols_coefs, d))
+
 
   psuedo_r2 <- signif(x$R2$psuedo_r, d)
   psuedo_message <- paste0(paste0("    ",
-                                      colnames(x$q_coefs),
+                                  unique(x$spacing_coefs$Quantile),
                                       ":\t",
                                       psuedo_r2), collapse = "\n")
 
-  o_coefs <- x$ols_coefs
-  rownames(o_coefs) <- rep("", nrow(o_coefs))
-  o_coefs <- make_se_mat(o_coefs, d)
+  cat("Baseline Quantile Coefficients:\n",
+      b_coefs, "\n\n")
 
-  q_coefs <- x$q_coefs
-  nms <- rownames(q_coefs)
-  nms[which(1:length(nms) %% 2 == 0)] <- ""
-  rownames(q_coefs) <- nms
-  q_coefs <- make_se_mat(q_coefs, d)
-
-  cat("Quantile Coefficients:\n",
-      paste0(q_coefs, "\n\n"))
+  cat("Quantile Spacing Coefficients:\n",
+      s_coefs, "\n\n")
 
   cat(paste0("Quantile Psuedo-R2:\n",
        psuedo_message, "\n\n"))
+
   cat(
     "OLS Coefficients:\n",
     o_coefs, "\n")
   cat("R2: ", signif(x$R2$ols_r_squared, d))
 }
-
 
 #' Predict quantiles given fitted spacings model
 #' @param object fitted `qs` model
@@ -312,3 +382,9 @@ predict.qs <- function(object, newdata = NULL, ...) {
   colnames(p_q) <- object$specs$alpha
   p_q
 }
+
+#' Inter
+#'
+# marginal_effects <- function(fit, )
+
+
