@@ -2,10 +2,22 @@
 % Please edit documentation in R/cluster_se.R
 \name{getCores}
 \alias{getCores}
+\alias{setCores}
 \title{Get user defined cores}
 \usage{
 getCores()
+
+setCores(ncores)
+}
+\arguments{
+\item{ncores}{number of cores to use for bootstrapping}
 }
 \description{
 Get user defined cores
+}
+\details{
+`getCores()` and `setCores()` determine the number of cores
+used in the boostrap procedure used to generate standard errors for the
+quantile spacings estimator. By default, this is set to half of available
+cores, or whatever is found in `getOption('qs.cores')`.
 }

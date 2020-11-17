@@ -101,13 +101,28 @@ clusterSample = function(cluster_indices,
 `%dopar%` <- foreach::`%dopar%`
 
 #' Get user defined cores
+#' @rdname getCores
+#' @export
 getCores <- function() {
-  mc_cores <- getOption("mc.cores")
+  mc_cores <- getOption("qs.cores")
   if(is.null(mc_cores)) {
     1
   } else {
     max(c(1, mc_cores))
   }
+}
+
+#' @rdname getCores
+#' @param ncores number of cores to use for bootstrapping
+#' @export
+#' @details `getCores()` and `setCores()` determine the number of cores
+#' used in the boostrap procedure used to generate standard errors for the
+#' quantile spacings estimator. By default, this is set to half of available
+#' cores, or whatever is found in `getOption('qs.cores')`.
+setCores <- function(ncores) {
+  assertthat::assert_that(is.numeric(ncores))
+  assertthat::assert_that(ncores > 0)
+  options(qs.cores = ncores)
 }
 
 #' Computes standard errors for the quantile regression spacing method using
