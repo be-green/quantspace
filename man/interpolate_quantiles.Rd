@@ -25,7 +25,7 @@ interpolate_quantiles(object, ...)
   grid = seq_quant(0, 1, by = 0.01),
   parallel = T,
   ncores = getCores(),
-  row_thresh = 20,
+  row_thresh = 100,
   tails = "gaussian",
   distn = "q"
 )

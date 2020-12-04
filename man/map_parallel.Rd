@@ -10,7 +10,7 @@ map_parallel(
   ...,
   parallel = T,
   ncores = getCores(),
-  thresh = 20,
+  thresh = 100,
   collapse = "list"
 )
 }

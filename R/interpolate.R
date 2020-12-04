@@ -80,7 +80,6 @@ collapse_correctly <- function(x, l) {
   }
 }
 
-
 #' @rdname distributional_effects
 #' @export
 distributional_effects.numeric <- function(quantiles, alphas, tails, ...) {
@@ -141,7 +140,8 @@ distributional_effects.numeric <- function(quantiles, alphas, tails, ...) {
   structure(list(
     pdf = pdf,
     cdf = cdf,
-    q = q
+    q = q,
+    r = r
   ), class = "distributional_effects")
 }
 
@@ -154,7 +154,7 @@ distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
                               alphas = alphas, tails = tails, ..., collapse = "list")
 
   pdf <- function(x) {
-    l <- map_parallel(fitted, function(f) f$pdf(x))
+    l <- lapply(fitted, function(f) f$pdf(x))
     if(length(x) > 1) {
       do.call("rbind", l)
     } else {
@@ -163,7 +163,7 @@ distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
   }
 
   cdf <- function(x) {
-    l <- map_parallel(fitted, function(f) f$cdf(x))
+    l <- lapply(fitted, function(f) f$cdf(x))
     if(length(x) > 1) {
       do.call("rbind", l)
     } else {
@@ -172,7 +172,7 @@ distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
   }
 
   q <- function(x) {
-    l <- map_parallel(fitted, function(f) f$q(x))
+    l <- lapply(fitted, function(f) f$q(x))
     if(length(x) > 1) {
       do.call("rbind", l)
     } else {
@@ -181,7 +181,7 @@ distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
   }
 
   r <- function(n) {
-    l <- map_parallel(fitted, function(f) f$r(n))
+    l <- lapply(fitted, function(f) f$r(n))
 
     if(n > 1) {
       do.call("rbind", l)
@@ -192,10 +192,11 @@ distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
 
 
   structure(list(
-    fitted,
+    fitted = fitted,
     pdf = pdf,
     cdf = cdf,
-    q = q
+    q = q,
+    r = r
   ), class = "distributional_effects_list")
 }
 
@@ -302,7 +303,7 @@ plot.distributional_effects_list <- function(distributional_effects_list,
 #' @details only works if the function's dependencies are completely
 #' contained in "quantspace" package
 map_parallel <- function(l, f, ..., parallel = T,
-                              ncores = getCores(), thresh = 20,
+                              ncores = getCores(), thresh = 100,
                               collapse = "list") {
   if(parallel & (length(l) > thresh)) {
     cl = parallel::makeCluster(ncores)
@@ -403,7 +404,7 @@ interpolate_quantiles.qs <- function(fit, newdata = NULL,
 interpolate_quantiles.matrix <- function(quantiles, alphas,
                                          grid = seq_quant(0, 1, by = 0.01),
                                   parallel = T, ncores = getCores(),
-                                  row_thresh = 20, tails = "gaussian",
+                                  row_thresh = 100, tails = "gaussian",
                                   distn = "q") {
 
   interp <- map_rows_parallel(
