@@ -18,5 +18,6 @@ Imports:
     SparseM,
     methods,
     RConics,
-    Matrix.utils
+    Matrix.utils,
+    ggplot2
 RoxygenNote: 7.1.1

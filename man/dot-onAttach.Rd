@@ -2,10 +2,10 @@
 % Please edit documentation in R/zzz.R
 \name{.onAttach}
 \alias{.onAttach}
-\title{Set boostrap cores on load + welcome messages}
+\title{Set bootstrap cores on load + welcome messages}
 \usage{
 .onAttach(libname, pkgname)
 }
 \description{
-Set boostrap cores on load + welcome messages
+Set bootstrap cores on load + welcome messages
 }

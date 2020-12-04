@@ -54,7 +54,8 @@ cub_root_select_rconics <- function(a, b, c, d, q_1, q_2) {
   roots_clean[abs(Im(roots_clean)) > 1e-6] <- NA
   roots_clean <- Re(roots_clean)
   #select <- mapply(function(x, q_1, q_2) q_1-10e-6 <= x && x <= q_2+10e-6, roots_clean, q_1, q_2)
-  select <- mapply(function(x, q_1, q_2) q_1-1e-6 <= x && x <= q_2+1e-6, roots_clean, q_1, q_2)
+  select <- mapply(function(x, q_1, q_2) q_1-1e-6 <= x && x <= q_2+1e-6,
+                   roots_clean, q_1, q_2)
   roots_clean[!select] <- NA
   roots_clean <- apply(roots_clean, 1, min, na.rm = TRUE)
   return(roots_clean)
@@ -95,17 +96,25 @@ q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
   #q_stretch <- rep(1,1000)
   quantiles <- (quantiles - q_shift) / q_stretch
 
-  # solving for location and scale parameters for a distribtuion for the left and right tails
+  # solving for location and scale parameters for a distribution for the left and right tails
   if (tails == "gaussian") {
-    tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, stats::qnorm(alphas[1  ]), stats::qnorm(alphas[2])), nrow = 2, ncol = 2)))
-    tail_param_u <- quantiles[, (p-1):p] %*% t(inv(matrix(c(1, 1, stats::qnorm(alphas[p-1]), stats::qnorm(alphas[p])), nrow = 2, ncol = 2)))
+    tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, stats::qnorm(alphas[1  ]),
+                                                            stats::qnorm(alphas[2])),
+                                                          nrow = 2, ncol = 2)))
+    tail_param_u <- quantiles[, (p-1):p] %*% t(inv(matrix(c(1, 1, stats::qnorm(alphas[p-1]),
+                                                            stats::qnorm(alphas[p])),
+                                                          nrow = 2, ncol = 2)))
 
     # calculating derivatives of the pdf -- boundary conditions for the spline
     yp1 <- stats::dnorm(quantiles[, 2  ], mean = tail_param_l[,1], sd = tail_param_l[,2])
     ypp <- stats::dnorm(quantiles[, p-1], mean = tail_param_u[,1], sd = tail_param_u[,2])
   } else if (tails == "exponential") {
-    tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, log(alphas[1]), log(alphas[2])), nrow = 2, ncol = 2)))
-    tail_param_u <- quantiles[, (p-1):p] %*% t(inv(matrix(c(1, 1, -log(1 - alphas[p-1]), -log(1 - alphas[p])), nrow = 2, ncol = 2)))
+    tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, log(alphas[1]),
+                                                            log(alphas[2])),
+                                                          nrow = 2, ncol = 2)))
+    tail_param_u <- quantiles[, (p-1):p] %*% t(inv(matrix(c(1, 1, -log(1 - alphas[p-1]),
+                                                            -log(1 - alphas[p])),
+                                                          nrow = 2, ncol = 2)))
 
     # calculating derivatives of the pdf -- boundary conditions for the spline
     yp1 <- exp(1)^( (quantiles[, 2]   - tail_param_l[, 1])/tail_param_l[, 2]) / tail_param_l[, 2]
@@ -116,7 +125,6 @@ q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
 
   # next, we solve for the parameters of the cubic spline characterizing the CDF. Per the numerical recipes text,
   # this can be characterized in terms of the second derivative at each knot
-
   # from this point on, the interpolation script doesn't need the lowest and highest quantiles. Dropping for
   # more intuitive indexing
   quantiles <- matrix(quantiles[, -c(1,p)], nrow = N)
@@ -144,12 +152,10 @@ q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
     for(i in (p-1):1) {
       y2[,i] <- y2[,i]*y2[,i+1]+u[,i]
     }
+  } else {
+    y2<-NULL
   }
-  else{
-    y2<-NULL}
-
   return(list(y2 = y2, tail_param_u = tail_param_u, tail_param_l = tail_param_l, q_shift = q_shift, q_stretch = q_stretch))
-
 }
 
 #' A function to conduct the interpolation given data and fitted quantiles
@@ -376,11 +382,12 @@ eval_density_R<-function(y, alphas, m = 1, s = 1, distn = "p",
 #' @param distn a string which indicates what type of distribution to return. See details.
 #' @details the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
 #' and "q" to evaluate a quantile distribution.
-eval_PDF <- function(y,quantiles,alphas,distn = "p", tails = tails) {
+eval_PDF <- function(y,quantiles,alphas,distn = "p", tails = "gaussian") {
   spline_params <- q_spline_R(quantiles,alphas,tails)
   y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]],
                     spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],
-                    spline_params[["q_shift"]], spline_params[["q_stretch"]],tails = tails, distn = distn)
+                    spline_params[["q_shift"]], spline_params[["q_stretch"]],
+                    tails = tails, distn = distn)
   return(y_hat)
 }
 

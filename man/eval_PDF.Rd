@@ -4,7 +4,7 @@
 \alias{eval_PDF}
 \title{Evaluate PDF given quantiles and residuals}
 \usage{
-eval_PDF(y, quantiles, alphas, distn = "p", tails = tails)
+eval_PDF(y, quantiles, alphas, distn = "p", tails = "gaussian")
 }
 \arguments{
 \item{y}{a vector of quantile or pdf}

@@ -383,8 +383,13 @@ predict.qs <- function(object, newdata = NULL, ...) {
   p_q
 }
 
-#' Inter
-#'
-# marginal_effects <- function(fit, )
-
-
+#' Method for getting coefficients from fitted qs model
+#' @param x fitted qs model
+#' @param ... currently ignored
+#' @export
+coef.qs <- function(x, ...) {
+  m <- t(matrix(unlist(x$quantreg_fit$coef), ncol = length(x$specs$alpha)))
+  rownames(m) <- x$specs$alpha
+  colnames(m) <- x$specs$coef_names
+  m
+}

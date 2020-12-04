@@ -226,12 +226,13 @@ getDeltaVarCov <- function(delta,cluster_indices=NULL,weights=NULL, ...){
     }
 
     DATA <- as(repMat(sqrt(obswgt),1,nparams)*deltaCombined,"dgCMatrix")
-    D <- Matrix.utils::aggregate.Matrix(DATA,groupings = as.factor(clustindex),FUN=spSums)
+    D <- Matrix.utils::aggregate.Matrix(DATA,groupings = as.factor(clustindex),
+                                        FUN=spSums)
     var_est <- t(D)%*%D
   }
 
-  #Return estimated variance-covariance matrix of parameters
-  #and standard error estimates
+  # Return estimated variance-covariance matrix of parameters
+  # and standard error estimates
   return(list('varcov'=var_est,'se'=sqrt(diag(var_est)/N)))
 }
 

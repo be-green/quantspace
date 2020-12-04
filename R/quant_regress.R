@@ -166,7 +166,6 @@ quantRegress = function(reg_spec_data,
     if (!is.null(weight_vec)){
       weight_vec = as.matrix(weight_vec[ind_hat])
     }
-
     j_model <- rq.fit.sfn_start_val(
       a = reg_spec_data$spec_matrix,
       y = log(pmax(ehat[ind_hat],small)),
@@ -176,7 +175,6 @@ quantRegress = function(reg_spec_data,
       weight_vec = weight_vec) # Model the quantile
   } else {
     resids = ehat[ind_hat]
-
     if (!is.null(weight_vec)){
       weight_vec = as.matrix(weight_vec[ind_hat])
       weight_vec = weight_vec[resids > small]
@@ -191,7 +189,7 @@ quantRegress = function(reg_spec_data,
         sv = sv,
         control = control,
         weight_vec = weight_vec) # Model the quantile
-    } else{
+    } else {
       # else, we splice the correct rows here
       j_model <- rq.fit.sfn_start_val(
         a = reg_spec_data$spec_matrix[resids > small,],
@@ -204,7 +202,6 @@ quantRegress = function(reg_spec_data,
   }
   return(j_model)
 }
-
 
 #' Computes coefficients for the quantile regression spacing method.
 #' @param dep_col Column of response variable.
@@ -580,7 +577,6 @@ getMarginalEffects = function(qreg_coeffs,
   R_matrix = array(0, dim = c(p,p,N))
 
   # calculating marginal effects here
-
   R_matrix[,j_star,] = 1
 
   for(jj in 1:N) {
