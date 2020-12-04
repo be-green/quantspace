@@ -287,7 +287,7 @@ plot.distributional_effects_list <- function(distributional_effects_list,
 
     x <- data.frame(x = c(low, high))
     g <- g + ggplot2::stat_function(data = x,
-                                    ggplot2::aes(x = x), fun = fun, alpha = 0.6)
+                                    ggplot2::aes(x = x), fun = fun, alpha = 0.8)
   }
 
   g
