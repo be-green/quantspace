@@ -21,8 +21,9 @@ rq.fit.sfn_start_val <- function(a,y,tau=.5,
   y <- -y
   n <- length(y)
   m <- a@dimension[2]
-  if(n != a@dimension[1])
+  if(n != a@dimension[1]) {
     stop("Dimensions of design matrix and the response vector not compatible")
+  }
 
   # additional syntax to incorporate weights is included here
   if (!is.null(weight_vec)){
