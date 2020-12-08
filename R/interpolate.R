@@ -111,6 +111,9 @@ distributional_effects.numeric <- function(quantiles, alphas, tails, ...) {
   }
 
   q <- function(x) {
+    if(x > 1 | x < 0) {
+      stop("Probability must be between 0 & 1")
+    }
     vec_splint_R(y = x,
                  quantiles = quantiles,
                  alphas = alphas,
@@ -232,8 +235,8 @@ plot.distributional_effects <- function(distributional_effects,
     low = tail_level
     high = 1 - tail_level
   } else {
-    low <- distributional_effects$q(0.01)
-    high <- distributional_effects$q(0.99)
+    low <- distributional_effects$q(tail_level)
+    high <- distributional_effects$q(1 - tail_level)
   }
 
   x <- data.frame(x = c(low, high))
@@ -281,8 +284,8 @@ plot.distributional_effects_list <- function(distributional_effects_list,
       low = tail_level
       high = 1 - tail_level
     } else {
-      low <- de$q(0.01)
-      high <- de$q(0.99)
+      low <- de$q(tail_level)
+      high <- de$q(1 - tail_level)
     }
 
     x <- data.frame(x = c(low, high))

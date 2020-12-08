@@ -30,9 +30,6 @@ marginal_effects.qs <- function(fit, data, ...) {
 
 }
 
-avg_marginal_effects <- function(fit, data, ...) {
-
-}
 
 
 #' Get marginal effects at a set of levels for the covariates

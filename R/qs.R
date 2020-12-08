@@ -357,6 +357,8 @@ print.qs_summary <- function(x, digits = 4, ...) {
 #' estimated.
 #' @importFrom SparseM model.matrix
 #' @importFrom stats as.formula
+#' @importFrom stats delete.response
+#' @importFrom stats terms
 #' @export
 predict.qs <- function(object, newdata = NULL, ...) {
   if(is.null(newdata)) {
@@ -371,7 +373,10 @@ predict.qs <- function(object, newdata = NULL, ...) {
                                  jstar = object$specs$jstar)
     }
   } else {
-    X <- SparseM::model.matrix(as.formula(object$specs$formula),
+    ff <- stats::as.formula(object$specs$formula)
+    tt <- stats::terms(ff)
+    tt <- stats::delete.response(tt)
+    X <- stats::model.matrix(tt,
                               data = newdata)
     p_q <- spacingsToQuantiles(matrix(as.numeric(object$quantreg_fit$coef),
                                       ncol = length(object$specs$alpha)),

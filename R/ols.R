@@ -1,4 +1,3 @@
-
 #' Computes OLS coefficients without losing "sparse"-ness of inputs
 #' @param a Regression specification matrix
 #' @param y Dependent variable
@@ -37,8 +36,6 @@ ols_sparse_fit <- function(a, y, weight_vec = NULL) {
 
   return(-1 * solve(e, ao %*% y, tmpmax=tmpmax, nnzlmax=nnzlmax, nsubmax=nsubmax))
 }
-
-
 
 #' Get R^2 of OLS fit
 #' @param a Regression specification matrix
