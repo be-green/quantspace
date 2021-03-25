@@ -80,3 +80,38 @@ ggplot(plot_data,
 ```
 ![plot output](inst/img/predicted-gpm-multivariate.png)
 
+
+# Distributional Effects
+
+What if we want to interpolate the fitted quantiles? For example, a full changes-in-changes difference in difference model involves the cumulative distribution function of the treated vs. the counterfactual predicted by the control group. We can do that by interpolating the fitted distributions for each group. Or maybe you just want a full predictive density to predict with/evaluate/sample from. 
+
+Let's start with the fitted model above. To interpolate the fitted quantiles, all you need to do is run the following.
+
+```
+de <- distributional_effects(est)
+```
+
+By default this estimates the conditional distribution at the average level of the covariates, but you can specify the `newdata` argument, which will compute the density functions for the levels of the data you provide.
+
+Now `de` is an object of class "distributional_effects" which has associated plotting methods. I think that a `predict` interface is going to be on the roadmap for future releases since it will be relatively easy to program.
+
+The object itself is a list of 4 functions corresponding to the pdf, the cdf, the quantile function, and a random number generator which simulates from the fitted density. Let's draw 100 random numbers from our fitted density.
+
+```
+de$r(100)
+```
+
+That was pretty easy! We can also plot the pdf, cdf, or quantile function.
+
+```
+plot(de, what = "cdf")
+```
+
+![cdf-plot](inst/img/cdf-plot.png)
+
+# Marginal Effects
+
+TBD, this interface exists but it would be generous to call it experimental.
+
+
+
