@@ -352,7 +352,7 @@ splint_R <- function(y, quantiles, alphas, y2, tail_param_u,
 #' and "q" to evaluate a quantile distribution.
 #' @importFrom stats qnorm
 #' @return A vector of quantiles or density corresponding to y
-eval_density_R<-function(y, alphas, m = 1, s = 1, distn = "p",
+eval_density_R <- function(y, alphas, m = 1, s = 1, distn = "p",
                          tails = "gaussian"){
 
   p <- length(alphas)

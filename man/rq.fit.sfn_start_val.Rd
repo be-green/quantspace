@@ -5,7 +5,7 @@
 \title{Sparse Regression Quantile Fitting with Weights}
 \usage{
 rq.fit.sfn_start_val(
-  a,
+  X,
   y,
   tau = 0.5,
   rhs = (1 - tau) * c(t(a) \%*\% rep(1, length(y))),
@@ -15,7 +15,7 @@ rq.fit.sfn_start_val(
 )
 }
 \arguments{
-\item{a}{structure of the design matrix X stored in csr format}
+\item{X}{structure of the design matrix X stored in csr format}
 
 \item{y}{outcome vector}
 

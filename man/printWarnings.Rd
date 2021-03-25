@@ -7,7 +7,7 @@
 printWarnings(model)
 }
 \arguments{
-\item{model}{result of call to quantRegress}
+\item{model}{result of call to regressResiduals}
 }
 \description{
 Generate warning messages for regression model
