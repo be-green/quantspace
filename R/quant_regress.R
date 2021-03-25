@@ -4,7 +4,7 @@
 #' @importFrom quantreg  rq.fit.sfn
 #' @importFrom quantreg sfn.control
 #' @importFrom quantreg sfnMessage
-#' @param a structure of the design matrix X stored in csr format
+#' @param X structure of the design matrix X stored in csr format
 #' @param y outcome vector
 #' @param tau desired quantile
 #' @param rhs the right-hand-side of the dual problem; regular users shouldn't need to specify this,
@@ -13,11 +13,13 @@
 #' @param sv startin value for optimization, useful when bootstrapping
 #' @param control control parameters for fitting routines: see [quantreg::sfn.control()]
 #' @param weight_vec Optional vector of weights for regression
-rq.fit.sfn_start_val <- function(a,y,tau=.5,
+#' @export
+rq.fit.sfn_start_val <- function(X,y,tau=.5,
                                  rhs = (1-tau)*c(t(a) %*% rep(1,length(y))),
                                  control,
                                  sv,
                                  weight_vec = NULL) {
+  a <- X
   y <- -y
   n <- length(y)
   m <- a@dimension[2]
@@ -93,7 +95,7 @@ rq.fit.sfn_start_val <- function(a,y,tau=.5,
                   e = as.double(e@ra),
                   je = as.integer(e@ja),
                   ie = as.integer(e@ia),
-                  nsubmax = as.integer(nsubmax),
+                  nsumax = as.integer(nsubmax),
                   lindx = integer(nsubmax),
                   xlindx = integer(m+1),
                   nnzlmax = as.integer(nnzlmax),
@@ -139,6 +141,18 @@ rq.fit.sfn_start_val <- function(a,y,tau=.5,
        weight_vec = weight_vec)
 }
 
+#' Estimate a single quantile regression
+#' @param X specification matrix for X variables
+#' @param y outcome variable
+#' @param tau quantile to regress
+#' @param algorithm which algorithm to use
+#' @param ... other arguments to be passed to the algorithm
+fitQuantileRegression <- function(X, y, tau, algorithm = "rq.fit.sfn_start_val", ...) {
+  do.call(algorithm, args = list(
+    X = X, y = y, tau = tau, ...
+  ))
+}
+
 #' Runs quantile regression on residuals of the model (calculates spaces around jstar quantile)
 #' @param reg_spec_data result of ensureSpecRank function; regression matrix with full rank
 #' @param ehat current residuals; subset of which to be used as dependent column
@@ -147,60 +161,52 @@ rq.fit.sfn_start_val <- function(a,y,tau=.5,
 #' @param trunc Boolean value; if true, replace those dependent values less than small with small itself;
 #' else, only use rows with residuals greater than small
 #' @param small Value used with trunc; values less than small 'blow up' too greatly when logged
-#' @param sv starting values (can be NA's) to be passed to sfn_start_val function
-#' @param control control list to be passed to sfn_start_val function
+#' @param algorithm The name of a function which will estimate a quantile regression.
+#' Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`
 #' @param weight_vec vector of optional weights
+#' @param ... other arguments to the function specified by the alorithm argument
 #' @import SparseM
 #' @return List of estimated coefficients, warnings, iterations, and controls as in
 #' standard quantile regression function
 #' @export
-quantRegress = function(reg_spec_data,
+regressResiduals = function(reg_spec_data,
                         ehat,
-                        sv,
                         ind_hat,
                         tau,
                         trunc,
                         small,
-                        control,
-                        weight_vec = NULL) {
-  if (trunc) {
-    if (!is.null(weight_vec)){
-      weight_vec = as.matrix(weight_vec[ind_hat])
-    }
-    j_model <- rq.fit.sfn_start_val(
-      a = reg_spec_data$spec_matrix,
-      y = log(pmax(ehat[ind_hat],small)),
-      tau = tau,
-      sv = sv,
-      control = control,
-      weight_vec = weight_vec) # Model the quantile
-  } else {
-    resids = ehat[ind_hat]
-    if (!is.null(weight_vec)){
-      weight_vec = as.matrix(weight_vec[ind_hat])
-      weight_vec = weight_vec[resids > small]
-    }
-    if(dim(reg_spec_data$spec_matrix)[1] == sum(resids > small)) {
-      # if the dimensions already match, then we assume that the matrix
-      # was already spliced for the correct rows outside of the function
-      j_model <- rq.fit.sfn_start_val(
-        a = reg_spec_data$spec_matrix,
-        y = log(resids[resids > small]),
-        tau = tau,
-        sv = sv,
-        control = control,
-        weight_vec = weight_vec) # Model the quantile
-    } else {
-      # else, we splice the correct rows here
-      j_model <- rq.fit.sfn_start_val(
-        a = reg_spec_data$spec_matrix[resids > small,],
-        y = log(resids[resids > small]),
-        tau = tau,
-        sv = sv,
-        control = control,
-        weight_vec = weight_vec) # Model the quantile
-    }
+                        weight_vec,
+                        algorithm = "rq.fit.sfn_start_val",
+                        ...) {
+
+  resids = ehat[ind_hat]
+
+  if (!is.null(weight_vec)){
+    weight_vec = as.matrix(weight_vec[ind_hat])
   }
+
+  if(trunc) {
+    resids <- log(pmax(resids,small))
+    spec_mat <- reg_spec_data$spec_matrix
+  } else {
+    weight_vec = weight_vec[resids > small]
+    # if the dimensions for the regression match, we don't subset the
+    # x matrix, otherwise we do
+    if(nrow(reg_spec_data$spec_matrix) == sum(resids > small)) {
+      spec_mat <- reg_spec_data$spec_matrix
+    } else {
+      spec_mat <- reg_spec_data$spec_matrix[resids > small,]
+    }
+    resids <- log(resids[resids > small])
+  }
+
+  j_model <- fitQuantileRegression(
+    X = spec_mat,
+    y = resids,
+    tau = tau,
+    algorithm = algorithm,
+    ...)
+
   return(j_model)
 }
 
@@ -213,6 +219,8 @@ quantRegress = function(reg_spec_data,
 #' @param small Minimum size of residuals for computational accuracy.
 #' @param trunc Boolean value; if true, replace those dependent values less than small with small itself;
 #' else, only use rows with residuals greater than small
+#' @param algorithm The name of a function which will estimate a quantile regression.
+#' Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`
 #' @param start_list Starting values for regression optimization.
 #' @param weight_vec vector of optional weights
 #' @param outputQuantiles TRUE or FALSE, whether to output quantiles
@@ -231,6 +239,7 @@ quantRegSpacing = function(
   var_names,
   alpha,
   jstar,
+  algorithm = "rq.fit.sfn_start_val",
   small = 1e-3,
   trunc = FALSE,
   start_list = NA,
@@ -255,7 +264,9 @@ quantRegSpacing = function(
   length(model) = p
 
   # check to see if regression matrix is sparse. If not, then turn into CSR matrix
-  if(!is(data, 'matrix.csr')) data = denseMatrixToSparse(data)
+  if(!is(data, 'matrix.csr')) {
+    data = denseMatrixToSparse(data)
+  }
 
   tmpmax <- floor(1e5 + exp(-12.1)*(data@ia[width+1]-1)^2.35)
 
@@ -265,23 +276,25 @@ quantRegSpacing = function(
   # Calculate initial fit
 
   if(any(is.na(start_list))){ # if user supplied starting values, then use them
-    star_model = rq.fit.sfn_start_val(
-      a = reg_spec_starting_data$spec_matrix,
+    star_model = fitQuantileRegression(
+      X = reg_spec_starting_data$spec_matrix,
       y = dep_col,
       tau = tau,
       control = list(tmpmax = tmpmax),
-      weight_vec = weight_vec)
+      weight_vec = weight_vec,
+      algorithm = algorithm)
 
    } else {
      col_nums = getColNums(start_list, reg_spec_starting_data, alpha, jstar)
      sv = as.numeric(start_list[col_nums])
-     star_model = rq.fit.sfn_start_val(
-       a = reg_spec_starting_data$spec_matrix,
+     star_model = fitQuantileRegression(
+       X = reg_spec_starting_data$spec_matrix,
        y = dep_col,
        tau = tau,
        control = list(tmpmax = tmpmax),
        sv = as.numeric(start_list[col_nums]),
-       weight_vec = weight_vec
+       weight_vec = weight_vec,
+       algorithm = algorithm
       )
    }
   printWarnings(star_model)
@@ -290,10 +303,11 @@ quantRegSpacing = function(
 
   #Calculate R^2
   V <- sum(rho(u = ehat0, tau = tau, weight_vec = weight_vec))
-  V0 <- rq.fit.sfn_start_val(a = as.matrix.csr(rep(1, length(dep_col))),
+  V0 <- fitQuantileRegression(X = as.matrix.csr(rep(1, length(dep_col))),
                              y = dep_col,
                              tau = tau,
-                             weight_vec = weight_vec)$residuals
+                             weight_vec = weight_vec,
+                             algorithm = algorithm)$residuals
   V0 <- sum(rho(u = V0, tau = tau,weight_vec = weight_vec))
 
   #set column names
@@ -310,8 +324,6 @@ quantRegSpacing = function(
   warnings_log[[jstar]] = star_model$ierr
   iter_log[[jstar]] = star_model$it
   count_log[[jstar]] = dim(reg_spec_starting_data$spec_matrix)[1]
-
-  rm(star_model)
 
   # Estimate upper quantiles sequentially
   ehat = ehat0
@@ -334,22 +346,24 @@ quantRegSpacing = function(
     if(!any(is.na(start_list))){ # if user specified a start model, then use it as input
       col_nums = getColNums(start_list, reg_spec_data, alpha, j)
       sv = as.numeric(start_list[col_nums])
-      j_model <- quantRegress(reg_spec_data = reg_spec_data, ehat = ehat,
+      j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
                               sv = sv, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
                               small = small, control = list(tmpmax = tmpmax),
-                              weight_vec = weight_vec)
+                              weight_vec = weight_vec,
+                              algorithm = algorithm)
     }
     else{
-      j_model <- quantRegress(reg_spec_data = reg_spec_data, ehat = ehat,
+      j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
                               ind_hat = ind_hat, tau = tau.t, trunc =  trunc,
                               small = small, control = list(tmpmax = tmpmax),
-                              weight_vec = weight_vec)
+                              weight_vec = weight_vec,
+                              algorithm = algorithm)
     }
     printWarnings(j_model)
 
     #Calculate R^2
     V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
-    V0 <- quantRegress(
+    V0 <- regressResiduals(
       reg_spec_data = list(
         spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
                            ),
@@ -396,19 +410,24 @@ quantRegSpacing = function(
     # Ensure the cut of the starting data that we take for
     # current spacing is not rank-deficient
     # if not truncating, then ensure exact rows of the regression matrix is included
-    if(!trunc) reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[which(-ehat > small),],
-                                                   col_names = reg_spec_starting_data$var_names)
     # else, handle rank specification for typically-sized matrix
-    else reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[ind_hat,],
+
+    if(!trunc)  {
+      reg_spec_data <- ensureSpecFullRank(spec_mat =
+                                            reg_spec_starting_data$spec_matrix[
+                                              which(-ehat > small),
+                                              ],
+                                          col_names = reg_spec_starting_data$var_names)
+    } else {
+      reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[ind_hat,],
                                              col_names = reg_spec_starting_data$var_names)
+    }
+
     #run quantile regression
-
-    coef <- NULL
-
     if(!any(is.na(start_list))) { # if the user supplied starting values, then use them in the function
       col_nums = getColNums(start_list, reg_spec_data, alpha, j)
       sv = as.numeric(start_list[col_nums])
-      j_model <- quantRegress(reg_spec_data = reg_spec_data,
+      j_model <- regressResiduals(reg_spec_data = reg_spec_data,
                               ehat = -ehat,
                               sv = sv,
                               ind_hat = ind_hat,
@@ -416,7 +435,7 @@ quantRegSpacing = function(
                               control = list(tmpmax = tmpmax),
                               weight_vec = weight_vec)
     } else {
-      j_model <- quantRegress(reg_spec_data = reg_spec_data,
+      j_model <- regressResiduals(reg_spec_data = reg_spec_data,
                               ehat = -ehat,
                               ind_hat = ind_hat,
                               tau = tau.t, trunc = trunc, small = small,
@@ -428,12 +447,12 @@ quantRegSpacing = function(
 
     #Calculate pseudo-R^2
     V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
-    V0 <- quantRegress(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
+    V0 <- regressResiduals(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
                        ehat = -ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
                        small = small, weight_vec = weight_vec)
     V0 <- sum(rho(u = V0$residuals, tau = tau.t, weight_vec = V0$weight_vec))
 
-        # Update residuals
+    # Update residuals
     coef = j_model$coefficients
     coef_df <- as.data.frame(t(coef))
 

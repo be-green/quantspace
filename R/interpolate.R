@@ -72,6 +72,9 @@ defcombine <- function(a, ...) {
   c(list(a), list(...))
 }
 
+#' helper function, collapse using correct method
+#' @param x value,
+#' @param l list
 collapse_correctly <- function(x, l) {
   if(length(x) > 1) {
     do.call("rbind", l)
@@ -203,7 +206,6 @@ distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
   ), class = "distributional_effects_list")
 }
 
-
 #' Visualize distributional effects
 #' @param distributional_effects estimate of distributional effects
 #' @param what what to plot, one of "pdf", "cdf", "quantiles"
@@ -223,7 +225,6 @@ plot.distributional_effects <- function(distributional_effects,
   assertthat::assert_that(length(tail_level) == 1)
   assertthat::assert_that(is.numeric(tail_level))
   assertthat::assert_that(is.character(what))
-
 
   if(what == "quantiles") {
     what = "q"

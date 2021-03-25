@@ -1,6 +1,6 @@
 
 #' Generate warning messages for regression model
-#' @param model result of call to quantRegress
+#' @param model result of call to regressResiduals
 printWarnings = function(model){
 
   if(model$ierr != 0){

@@ -10,6 +10,7 @@ quantRegSpacing(
   var_names,
   alpha,
   jstar,
+  algorithm = "rq.fit.sfn_start_val",
   small = 0.001,
   trunc = FALSE,
   start_list = NA,
@@ -28,6 +29,9 @@ quantRegSpacing(
 \item{alpha}{Quantiles to be estimated.}
 
 \item{jstar}{First quantile to be estimated (usually the center one)}
+
+\item{algorithm}{The name of a function which will estimate a quantile regression.
+Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`}
 
 \item{small}{Minimum size of residuals for computational accuracy.}
 
