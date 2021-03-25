@@ -80,6 +80,7 @@ ggplot(plot_data,
 ```
 ![plot output](inst/img/predicted-gpm-multivariate.png)
 
+Looks like we are missing some aspect of the problem for the lowest gallons-per-mile of car--perhaps we need to include an additional covariate. This type of model diagnostic is helpful, since the 80% interval for the fitted quantile should contain the observed value 80% of the time. If that's happening not-at-random, or not happening it might be time to check your model.
 
 # Distributional Effects
 
