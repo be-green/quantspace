@@ -1,7 +1,7 @@
 # quantspace
 This is an R package for estimating quantile regression coefficients via the quantile spacing method, as described in the paper [Quantile Spacings: A Simple Method for the Joint Estimation of Multiple Quantiles Without Crossing, Schmidt & Zhu](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2220901).
 
-The package contains utilities for estimating quantiles via the difference from a central estimated quantile. Fitted quantiles are guarenteed to be positive, because instead of directly estimating each quantile, the package will estimate the quantile effect on the log of the residuals, relative to the previously fitted quantile.
+The package contains utilities for estimating quantiles via the difference from a central estimated quantile. Fitted quantiles are guarenteed to be positive, because instead of directly estimating each quantile, the package will estimate the quantile effect on the log of the residuals with the correct corresponding sign.
 
 In other words, imagine we estimate the median quantile for the data. Now we are interested in the 75th percentile. But we don't want our quantiles to cross, which they are guarenteed to do in a non-trivial linear model (just expand the line far enough--if the lines aren't parallel, they will cross). What do we do? We take the log of the residuals relative to the median, and estimate a quantile regression on that quantity. The exponential model guarentees that the fitted quantile will have a positive difference vs. the median. You can translate this back by taking the implied `log(y - median)` by running `median + exp(y - median)`. The effects on each quantile are non-linear, but it avoids the crossing problem.
 
