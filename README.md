@@ -21,9 +21,11 @@ est <- qs(1/hwy ~ displ,
           data = head(mpg, 190))
 ```
 
+If we print our estimate, we'll see the baseline coefficients (in this case the median is chosen as the central quantile), and then the spacings coefficients. 
+
 ![regression output](inst/img/reg_output.png)
 
-If we print our estimate, we'll see the baseline coefficients (in this case the median is chosen as the central quantile), and then the spacings coefficients. Suppose we want to see how good our fit is? We might want out of sample predictive tests. To do this, we simply run
+Suppose we want to see how good our fit is? We might want out of sample predictive tests. To do this, we simply run
 
 ```
 oos_pred <- predict(est, newdata = tail(mpg, 70))
@@ -51,6 +53,30 @@ ggplot(plot_data,
  
 ![plot output](inst/img/predicted-gpm.png)
 
+Let's try a multivariate model, with multiple X variables. To make the predictions easier to see, I'm going to sort the true values, and plot our predicted quantiles as point-ranges, with the fatter range representing the 50% interval, and the thin one representing the 80% interval.
 
+```
 
+est <- qs(1/hwy ~ displ + cty, 
+          data = head(mpg, 190))
+
+oos_pred <- predict(est, newdata = tail(mpg, 70))
+
+plot_data <- data.table(tail(mpg, 70),
+                        oos_pred)
+setorder(plot_data, -hwy)
+plot_data[,Index := .I]
+
+ggplot(plot_data, 
+       aes(x = Index, y = 1/hwy, ymin = `0.25`, ymax = `0.75`)) +
+  geom_pointrange(aes(y = `0.5`), color = "lightblue", size = 1.1,
+                  fatten = 1) +
+  geom_pointrange(aes(y = `0.5`, ymin = `0.1`, ymax = `0.9`),
+                  color = "lightblue") +
+  geom_point() +
+  theme_minimal() +
+  ggtitle("Predicted Gallons per Mile",
+          subtitle = "Out of Sample Predictions, Multivariate Model")
+```
+![plot output](inst/img/predicted-gpm-multivariate.png)
 
