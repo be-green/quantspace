@@ -257,7 +257,7 @@ print.qs <- function(x, digits = 4, ...) {
   cat("Baseline Coefficients:\n",
       b_coefs, "\n\n")
 
-  cat("Quantile Coefficients:\n",
+  cat("Spacings Coefficients:\n",
       s_coefs, "\n\n")
 
   cat(
