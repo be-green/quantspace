@@ -22,8 +22,7 @@ subsampleStandardErrors(
   trunc = FALSE,
   save_rows = FALSE,
   start_model,
-  weight_vec = NULL,
-  square_ols_weights = FALSE
+  weight_vec = NULL
 )
 }
 \arguments{

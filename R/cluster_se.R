@@ -178,6 +178,7 @@ setCores <- function(ncores) {
 #' @importFrom methods is
 #' @importFrom stats rexp
 #' @importFrom stats cov
+#' @importFrom purrr pmap
 #' @importFrom stats dnorm
 #' @export
 subsampleStandardErrors = function(
@@ -188,26 +189,21 @@ subsampleStandardErrors = function(
   jstar,
   cluster_indices = NULL,
   stratum_indices = NULL,
-  M = 0.2,
-  draw_weights = FALSE,
-  num_bs = 100, parallel = F, num_cores = getCores(), small = 1e-6,
-  trunc = FALSE, save_rows = FALSE, start_model, weight_vec = NULL,
-  square_ols_weights = FALSE) {
+  M = 1,
+  draw_weights = TRUE,
+  num_bs = 100, parallel = F, num_cores = getCores(), small = 1e-3,
+  trunc = FALSE, start_model, weight_vec = NULL) {
 
   # check to see if regression matrix is sparse. If not, then turn into CSR matrix
-  if(!methods::is(data, 'matrix.csr')) data = denseMatrixToSparse(data)
-
-  num_betas = dim(data)[2]
+  if(!methods::is(data, 'matrix.csr')){
+    data = denseMatrixToSparse(data)
+  }
 
   # checking conditions on M
   if(M > 1 | 0 >= M){
     stop("Subsampling percentage must be between 0 and 1")
   }
 
-  if(parallel == F) {
-    num_cores <- 1
-    parallel <- T
-  }
 
   if(parallel){
 
@@ -221,52 +217,41 @@ subsampleStandardErrors = function(
       .export = c('quantRegSpacing', 'rq.fit.sfn_start_val','findRedundantCols',
                   'ensureSpecFullRank', 'getRank', 'addMissingSpecColumns', 'clusterSample',
                   'rho', 'getColNums', 'regressResiduals', 'printWarnings', 'ols_sparse_fit'),
-      .combine = function(...) mapply('rbind',...),
-      .errorhandling = 'remove' #, .options.snow = opts
+      .errorhandling = 'stop' #, .options.snow = opts
     ) %dopar% {
-      SMALL <- 1e-3
-
       # if no clustering is specified, draw sample here.
       # Need to provide a cluster_id variable to stratify
       if (is.null(cluster_indices)) {
         rows = sample(dim(data)[1],floor(M*dim(data)[1]))
-        if (draw_weights){
-          if(any(is.null(weight_vec))) rand_weight_vec <- pmax(stats::rexp(length(rows)),5e-3)
-          else {
+        if (draw_weights) {
+          if(any(is.null(weight_vec))){
+            rand_weight_vec <- pmax(stats::rexp(length(rows)),5e-3)
+          } else {
             rand_weight_vec <- pmax(rexp(length(rows)),5e-3) * weight_vec[rows]
-            if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-            else ols_rand_weight_vec <- rand_weight_vec
           }
-        }
-        else {
+        } else {
           rand_weight_vec <- weight_vec[rows]
-          if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-          else ols_rand_weight_vec <- rand_weight_vec
         }
-      } else{
+      } else {
         # call clusterSample here to generate clustered standard errors
         subsample_outputs <- clusterSample(cluster_indices = cluster_indices,
                                            stratum_indices = stratum_indices,
                                            M = M,
                                            draw_weights = draw_weights)
         rows <- subsample_outputs$subsample_rows
-        if(any(is.null(weight_vec))) rand_weight_vec <- subsample_outputs$subsample_weights
-        else{
+        if(any(is.null(weight_vec))) {
+          rand_weight_vec <- subsample_outputs$subsample_weights
+        } else{
           if(draw_weights) {
             rand_weight_vec <- subsample_outputs$subsample_weights * weight_vec[rows]
-            if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-            else ols_rand_weight_vec <- rand_weight_vec
-          }
-          else {
+          }else {
             rand_weight_vec <- weight_vec[rows]
-            if (square_ols_weights) ols_rand_weight_vec <- rand_weight_vec * weight_vec[rows]
-            else ols_rand_weight_vec <- rand_weight_vec
           }
         }
       }
-      if (!exists("ols_rand_weight_vec")) ols_rand_weight_vec <- NULL
-      if (!exists("rand_weight_vec"))     rand_weight_vec <- NULL
-
+      if (!exists("rand_weight_vec")) {
+        rand_weight_vec <- NULL
+      }
 
       cur_fit <- quantRegSpacing(
         data = data[rows,],
@@ -278,27 +263,70 @@ subsampleStandardErrors = function(
         trunc = trunc,
         start_list = start_model,
         weight_vec = rand_weight_vec)
-      cur_fit$OLS <- as.data.frame(t(ols_sparse_fit(a = data[rows,],
-                                                    y = dep_col[rows],
-                                                    weight_vec = ols_rand_weight_vec)))
 
       return(cur_fit)
     }
     parallel::stopCluster(cl)
+  } else {
+    fit <- list()
+    for(bs in 1:num_bs) {
+      # if no clustering is specified, draw sample here.
+      # Need to provide a cluster_id variable to stratify
+      if (is.null(cluster_indices)) {
+        rows = sample(dim(data)[1],floor(M*dim(data)[1]))
+        if (draw_weights) {
+          if(any(is.null(weight_vec))){
+            rand_weight_vec <- pmax(stats::rexp(length(rows)),5e-3)
+          } else {
+            rand_weight_vec <- pmax(rexp(length(rows)),5e-3) * weight_vec[rows]
+          }
+        } else {
+          rand_weight_vec <- weight_vec[rows]
+        }
+      } else {
+        # call clusterSample here to generate clustered standard errors
+        subsample_outputs <- clusterSample(cluster_indices = cluster_indices,
+                                           stratum_indices = stratum_indices,
+                                           M = M,
+                                           draw_weights = draw_weights)
+        rows <- subsample_outputs$subsample_rows
+        if(any(is.null(weight_vec))) {
+          rand_weight_vec <- subsample_outputs$subsample_weights
+        } else{
+          if(draw_weights) {
+            rand_weight_vec <- subsample_outputs$subsample_weights * weight_vec[rows]
+          } else {
+            rand_weight_vec <- weight_vec[rows]
+          }
+        }
+      }
+
+      if (!exists("rand_weight_vec")) {
+        rand_weight_vec <- NULL
+      }
+
+      cur_fit <- quantRegSpacing(
+        data = data[rows,],
+        dep_col = dep_col[rows],
+        var_names = var_names,
+        alpha = alpha,
+        jstar = jstar,
+        small = small,
+        trunc = trunc,
+        start_list = start_model,
+        weight_vec = rand_weight_vec)
+
+      fit[[bs]] <- cur_fit
+    }
   }
 
-  quant_cov_mat <- stats::cov(fit$coef)
+  fit <- purrr::pmap(fit, rbind)
+  quant_cov_mat <- stats::cov(fit$coef, use = "pairwise.complete.obs")
   quant_cov_mat <- quant_cov_mat * (M)
 
-  colnames(fit$OLS) <- var_names
-  ols_cov_mat <- stats::cov(fit$OLS)
-  ols_cov_mat <- ols_cov_mat * (M)
-
   return(list('quant_cov' = quant_cov_mat,
-              'ols_cov' = ols_cov_mat,
               'warnings' = fit$warnings,
               'iter' = fit$iter,
-              'OLS' = fit$OLS,
               'counts' = fit$counts,
               'coef_boot' = fit$coef,
               'M' = M))
