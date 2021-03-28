@@ -48,6 +48,7 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
   e <- ao %*% a
   nnzemax <- e@ia[m+1]-1
   ctrl <- quantreg::sfn.control()
+  ctrl$small <- ctrl$small/100
   if (!missing(control)) {
     control <- as.list(control)
     ctrl[names(control)] <- control
@@ -210,6 +211,7 @@ regressResiduals = function(reg_spec_data,
   return(j_model)
 }
 
+
 #' Computes coefficients for the quantile regression spacing method.
 #' @param dep_col Column of response variable.
 #' @param data Regression specification matrix.
@@ -283,7 +285,6 @@ quantRegSpacing = function(
       control = list(tmpmax = tmpmax),
       weight_vec = weight_vec,
       algorithm = algorithm)
-
    } else {
      col_nums = getColNums(start_list, reg_spec_starting_data, alpha, jstar)
      sv = as.numeric(start_list[col_nums])
@@ -297,6 +298,7 @@ quantRegSpacing = function(
        algorithm = algorithm
       )
    }
+
   printWarnings(star_model)
 
   ehat0 = star_model$residuals
@@ -330,150 +332,196 @@ quantRegSpacing = function(
   for (j in (jstar+1):p) {
     ind_hat = which(ehat > 0)
 
-    # Determine quantile to estimate
-    tau.t = (alpha[j] - alpha[j-1])/(1 - alpha[j-1])
+    if(length(ind_hat) == 0) {
+      # Update residuals
+      coef = rep(NA, length(star_model$coefficients))
+      coef_df <- as.data.frame(t(coef))
 
-    # Ensure the cut of the starting data that we take for
-    # current spacing is not rank-deficient
-    if(!trunc) reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[which(ehat > small),],
-                                                   col_names = reg_spec_starting_data$var_names)
-    # else, handle rank specification for typically-sized matrix
-    else reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[ind_hat,],
-                                             col_names = reg_spec_starting_data$var_names)
+      #get column names
+      colnames(coef_df) <- reg_spec_data$var_names
+      coef_df <- addMissingSpecColumns(
+        coef_df,
+        var_names)
+      colnames(coef_df) <- paste(alpha[j], colnames(coef_df), sep="_")
 
-    #run quantile regression
-    coef <- NULL
-    if(!any(is.na(start_list))){ # if user specified a start model, then use it as input
-      col_nums = getColNums(start_list, reg_spec_data, alpha, j)
-      sv = as.numeric(start_list[col_nums])
-      j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
-                              sv = sv, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                              small = small, control = list(tmpmax = tmpmax),
-                              weight_vec = weight_vec,
-                              algorithm = algorithm)
+      #log results
+      model[[j]] = coef_df
+      pseudo_r[[j]] = (1 - V/V0)
+      warnings_log[[j]] = j_model$ierr
+      iter_log[[j]] = j_model$it
+      count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
+
+      # Update residuals
+      ehat = NA
+    } else {
+      # Determine quantile to estimate
+      tau.t = (alpha[j] - alpha[j-1])/(1 - alpha[j-1])
+
+      # Ensure the cut of the starting data that we take for
+      # current spacing is not rank-deficient
+      if(!trunc){
+        reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[which(ehat > small),],
+                                            col_names = reg_spec_starting_data$var_names)
+      } else {
+        # else, handle rank specification for typically-sized matrix
+        reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[ind_hat,],
+                                            col_names = reg_spec_starting_data$var_names)
+      }
+
+
+      #run quantile regression
+      coef <- NULL
+      if(!any(is.na(start_list))){ # if user specified a start model, then use it as input
+        col_nums = getColNums(start_list, reg_spec_data, alpha, j)
+        sv = as.numeric(start_list[col_nums])
+        j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
+                                    sv = sv, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
+                                    small = small, control = list(tmpmax = tmpmax),
+                                    weight_vec = weight_vec,
+                                    algorithm = algorithm)
+      } else{
+        j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
+                                    ind_hat = ind_hat, tau = tau.t, trunc =  trunc,
+                                    small = small, control = list(tmpmax = tmpmax),
+                                    weight_vec = weight_vec,
+                                    algorithm = algorithm)
+      }
+      printWarnings(j_model)
+
+      #Calculate R^2
+      V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
+      V0 <- regressResiduals(
+        reg_spec_data = list(
+          spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
+        ),
+        ehat = ehat, ind_hat = ind_hat,
+        tau = tau.t, trunc = trunc,
+        small = small, weight_vec = weight_vec)
+      V0 <- sum(rho(u = V0$residuals, tau = tau.t,
+                    weight_vec = V0$weight_vec))
+
+      # Update residuals
+      coef = j_model$coefficients
+      coef_df <- as.data.frame(t(coef))
+
+      #get column names
+      colnames(coef_df) <- reg_spec_data$var_names
+      coef_df <- addMissingSpecColumns(
+        coef_df,
+        var_names)
+      colnames(coef_df) <- paste(alpha[j], colnames(coef_df), sep="_")
+
+      #log results
+      model[[j]] = coef_df
+      pseudo_r[[j]] = (1 - V/V0)
+      warnings_log[[j]] = j_model$ierr
+      iter_log[[j]] = j_model$it
+      count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
+
+      # Update residuals
+      ehat = ehat - exp(
+        as.matrix(
+          data %*%
+            unname(t(as.matrix(model[[j]])))))
+
     }
-    else{
-      j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
-                              ind_hat = ind_hat, tau = tau.t, trunc =  trunc,
-                              small = small, control = list(tmpmax = tmpmax),
-                              weight_vec = weight_vec,
-                              algorithm = algorithm)
-    }
-    printWarnings(j_model)
-
-    #Calculate R^2
-    V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
-    V0 <- regressResiduals(
-      reg_spec_data = list(
-        spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
-                           ),
-      ehat = ehat, ind_hat = ind_hat,
-      tau = tau.t, trunc = trunc,
-      small = small, weight_vec = weight_vec)
-    V0 <- sum(rho(u = V0$residuals, tau = tau.t,
-                  weight_vec = V0$weight_vec))
-
-    # Update residuals
-    coef = j_model$coefficients
-    coef_df <- as.data.frame(t(coef))
-
-    #get column names
-    colnames(coef_df) <- reg_spec_data$var_names
-    coef_df <- addMissingSpecColumns(
-      coef_df,
-      var_names)
-    colnames(coef_df) <- paste(alpha[j], colnames(coef_df), sep="_")
-
-    #log results
-    model[[j]] = coef_df
-    pseudo_r[[j]] = (1 - V/V0)
-    warnings_log[[j]] = j_model$ierr
-    iter_log[[j]] = j_model$it
-    count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
-
-    # Update residuals
-    ehat = ehat - exp(
-      as.matrix(
-        data %*%
-          unname(t(as.matrix(model[[j]])))))
 
   }
 
   # Estimate lower quantiles sequentially
   ehat = ehat0
   for (j in (jstar-1):1) {
-    ind_hat = which(ehat < 0)
-
-    # Determine quantile to estimate
-    tau.t = (alpha[j + 1] - alpha[j])/(alpha[j + 1])
 
     # Ensure the cut of the starting data that we take for
     # current spacing is not rank-deficient
     # if not truncating, then ensure exact rows of the regression matrix is included
     # else, handle rank specification for typically-sized matrix
-
-    if(!trunc)  {
-      reg_spec_data <- ensureSpecFullRank(spec_mat =
-                                            reg_spec_starting_data$spec_matrix[
-                                              which(-ehat > small),
-                                              ],
-                                          col_names = reg_spec_starting_data$var_names)
+    if(!trunc) {
+      ind_hat = which(-ehat > small)
     } else {
+      ind_hat = which(ehat < 0)
+    }
+
+    if(length(ind_hat) == 0) {
+      # Update residuals
+      coef = rep(NA, length(star_model$coefficients))
+      coef_df <- as.data.frame(t(coef))
+
+      #get column names
+      colnames(coef_df) <- reg_spec_data$var_names
+      coef_df <- addMissingSpecColumns(
+        coef_df,
+        var_names)
+      colnames(coef_df) <- paste(alpha[j], colnames(coef_df), sep="_")
+
+      #log results
+      model[[j]] = coef_df
+      pseudo_r[[j]] = NA
+      warnings_log[[j]] = j_model$ierr
+      iter_log[[j]] = j_model$it
+      count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
+
+      # Update residuals
+      ehat = NA
+    } else {
+      # Determine quantile to estimate
+      tau.t = (alpha[j + 1] - alpha[j])/(alpha[j + 1])
+
       reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[ind_hat,],
-                                             col_names = reg_spec_starting_data$var_names)
+                                          col_names = reg_spec_starting_data$var_names)
+
+
+      #run quantile regression
+      if(!any(is.na(start_list))) { # if the user supplied starting values, then use them in the function
+        col_nums = getColNums(start_list, reg_spec_data, alpha, j)
+        sv = as.numeric(start_list[col_nums])
+        j_model <- regressResiduals(reg_spec_data = reg_spec_data,
+                                    ehat = -ehat,
+                                    sv = sv,
+                                    ind_hat = ind_hat,
+                                    tau = tau.t, trunc = trunc, small = small,
+                                    control = list(tmpmax = tmpmax),
+                                    weight_vec = weight_vec)
+      } else {
+        j_model <- regressResiduals(reg_spec_data = reg_spec_data,
+                                    ehat = -ehat,
+                                    ind_hat = ind_hat,
+                                    tau = tau.t, trunc = trunc, small = small,
+                                    control = list(tmpmax = tmpmax),
+                                    weight_vec = weight_vec)
+      }
+
+      printWarnings(j_model)
+
+      #Calculate pseudo-R^2
+      V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
+      V0 <- regressResiduals(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
+                             ehat = -ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
+                             small = small, weight_vec = weight_vec)
+      V0 <- sum(rho(u = V0$residuals, tau = tau.t, weight_vec = V0$weight_vec))
+
+      # Update residuals
+      coef = j_model$coefficients
+      coef_df <- as.data.frame(t(coef))
+
+      #get column names
+      colnames(coef_df) <- reg_spec_data$var_names
+      coef_df <- addMissingSpecColumns(
+        coef_df,
+        var_names)
+      colnames(coef_df) <- paste(alpha[j], colnames(coef_df), sep="_")
+
+      #log results
+      model[[j]] = coef_df
+      pseudo_r[[j]] = (1 - V/V0)
+      warnings_log[[j]] = j_model$ierr
+      iter_log[[j]] = j_model$it
+      count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
+
+        ehat = ehat + exp(as.matrix(
+          data %*%
+            unname(t(as.matrix(model[[j]])))))
     }
-
-    #run quantile regression
-    if(!any(is.na(start_list))) { # if the user supplied starting values, then use them in the function
-      col_nums = getColNums(start_list, reg_spec_data, alpha, j)
-      sv = as.numeric(start_list[col_nums])
-      j_model <- regressResiduals(reg_spec_data = reg_spec_data,
-                              ehat = -ehat,
-                              sv = sv,
-                              ind_hat = ind_hat,
-                              tau = tau.t, trunc = trunc, small = small,
-                              control = list(tmpmax = tmpmax),
-                              weight_vec = weight_vec)
-    } else {
-      j_model <- regressResiduals(reg_spec_data = reg_spec_data,
-                              ehat = -ehat,
-                              ind_hat = ind_hat,
-                              tau = tau.t, trunc = trunc, small = small,
-                              control = list(tmpmax = tmpmax),
-                              weight_vec = weight_vec)
-    }
-
-    printWarnings(j_model)
-
-    #Calculate pseudo-R^2
-    V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
-    V0 <- regressResiduals(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
-                       ehat = -ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                       small = small, weight_vec = weight_vec)
-    V0 <- sum(rho(u = V0$residuals, tau = tau.t, weight_vec = V0$weight_vec))
-
-    # Update residuals
-    coef = j_model$coefficients
-    coef_df <- as.data.frame(t(coef))
-
-    #get column names
-    colnames(coef_df) <- reg_spec_data$var_names
-    coef_df <- addMissingSpecColumns(
-      coef_df,
-      var_names)
-    colnames(coef_df) <- paste(alpha[j], colnames(coef_df), sep="_")
-
-    #log results
-    model[[j]] = coef_df
-    pseudo_r[[j]] = (1 - V/V0)
-    warnings_log[[j]] = j_model$ierr
-    iter_log[[j]] = j_model$it
-    count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
-
-    # Update residuals
-    ehat = ehat + exp(as.matrix(
-      data %*%
-        unname(t(as.matrix(model[[j]])))))
   }
   rv = list('coef' = do.call(cbind, model),
             'pseudo_r' = do.call(cbind, pseudo_r),
@@ -497,8 +545,11 @@ quantRegSpacing = function(
   }
 
   # calculate quantiles induced by spacings if user-specified
-  if(outputQuantiles) rv$quantiles = spacingsToQuantiles(spacingCoef = matrix(as.numeric(rv$coef), ncol = p),
-                                                         data, jstar)
+  if(outputQuantiles) {
+    rv$quantiles = spacingsToQuantiles(spacingCoef = matrix(as.numeric(rv$coef),
+                                                            ncol = p),
+                                       data, jstar)
+  }
   return(rv)
 }
 

@@ -13,19 +13,15 @@ qs(
   trunc = T,
   small = 0.001,
   weight_vec = NULL,
-  outputQuantiles = TRUE,
-  calculateAvgME = TRUE,
   subsamplePct = 0.2,
   cluster_indices = NULL,
   stratum_indices = NULL,
   draw_weights = FALSE,
   num_bs = 100,
   parallel = TRUE,
-  num_cores = NULL,
+  num_cores = getCores(),
   save_rows = FALSE,
   seed = NULL,
-  outToCsv = FALSE,
-  csv_filename = NULL,
   ...
 )
 }
@@ -51,10 +47,6 @@ while boot bootstraps the standard errors.}
 
 \item{weight_vec}{vector of weights for weighted quantile regression}
 
-\item{outputQuantiles}{whether to output the fitted quantiles}
-
-\item{calculateAvgME}{whether to calculated average marginal effects}
-
 \item{subsamplePct}{percent to subsample for standard error calculations}
 
 \item{cluster_indices}{index of clusters for clustered standard errors}
@@ -72,10 +64,6 @@ while boot bootstraps the standard errors.}
 \item{save_rows}{whether to save rows, see [subsampleStandardErrors]}
 
 \item{seed}{what seed to use for replicable RNG}
-
-\item{outToCsv}{whether to save fit to a csv file}
-
-\item{csv_filename}{filename of csv outfile}
 
 \item{...}{additional arguments, ignored for now}
 }

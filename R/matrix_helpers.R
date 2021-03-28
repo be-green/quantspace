@@ -21,6 +21,7 @@ rho <- function(u,tau=.5,weight_vec = NULL){
 #' @param TOL tolerance for rank calculation
 #' @return The rank of the matrix m
 getRank = function(m, TOL = 1e-10) {
+
   transp_prod <- as.matrix(t(m) %*% (m))
   return(sum(abs(diag(qr.R(qr(transp_prod)))) > TOL))
 }

@@ -12,8 +12,6 @@
 #' @param trunc whether to truncate small values
 #' @param small level of "small" values to guarentee numerical stability
 #' @param weight_vec vector of weights for weighted quantile regression
-#' @param outputQuantiles whether to output the fitted quantiles
-#' @param calculateAvgME whether to calculated average marginal effects
 #' @param subsamplePct percent to subsample for standard error calculations
 #' @param cluster_indices index of clusters for clustered standard errors
 #' @param stratum_indices index of strata for clustered standard errors
@@ -23,8 +21,6 @@
 #' @param num_cores number of cores to use (defaults to setting from `getOption(mc.cores)`)
 #' @param save_rows whether to save rows, see [subsampleStandardErrors]
 #' @param seed what seed to use for replicable RNG
-#' @param outToCsv whether to save fit to a csv file
-#' @param csv_filename filename of csv outfile
 #' @param ... additional arguments, ignored for now
 #' @importFrom assertthat assert_that
 #' @importFrom SparseM model.matrix
@@ -34,17 +30,14 @@
 qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
                baseline_quantile = 0.5,
-               se_method = "boot",
-               trunc = T, small = 1e-3, weight_vec = NULL,
-               outputQuantiles = TRUE, calculateAvgME = TRUE,
-               subsamplePct = 0.2, cluster_indices = NULL,
-               stratum_indices = NULL, draw_weights = FALSE,
+               se_method = "boot", weight_vec = NULL,
+               subsamplePct = 1, cluster_indices = NULL,
+               stratum_indices = NULL, draw_weights = TRUE,
                num_bs = 100, parallel = TRUE,
-               num_cores = NULL, save_rows = FALSE, seed = NULL,
-               outToCsv = FALSE, csv_filename = NULL,
+               num_cores = getCores(),
+               trunc = T, small = NULL,
+               seed = NULL,
                ...) {
-
-
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 
@@ -52,10 +45,16 @@ qs <- function(formula, data = NULL,
     num_cores <- getCores()
   }
 
+
   m <- SparseM::model.matrix(formula, data)
   y <- SparseM::model.response(stats::model.frame(formula, data), type = "numeric")
 
   depCol <- y
+
+
+  if(is.null(small)) {
+    small = pmax(sd(y)/5000, .Machine$double.eps)
+  }
 
   quantiles <- unique(quantiles)
 
@@ -77,19 +76,10 @@ qs <- function(formula, data = NULL,
     var_names = reg_spec_var_names,
     alpha = alpha,
     jstar = jstar,
-    outputQuantiles = outputQuantiles,
-    calculateAvgME = calculateAvgME,
+    outputQuantiles = T,
+    calculateAvgME = F,
     ...
   )
-
-  ols_fit <- ols_sparse_fit(
-    a = reg_spec,
-    y = depCol)
-
-  ols_r_squared <- get_ols_r_squared(
-    a = reg_spec,
-    y = depCol,
-    betas = ols_fit)
 
   if(subsamplePct > 1) subsamplePct = subsamplePct * 0.01
 
@@ -109,16 +99,13 @@ qs <- function(formula, data = NULL,
       num_cores = num_cores,
       trunc = trunc,
       start_model = quantreg_fit$coef,
-      small = small,
-      save_rows = save_rows)
+      small = small)
   } else {
     stop("This method is not yet implemented or integrated with qs.")
   }
 
 
   rv = list('quantreg_fit' = quantreg_fit,
-            'ols_fit' = ols_fit,
-            'ols_r_squared' = ols_r_squared,
             'se' = se,
             'specs' = list('formula' = formula,
                            'X' = data,
@@ -134,9 +121,7 @@ qs <- function(formula, data = NULL,
                            'num_bs' = num_bs,
                            'parallel' = parallel,
                            'num_cores' = num_cores,
-                           'coef_names' = colnames(m),
-                           'outToCsv' = outToCsv,
-                           'csv_filename' = csv_filename))
+                           'coef_names' = colnames(m)))
 
   structure(rv, class = "qs")
 }
@@ -194,18 +179,11 @@ summary.qs = function(x, ...){
   quant_out_mat <- data.frame(Variable = name_vec, Quantile = q_vec,
                               Coefficient = beta_vec, `Standard Error` = se_vec)
 
-  num_betas <- length(x$ols_fit)
-
-  ols_se <- sqrt(diag(x$se$ols_cov))
-  ols_out <- data.frame(Variable = names(ols_se), Coefficient = x$ols_fit,
-                        Standard.Error = as.numeric(ols_se))
 
   final_output <- list(
     baseline_coefs = baseline_mat,
     spacing_coefs = quant_out_mat,
-    ols_coefs = ols_out,
-    R2 = list(psuedo_r = pseudo_r,
-              ols_r_squared = x$ols_r_squared)
+    R2 = list(psuedo_r = pseudo_r)
   )
 
   structure(final_output, class = "qs_summary")
@@ -249,20 +227,12 @@ print.qs <- function(x, digits = 4, ...) {
 
   s_coefs <- capture_output(spacing_coefs)
   b_coefs <- capture_output(round_if(x$baseline_coefs, d))
-  o_coefs <- capture_output(round_if(x$ols_coefs, d))
-
-
-
 
   cat("Baseline Coefficients:\n",
       b_coefs, "\n\n")
 
   cat("Spacings Coefficients:\n",
       s_coefs, "\n\n")
-
-  cat(
-    "OLS Coefficients:\n",
-    o_coefs)
 
 }
 
@@ -324,7 +294,6 @@ print.qs_summary <- function(x, digits = 4, ...) {
 
   s_coefs <- capture_output(spacing_coefs)
   b_coefs <- capture_output(round_if(x$baseline_coefs, d))
-  o_coefs <- capture_output(round_if(x$ols_coefs, d))
 
 
   psuedo_r2 <- signif(x$R2$psuedo_r, d)
@@ -342,10 +311,6 @@ print.qs_summary <- function(x, digits = 4, ...) {
   cat(paste0("Quantile Psuedo-R2:\n",
        psuedo_message, "\n\n"))
 
-  cat(
-    "OLS Coefficients:\n",
-    o_coefs, "\n")
-  cat("R2: ", signif(x$R2$ols_r_squared, d))
 }
 
 #' Predict quantiles given fitted spacings model
