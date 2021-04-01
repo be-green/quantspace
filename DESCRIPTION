@@ -22,3 +22,5 @@ Imports:
     ggplot2,
     rqPen
 RoxygenNote: 7.1.1
+Suggests: 
+    covr
