@@ -4,10 +4,10 @@
 \alias{plot.distributional_effects}
 \title{Visualize distributional effects}
 \usage{
-\method{plot}{distributional_effects}(distributional_effects, what = "pdf", tail_level = 0.01, ...)
+\method{plot}{distributional_effects}(x, what = "pdf", tail_level = 0.01, ...)
 }
 \arguments{
-\item{distributional_effects}{estimate of distributional effects}
+\item{x}{estimate of distributional effects}
 
 \item{what}{what to plot, one of "pdf", "cdf", "quantiles"}
 

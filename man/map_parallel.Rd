@@ -21,6 +21,8 @@ map_parallel(
 
 \item{...}{parameters passed to function}
 
+\item{parallel}{T/F, whether to operate in parallel or in sequence}
+
 \item{ncores}{number of cores to use}
 
 \item{thresh}{required length of list to use parallel processing}

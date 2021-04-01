@@ -9,29 +9,36 @@
 interpolate_quantiles(object, ...)
 
 \method{interpolate_quantiles}{qs}(
-  fit,
+  object,
   newdata = NULL,
   grid = seq_quant(0, 1, by = 0.01),
   parallel = T,
   ncores = getCores(),
   row_thresh = 20,
   tails = "gaussian",
-  distn = "q"
+  distn = "q",
+  ...
 )
 
 \method{interpolate_quantiles}{matrix}(
-  quantiles,
+  object,
   alphas,
   grid = seq_quant(0, 1, by = 0.01),
   parallel = T,
   ncores = getCores(),
   row_thresh = 100,
   tails = "gaussian",
-  distn = "q"
+  distn = "q",
+  ...
 )
 }
 \arguments{
-\item{fit}{fitted quantile spacings model of class `qs`}
+\item{object}{either matrix of quantiles or a fitted model with a relevant
+method to dispatch}
+
+\item{...}{other arguments passed to interpolate quantiles}
+
+\item{newdata}{New data to use when calculating quantiles to interpolate}
 
 \item{grid}{grid along which to evaluate the CDF}
 
@@ -41,9 +48,9 @@ interpolate_quantiles(object, ...)
 
 \item{row_thresh}{required minimum number of observations to use parallel processing}
 
-\item{distn}{what to return, q for quantile, c for cdf, p for pdf}
+\item{tails}{what distribution to use when fitting the tails, either "gaussian" or "exponential"}
 
-\item{quantiles}{matrix of fitted quantiles to interpolate}
+\item{distn}{what to return, q for quantile, c for cdf, p for pdf}
 
 \item{alphas}{values those quantiles are fit to}
 }

@@ -9,9 +9,9 @@
 \arguments{
 \item{x}{fit from qs}
 
-\item{...}{additional arguments, ignored for now}
+\item{digits}{number of digits to print}
 
-\item{d}{number of digits to print}
+\item{...}{additional arguments, ignored for now}
 }
 \description{
 Print qs summary

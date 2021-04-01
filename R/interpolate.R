@@ -19,6 +19,9 @@ vec_splint_R <- function(y, ...) {
 #' @param quantile matrix of fitted quantiles to interpolate
 #' @param alphas values those quantiles are fit to
 #' @param x values along which to evaluate the CDF, PDF, or quantile function
+#' @param distn distribution to use, one of "q", "c", or "p"
+#' @param tails what distribution to use for fitting tail distributions, either "gaussian"
+#' or "exponential"
 #' @details Used as a helper function for interpolate_quantiles
 interpolate_one_row <- function(quantile, alphas, x, distn = "q", tails = "gaussian") {
   quantile <- matrix(quantile, nrow = 1)
@@ -36,10 +39,9 @@ interpolate_one_row <- function(quantile, alphas, x, distn = "q", tails = "gauss
 }
 
 #' Calculate distributional effects
-#' @param fit fit of class qs
+#' @param object fit of class qs or matrix of fitted quantiles
 #' @param newdata new data to predict distributional outcomes for
 #' @param tails one of "gaussian" or "exponential"
-#' @param quantiles fitted vector or matrix of quantiles
 #' @param alphas which quantiles these were fitted at
 #' @param ... other parameters to pass
 #' @details The arguments alphas and quantiles are automatically handled
@@ -48,21 +50,22 @@ interpolate_one_row <- function(quantile, alphas, x, distn = "q", tails = "gauss
 #' effects at the average of the data. This varies because of the non-linear
 #' model for the quantile process
 #' @export
-distributional_effects <- function(fit, newdata = NULL, tails = "gaussian", ...) {
+distributional_effects <- function(object, tails = "gaussian", ...) {
   UseMethod("distributional_effects")
 }
 
 #' @rdname distributional_effects
+#' @importFrom stats predict
 #' @export
-distributional_effects.qs <- function(fit, newdata = NULL, tails = "gaussian", ...) {
+distributional_effects.qs <- function(object, tails = "gaussian",  newdata = NULL,  ...) {
   if(is.null(newdata)) {
-    quantiles <- colMeans(fit$quantreg_fit$quantiles)
+    quantiles <- colMeans(object$quantreg_fit$quantiles)
   } else {
-    quantiles <- predict(fit, newdata = newdata)
+    quantiles <- predict(object, newdata = newdata)
   }
 
-  alphas <- fit$specs$alpha
-  distributional_effects(quantiles, alphas, tails)
+  alphas <- object$specs$alpha
+  distributional_effects(object = quantiles, tails = tails, alphas = alphas)
 }
 
 #' helper function, borrowed from foreach
@@ -84,10 +87,11 @@ collapse_correctly <- function(x, l) {
 }
 
 #' @rdname distributional_effects
+#' @importFrom stats runif
 #' @export
-distributional_effects.numeric <- function(quantiles, alphas, tails, ...) {
+distributional_effects.numeric <- function(object, tails, alphas, ...) {
 
-  quantiles <- matrix(quantiles, nrow = 1)
+  quantiles <- matrix(object, nrow = 1)
   params <- q_spline_R(quantiles = quantiles,
                        alphas = alphas, tails = tails)
 
@@ -105,6 +109,7 @@ distributional_effects.numeric <- function(quantiles, alphas, tails, ...) {
   cdf <- function(x) {
     vec_splint_R(y = x,
                  quantiles = quantiles,
+                 alphas = alphas,
                  alphas = alphas,
                  y2 = params$y2, tail_param_l = params$tail_param_l,
                  tail_param_u = params$tail_param_u,
@@ -154,9 +159,9 @@ distributional_effects.numeric <- function(quantiles, alphas, tails, ...) {
 
 #' @rdname distributional_effects
 #' @export
-distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
+distributional_effects.matrix <- function(object, tails = "gaussian", alphas, ...) {
 
-  fitted <- map_rows_parallel(quantiles, f = distributional_effects,
+  fitted <- map_rows_parallel(object, f = distributional_effects,
                               alphas = alphas, tails = tails, ..., collapse = "list")
 
   pdf <- function(x) {
@@ -207,7 +212,7 @@ distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
 }
 
 #' Visualize distributional effects
-#' @param distributional_effects estimate of distributional effects
+#' @param x estimate of distributional effects
 #' @param what what to plot, one of "pdf", "cdf", "quantiles"
 #' @param tail_level probability level to stop plotting tail
 #' @param ... other arguments, ignored for now
@@ -215,7 +220,7 @@ distributional_effects.matrix <- function(quantiles, alphas, tails, ...) {
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 stat_function
 #' @export
-plot.distributional_effects <- function(distributional_effects,
+plot.distributional_effects <- function(x,
                                         what = "pdf",
                                         tail_level = 0.01,
                                         ...) {
@@ -230,14 +235,14 @@ plot.distributional_effects <- function(distributional_effects,
     what = "q"
   }
 
-  fun <- distributional_effects[[what]]
+  fun <- x[[what]]
 
   if(what == "q") {
     low = tail_level
     high = 1 - tail_level
   } else {
-    low <- distributional_effects$q(tail_level)
-    high <- distributional_effects$q(1 - tail_level)
+    low <- x$q(tail_level)
+    high <- x$q(1 - tail_level)
   }
 
   x <- data.frame(x = c(low, high))
@@ -246,7 +251,7 @@ plot.distributional_effects <- function(distributional_effects,
 }
 
 #' Visualize distributional effects
-#' @param distributional_effects estimate of distributional effects
+#' @param x estimate of distributional effects
 #' @param what what to plot, one of "pdf", "cdf", "quantiles"
 #' @param tail_level probability level to stop plotting tail
 #' @param ... other arguments, ignored for now
@@ -254,7 +259,7 @@ plot.distributional_effects <- function(distributional_effects,
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 stat_function
 #' @export
-plot.distributional_effects_list <- function(distributional_effects_list,
+plot.distributional_effects_list <- function(x,
                                         what = "cdf",
                                         tail_level = 0.01,
                                         ...) {
@@ -272,7 +277,7 @@ plot.distributional_effects_list <- function(distributional_effects_list,
 
   g <- ggplot2::ggplot(data.frame())
 
-  distributional_effects_list <- distributional_effects_list$fitted
+  distributional_effects_list <- x$fitted
 
   N = length(distributional_effects_list)
 
@@ -301,6 +306,7 @@ plot.distributional_effects_list <- function(distributional_effects_list,
 #' @param l list whose items are passed as data to f
 #' @param f function to map along rows
 #' @param ... parameters passed to function
+#' @param parallel T/F, whether to operate in parallel or in sequence
 #' @param ncores number of cores to use
 #' @param thresh required length of list to use parallel processing
 #' @param collapse what function to use when collapsing arguments
@@ -335,6 +341,8 @@ map_parallel <- function(l, f, ..., parallel = T,
 #' @param mat matrix or data.frame whose rows are passed as data to f
 #' @param f function to map along rows
 #' @param ... parameters passed to function
+#' @param parallel T/F, whether to operate in parallel or in sequence
+#' @param collapse function to use when collapsing list of objects
 #' @param ncores number of cores to use
 #' @param row_thresh required number of rows to use parallel processing
 #' @details only works if the function's dependencies are completely
@@ -365,7 +373,9 @@ map_rows_parallel <- function(mat, f, ..., parallel = T,
 }
 
 #' Interpolate quantiles and return a cumulative distribution function
-#' @param quantiles matrix of fitted quantiles to interpolate
+#' @param object either matrix of quantiles or a fitted model with a relevant
+#' method to dispatch
+#' @param ... other arguments passed to interpolate quantiles
 #' @param alphas values those quantiles are fit to
 #' @param grid grid along which to evaluate the CDF
 #' @param parallel whether to work in parallel
@@ -377,19 +387,20 @@ interpolate_quantiles <- function(object, ...) {
 }
 
 #' @rdname interpolate_quantiles
-#' @param fit fitted quantile spacings model of class `qs`
+#' @param newdata New data to use when calculating quantiles to interpolate
 #' @param grid grid along which to evaluate the CDF
 #' @param parallel whether to work in parallel
 #' @param ncores number of cores to use
+#' @param tails what distribution to use when fitting the tails, either "gaussian" or "exponential"
 #' @param distn what to return, q for quantile, c for cdf, p for pdf
 #' @export
-interpolate_quantiles.qs <- function(fit, newdata = NULL,
+interpolate_quantiles.qs <- function(object, newdata = NULL,
                                      grid = seq_quant(0, 1, by = 0.01),
                                      parallel = T, ncores = getCores(),
                                      row_thresh = 20, tails = "gaussian",
-                                     distn = "q") {
-  quantiles <- predict(fit, newdata = newdata)
-  alphas <- fit$specs$alpha
+                                     distn = "q", ...) {
+  quantiles <- predict(object, newdata = newdata)
+  alphas <- object$specs$alpha
 
   interpolate_quantiles(quantiles, alphas, grid, parallel, ncores,
                         row_thresh = 20, tails = tails,
@@ -397,7 +408,6 @@ interpolate_quantiles.qs <- function(fit, newdata = NULL,
 }
 
 #' @rdname interpolate_quantiles
-#' @param quantiles matrix of fitted quantiles to interpolate
 #' @param alphas values those quantiles are fit to
 #' @param grid grid along which to evaluate the CDF
 #' @param parallel whether to work in parallel
@@ -405,14 +415,14 @@ interpolate_quantiles.qs <- function(fit, newdata = NULL,
 #' @param distn what to return, q for quantile, c for cdf, p for pdf
 #' @param row_thresh required minimum number of observations to use parallel processing
 #' @export
-interpolate_quantiles.matrix <- function(quantiles, alphas,
+interpolate_quantiles.matrix <- function(object, alphas,
                                          grid = seq_quant(0, 1, by = 0.01),
                                   parallel = T, ncores = getCores(),
                                   row_thresh = 100, tails = "gaussian",
-                                  distn = "q") {
+                                  distn = "q", ...) {
 
   interp <- map_rows_parallel(
-    quantiles, f = interpolate_one_row,
+    object, f = interpolate_one_row,
                              alphas = alphas,
                              x = grid,
                              distn = "q",

@@ -16,7 +16,8 @@ quantRegSpacing(
   start_list = NA,
   weight_vec = NULL,
   outputQuantiles = FALSE,
-  calculateAvgME = FALSE
+  calculateAvgME = FALSE,
+  ...
 )
 }
 \arguments{
@@ -45,6 +46,8 @@ else, only use rows with residuals greater than small}
 \item{outputQuantiles}{TRUE or FALSE, whether to output quantiles}
 
 \item{calculateAvgME}{TRUE or FALSE, whether to output average marginal effects}
+
+\item{...}{other parameters passed to the algorithm}
 }
 \value{
 Returns a list of coefficients.

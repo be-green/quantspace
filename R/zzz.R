@@ -1,4 +1,6 @@
 #' Set bootstrap cores on load + welcome messages
+#' @param libname legacy requirement
+#' @param pkgname legacy requirement
 #' @importFrom parallel detectCores
 .onAttach <- function(libname, pkgname) {
 

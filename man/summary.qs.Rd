@@ -4,10 +4,10 @@
 \alias{summary.qs}
 \title{creates a table of summary output for a qs object}
 \usage{
-\method{summary}{qs}(x, ...)
+\method{summary}{qs}(object, ...)
 }
 \arguments{
-\item{x}{an object of class qs}
+\item{object}{an object of class qs}
 
 \item{...}{other arguments to pass to summary}
 }

@@ -8,6 +8,8 @@ capture_output(x, ...)
 }
 \arguments{
 \item{x}{object to capture}
+
+\item{...}{other argument to the print function}
 }
 \description{
 Capture print output
