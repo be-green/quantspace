@@ -30,12 +30,18 @@
 qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
                baseline_quantile = 0.5,
-               se_method = "boot", weight_vec = NULL,
-               subsamplePct = 1, cluster_indices = NULL,
-               stratum_indices = NULL, draw_weights = TRUE,
-               num_bs = 100, parallel = TRUE,
+               se_method = "boot",
+               weight_vec = NULL,
+               subsamplePct = 0.2,
+               algorithm = "rq.fit.sfn",
+               cluster_indices = NULL,
+               stratum_indices = NULL,
+               draw_weights = TRUE,
+               num_bs = 100,
+               parallel = TRUE,
                num_cores = getCores(),
-               trunc = T, small = NULL,
+               trunc = T,
+               small = NULL,
                seed = NULL,
                ...) {
 
@@ -76,6 +82,7 @@ qs <- function(formula, data = NULL,
     var_names = reg_spec_var_names,
     alpha = alpha,
     jstar = jstar,
+    algorithm = algorithm,
     outputQuantiles = T,
     calculateAvgME = F,
     ...
@@ -121,7 +128,8 @@ qs <- function(formula, data = NULL,
                            'num_bs' = num_bs,
                            'parallel' = parallel,
                            'num_cores' = num_cores,
-                           'coef_names' = colnames(m)))
+                           'coef_names' = colnames(m),
+                           'algorithm' = algorithm))
 
   structure(rv, class = "qs")
 }
@@ -180,15 +188,20 @@ summary.qs = function(x, ...){
                               Coefficient = beta_vec, `Standard Error` = se_vec)
 
 
+  if(x$specs$algorithm == "rq.fit.lasso") {
+    quant_out_mat <- quant_out_mat[which(quant_out_mat$Coefficient != 0),]
+    baseline_mat <- baseline_mat[which(baseline_mat$Coefficient != 0),]
+  }
+
   final_output <- list(
     baseline_coefs = baseline_mat,
-    spacing_coefs = quant_out_mat[which(quant_out_mat$Quantile != baseline_quantile),],
-    R2 = list(psuedo_r = pseudo_r)
+    spacing_coefs = quant_out_mat[which(quant_out_mat$Quantile != x$specs$alpha[baseline_quantile]),],
+    R2 = list(psuedo_r = pseudo_r),
+    algorithm = x$specs$algorithm
   )
 
   structure(final_output, class = "qs_summary")
 }
-
 
 #' Capture print output
 #' @param x object to capture
@@ -197,6 +210,10 @@ capture_output <- function(x, ...) {
   testthat::capture_output(print(x, ...))
 }
 
+#' Round if x is numeric, otherwise don't
+#' @param df data.frame whose columns I want to round
+#' @param d number of digits
+#' @importFrom purrr map_df
 round_if <- function(df, d){
   rdf <- purrr::map_df(df, .f = function(x) {
     if(is.numeric(x)){
@@ -234,6 +251,9 @@ print.qs <- function(x, digits = 4, ...) {
   cat("Spacings Coefficients:\n",
       s_coefs, "\n\n")
 
+  if(x$algorithm == "rq.fit.lasso") {
+    cat("Only displaying non-zero coefficients.")
+  }
 }
 
 #' Make matrix into a "standard error" matrix
@@ -282,13 +302,11 @@ pad_strings <- function(x) {
 #' @param ... additional arguments, ignored for now
 #' @export
 print.qs_summary <- function(x, digits = 4, ...) {
-  args <- list(...)
-
 
   d <- digits
 
   spacing_coefs <- round_if(
-    x$spacing_coefs[which(!is.na(x$spacing_coefs$Standard.Error)),], d
+    x$spacing_coefs, d
   )
 
 

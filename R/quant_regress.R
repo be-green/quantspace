@@ -426,7 +426,7 @@ quantRegSpacing = function(
     var_names <- paste0("v", 1:ncol(data))
   }
 
-  tmpmax <- floor(1e5 + exp(-12.1)*(data@ia[width+1]-1)^2.35)
+  tmpmax <- floor(1e5 + exp(-12.1)*(pmin(data@ia[width+1], max(data@ia), na.rm = T)-1)^2.35)
 
   # Ensure matrix is not rank deficient
   reg_spec_starting_data <- ensureSpecFullRank(spec_mat = data, col_names = var_names)

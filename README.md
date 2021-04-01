@@ -1,4 +1,8 @@
 # quantspace
+  <!-- badges: start -->
+  [![R build status](https://github.com/be-green/quantspace/workflows/R-CMD-check/badge.svg)](https://github.com/be-green/quantspace/actions)
+  <!-- badges: end -->
+
 This is an R package for estimating quantile regression coefficients via the quantile spacing method, as described in the paper [Quantile Spacings: A Simple Method for the Joint Estimation of Multiple Quantiles Without Crossing, Schmidt & Zhu](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2220901).
 
 The package contains utilities for estimating quantiles via the difference from a central estimated quantile. Fitted quantiles are guarenteed to be positive, because instead of directly estimating each quantile, the package will estimate the quantile effect on the log of the residuals with the correct corresponding sign.
