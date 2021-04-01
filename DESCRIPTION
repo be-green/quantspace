@@ -19,5 +19,6 @@ Imports:
     methods,
     RConics,
     Matrix.utils,
-    ggplot2
+    ggplot2,
+    rqPen
 RoxygenNote: 7.1.1

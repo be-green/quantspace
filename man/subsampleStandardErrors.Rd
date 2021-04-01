@@ -13,14 +13,13 @@ subsampleStandardErrors(
   jstar,
   cluster_indices = NULL,
   stratum_indices = NULL,
-  M = 0.2,
-  draw_weights = FALSE,
+  M = 1,
+  draw_weights = TRUE,
   num_bs = 100,
   parallel = F,
   num_cores = getCores(),
-  small = 1e-06,
+  small = 0.001,
   trunc = FALSE,
-  save_rows = FALSE,
   start_model,
   weight_vec = NULL
 )
@@ -62,14 +61,14 @@ weights to use in subsample}
 \item{trunc}{Boolean value; if true, replace those dependent values less than small with small itself;
 else, only use rows with residuals greater than small}
 
-\item{save_rows}{If set to TRUE, function will save vector of row numbers
-that triggered warnings by quantile regression}
-
 \item{start_model}{Starting values for regression's optimization.}
 
 \item{weight_vec}{vector of same length and order as dependent column, to be used as weights for estimation
 (note, if draw weights is set to TRUE, this variable will be the element-wise product
 of itself and a random vector of weights)}
+
+\item{save_rows}{If set to TRUE, function will save vector of row numbers
+that triggered warnings by quantile regression}
 
 \item{square_ols_weights}{boolean value; if true, square user-supplied weight_vec for OLS}
 }

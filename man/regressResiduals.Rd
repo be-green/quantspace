@@ -35,7 +35,7 @@ else, only use rows with residuals greater than small}
 \item{algorithm}{The name of a function which will estimate a quantile regression.
 Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`}
 
-\item{...}{other arguments to the function specified by the alorithm argument}
+\item{...}{other arguments to the function specified by the algorithm argument}
 }
 \value{
 List of estimated coefficients, warnings, iterations, and controls as in

@@ -182,7 +182,7 @@ summary.qs = function(x, ...){
 
   final_output <- list(
     baseline_coefs = baseline_mat,
-    spacing_coefs = quant_out_mat,
+    spacing_coefs = quant_out_mat[which(quant_out_mat$Quantile != baseline_quantile),],
     R2 = list(psuedo_r = pseudo_r)
   )
 
@@ -221,7 +221,7 @@ print.qs <- function(x, digits = 4, ...) {
   x <- summary(x, ...)
 
   spacing_coefs <- round_if(
-    x$spacing_coefs[which(!is.na(x$spacing_coefs$Standard.Error)),], d
+    x$spacing_coefs, d
     )
 
 

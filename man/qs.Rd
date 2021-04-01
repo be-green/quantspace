@@ -10,17 +10,16 @@ qs(
   quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
   baseline_quantile = 0.5,
   se_method = "boot",
-  trunc = T,
-  small = 0.001,
   weight_vec = NULL,
-  subsamplePct = 0.2,
+  subsamplePct = 1,
   cluster_indices = NULL,
   stratum_indices = NULL,
-  draw_weights = FALSE,
+  draw_weights = TRUE,
   num_bs = 100,
   parallel = TRUE,
   num_cores = getCores(),
-  save_rows = FALSE,
+  trunc = T,
+  small = NULL,
   seed = NULL,
   ...
 )
@@ -41,10 +40,6 @@ If not found in data, the variables are taken from environment(formula)}
 \item{se_method}{one of "delta" or "boot". Delta uses the delta method approximation,
 while boot bootstraps the standard errors.}
 
-\item{trunc}{whether to truncate small values}
-
-\item{small}{level of "small" values to guarentee numerical stability}
-
 \item{weight_vec}{vector of weights for weighted quantile regression}
 
 \item{subsamplePct}{percent to subsample for standard error calculations}
@@ -61,11 +56,15 @@ while boot bootstraps the standard errors.}
 
 \item{num_cores}{number of cores to use (defaults to setting from `getOption(mc.cores)`)}
 
-\item{save_rows}{whether to save rows, see [subsampleStandardErrors]}
+\item{trunc}{whether to truncate small values}
+
+\item{small}{level of "small" values to guarentee numerical stability}
 
 \item{seed}{what seed to use for replicable RNG}
 
 \item{...}{additional arguments, ignored for now}
+
+\item{save_rows}{whether to save rows, see [subsampleStandardErrors]}
 }
 \description{
 Compute quantile regressions via quantile spacings

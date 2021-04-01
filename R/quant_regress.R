@@ -142,6 +142,155 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
        weight_vec = weight_vec)
 }
 
+#' Rescale coefficients estimated on scaled data to match unscaled data
+#' @param coefs scaled coefficients
+#' @param mu_x vector of means for all (non-intercept) X variables
+#' @param sigma_x vector of scales for all (non-intercept) X variables
+#' @param intercept an integer for which column in design matrix is the intercept
+rescale_coefficients <- function (coefs, mu_x, sigma_x, intercept) {
+  new_coefs <- c()
+  new_slope_coefs <- c()
+  if (intercept != 0) {
+    int_coef <- coefs[intercept]
+    slope_coefs <- coefs[-intercept]
+    for (j in 1:length(slope_coefs)) {
+      new_slope_coefs[j] <- slope_coefs[j]/sigma_x[j]
+      int_coef <- int_coef - slope_coefs[j] * mu_x[j]/sigma_x[j]
+    }
+    new_coefs[intercept] <- int_coef
+    new_coefs[setdiff(1:length(coefs), intercept)] <- new_slope_coefs
+  } else {
+    for (j in 1:length(coefs)) {
+      new_coefs[j] <- coefs[j]/sigma_x[j]
+    }
+  }
+  new_coefs
+}
+
+#' Finds which column of X has the intercept term
+#' @param X design matrix for regression
+get_intercept <- function(X) {
+  which_cols <- 1:ncol(X)
+  i = 1
+  while(length(which_cols) > 1 & i <= nrow(X)) {
+    which_cols <- which(X[i, which_cols] == 1)
+    i = i + 1
+  }
+
+  if (length(which_cols) > 1) {
+    stop("Two intercept columns specified in design matrix. Please remove one.")
+  } else if (length(which_cols) == 0) {
+    0
+  } else {
+    if(all(X[, which_cols] == 1)) {
+      which_cols
+    } else {
+      0
+    }
+  }
+}
+
+#' Scale matrix for lasso regression
+#' @param X design matrix
+#' @param intercept column number for intercept
+scale_for_lasso <- function(X, intercept) {
+  if(intercept == 0) {
+    scale(X)
+  } else {
+    scaled_X = scale(X[,setdiff(1:ncol(X), intercept)])
+
+    out_X = matrix(nrow = nrow(X), ncol = ncol(X))
+    out_X[,intercept] = rep(1, nrow(X))
+    out_X[,setdiff(1:ncol(X), intercept)] = scaled_X
+
+    at = attributes(scaled_X)
+    at = subset(at, sapply(names(at), function(x) grepl(pattern = "scaled", x)))
+
+    for(i in 1:length(at)) {
+      attr(out_X, names(at)[i]) <- at[i][[1]]
+    }
+    out_X
+  }
+}
+
+#' Reorder coefficients in case intercept wasn't the first term
+#' @param coefficients vector of coefficients
+#' @param intercept column number for intercept term
+reorder_coefficients <- function(coefficients, intercept) {
+  reordered_coefs <- rep(NA, length(coefficients))
+  reordered_coefs[-intercept] <- coefficients[-1]
+  reordered_coefs[intercept] <- coefficients[1]
+  reordered_coefs
+}
+
+#' Quantile Regression w/ Lasso Penalty
+#' @param X Design matrix, X
+#' @param y outcome variable, y
+#' @param tau quantile to estimate
+#' @param lambda penalty parameter
+#' @param weight_vec optional vector of weights
+#' @param scale_x whether to scale the design matrix before estimation
+#' @param ... other arguments to pass to rqPen::rq.lasso.fit
+#' @importFrom rqPen rq.lasso.fit
+rq.fit.lasso <- function(X, y, tau, lambda, weight_vec, scale_x = T, ...) {
+
+  if(!is.matrix(X)) {
+    X <- as.matrix(X)
+  }
+  intercept <- get_intercept(X)
+
+  # get the intercept, and then scale everything except the intercept
+  if (scale_x) {
+    unscaled_X <- X
+    X <- scale_for_lasso(X, intercept)
+    mu_x <- attr(X, "scaled:center")
+    sigma_x <- attr(X, "scaled:scale")
+    attr(X, "scaled:center") <- NULL
+    attr(X, "scaled:scale") <- NULL
+  }
+
+  # additional syntax to incorporate weights is included here
+  if (!is.null(weight_vec)){
+    if(n != dim(as.matrix(weight_vec))[1]){
+      stop("Dimensions of design matrix and the weight vector not compatible")
+    }
+
+    # multiplying y by the weights
+    y <- y * weight_vec
+
+    # pre-multiplying the a matrix by a diagonal matrix of weights
+    X <- diag(weight_vec) %*% X
+  }
+
+  est <- rqPen::rq.lasso.fit(x = X[,-intercept],
+                             y = y,
+                             tau = tau,
+                             lambda = lambda,
+                             intercept = T,
+                             scalex = F, ...)
+
+  coefficients <- est$coefficients
+  coefficients <- reorder_coefficients(coefficients, intercept)
+
+  if(scale_x) {
+    coefficients <- rescale_coefficients(coefficients, mu_x, sigma_x, intercept)
+    X = unscaled_X
+  }
+
+  residuals = y - X %*% coefficients
+
+  if (!is.null(weight_vec)){
+    residuals <- residuals / weight_vec
+  }
+
+  list(coefficients = coef(est),
+       residuals = residuals,
+       control = NA,
+       ierr = 0,
+       it = est$it,
+       weight_vec = weight_vec)
+}
+
 #' Estimate a single quantile regression
 #' @param X specification matrix for X variables
 #' @param y outcome variable
@@ -165,7 +314,7 @@ fitQuantileRegression <- function(X, y, tau, algorithm = "rq.fit.sfn_start_val",
 #' @param algorithm The name of a function which will estimate a quantile regression.
 #' Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`
 #' @param weight_vec vector of optional weights
-#' @param ... other arguments to the function specified by the alorithm argument
+#' @param ... other arguments to the function specified by the algorithm argument
 #' @import SparseM
 #' @return List of estimated coefficients, warnings, iterations, and controls as in
 #' standard quantile regression function
@@ -206,6 +355,7 @@ regressResiduals = function(reg_spec_data,
     y = resids,
     tau = tau,
     algorithm = algorithm,
+    weight_vec,
     ...)
 
   return(j_model)
@@ -227,6 +377,7 @@ regressResiduals = function(reg_spec_data,
 #' @param weight_vec vector of optional weights
 #' @param outputQuantiles TRUE or FALSE, whether to output quantiles
 #' @param calculateAvgME TRUE or FALSE, whether to output average marginal effects
+#' @param ... other parameters passed to the algorithm
 #' @import SparseM
 #' @return
 #' Returns a list of coefficients.
@@ -247,7 +398,8 @@ quantRegSpacing = function(
   start_list = NA,
   weight_vec = NULL,
   outputQuantiles = FALSE,
-  calculateAvgME = FALSE) {
+  calculateAvgME = FALSE,
+  ...) {
 
   width = dim(data)[2]
   tau = alpha[jstar]
@@ -270,13 +422,16 @@ quantRegSpacing = function(
     data = denseMatrixToSparse(data)
   }
 
+  if(missing(var_names) | is.null(var_names)) {
+    var_names <- paste0("v", 1:ncol(data))
+  }
+
   tmpmax <- floor(1e5 + exp(-12.1)*(data@ia[width+1]-1)^2.35)
 
   # Ensure matrix is not rank deficient
   reg_spec_starting_data <- ensureSpecFullRank(spec_mat = data, col_names = var_names)
 
   # Calculate initial fit
-
   if(any(is.na(start_list))){ # if user supplied starting values, then use them
     star_model = fitQuantileRegression(
       X = reg_spec_starting_data$spec_matrix,
@@ -284,7 +439,8 @@ quantRegSpacing = function(
       tau = tau,
       control = list(tmpmax = tmpmax),
       weight_vec = weight_vec,
-      algorithm = algorithm)
+      algorithm = algorithm,
+      ...)
    } else {
      col_nums = getColNums(start_list, reg_spec_starting_data, alpha, jstar)
      sv = as.numeric(start_list[col_nums])
@@ -295,7 +451,8 @@ quantRegSpacing = function(
        control = list(tmpmax = tmpmax),
        sv = as.numeric(start_list[col_nums]),
        weight_vec = weight_vec,
-       algorithm = algorithm
+       algorithm = algorithm,
+       ...
       )
    }
 
@@ -309,7 +466,7 @@ quantRegSpacing = function(
                              y = dep_col,
                              tau = tau,
                              weight_vec = weight_vec,
-                             algorithm = algorithm)$residuals
+                             algorithm = 'rq.fit.sfn_start_val')$residuals
   V0 <- sum(rho(u = V0, tau = tau,weight_vec = weight_vec))
 
   #set column names
@@ -378,13 +535,14 @@ quantRegSpacing = function(
                                     sv = sv, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
                                     small = small, control = list(tmpmax = tmpmax),
                                     weight_vec = weight_vec,
-                                    algorithm = algorithm)
+                                    algorithm = algorithm, ...)
       } else{
         j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
                                     ind_hat = ind_hat, tau = tau.t, trunc =  trunc,
                                     small = small, control = list(tmpmax = tmpmax),
                                     weight_vec = weight_vec,
-                                    algorithm = algorithm)
+                                    algorithm = algorithm,
+                                    ...)
       }
       printWarnings(j_model)
 
@@ -396,7 +554,8 @@ quantRegSpacing = function(
         ),
         ehat = ehat, ind_hat = ind_hat,
         tau = tau.t, trunc = trunc,
-        small = small, weight_vec = weight_vec)
+        small = small, weight_vec = weight_vec,
+        algorithm = 'rq.fit.sfn_start_val')
       V0 <- sum(rho(u = V0$residuals, tau = tau.t,
                     weight_vec = V0$weight_vec))
 
@@ -481,14 +640,16 @@ quantRegSpacing = function(
                                     ind_hat = ind_hat,
                                     tau = tau.t, trunc = trunc, small = small,
                                     control = list(tmpmax = tmpmax),
-                                    weight_vec = weight_vec)
+                                    algorithm = algorithm,
+                                    weight_vec = weight_vec, ...)
       } else {
         j_model <- regressResiduals(reg_spec_data = reg_spec_data,
                                     ehat = -ehat,
                                     ind_hat = ind_hat,
                                     tau = tau.t, trunc = trunc, small = small,
                                     control = list(tmpmax = tmpmax),
-                                    weight_vec = weight_vec)
+                                    algorithm = algorithm,
+                                    weight_vec = weight_vec, ...)
       }
 
       printWarnings(j_model)
@@ -497,7 +658,7 @@ quantRegSpacing = function(
       V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
       V0 <- regressResiduals(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
                              ehat = -ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                             small = small, weight_vec = weight_vec)
+                             small = small, weight_vec = weight_vec, algorithm = 'rq.fit.sfn_start_val')
       V0 <- sum(rho(u = V0$residuals, tau = tau.t, weight_vec = V0$weight_vec))
 
       # Update residuals
