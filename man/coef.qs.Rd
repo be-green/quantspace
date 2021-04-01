@@ -4,10 +4,10 @@
 \alias{coef.qs}
 \title{Method for getting coefficients from fitted qs model}
 \usage{
-\method{coef}{qs}(x, ...)
+\method{coef}{qs}(object, ...)
 }
 \arguments{
-\item{x}{fitted qs model}
+\item{object}{fitted qs model}
 
 \item{...}{currently ignored}
 }

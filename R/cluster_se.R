@@ -150,12 +150,11 @@ setCores <- function(ncores) {
 #' @param trunc Boolean value; if true, replace those dependent values less than small with small itself;
 #'         else, only use rows with residuals greater than small
 #' @param start_model Starting values for regression's optimization.
-#' @param save_rows If set to TRUE, function will save vector of row numbers
-#'             that triggered warnings by quantile regression
 #' @param weight_vec vector of same length and order as dependent column, to be used as weights for estimation
 #'              (note, if draw weights is set to TRUE, this variable will be the element-wise product
 #'              of itself and a random vector of weights)
-#' @param square_ols_weights boolean value; if true, square user-supplied weight_vec for OLS
+#' @param algorithm function which is actually used to fit each quantile regression
+#' @param ... other arguments passed to quantile fitting function
 #' @return
 #'   list of cov: num_betas x num_betas covariance matrix using
 #'                 bootstrapped subsampling covariances

@@ -4,6 +4,8 @@
 #' @param size size of bin
 #' @param trim percent of obs to trim from both ends of variable
 #' @importFrom assertthat assert_that
+#' @importFrom stats sd
+#' @importFrom stats quantile
 bin_along_range <- function(x, size = NA, trim = 0.01) {
   assertthat::assert_that(is.numeric(x))
   assertthat::assert_that(all(!is.na(x)))
@@ -36,7 +38,6 @@ marginal_effects.qs <- function(fit, data, ...) {
 #' @param fit A fitted model from the `qs` function
 #' @param data optional data.frame that specifies level of data to calculate
 #' marginal effects
-#' @param variable Which coefficient
 #' @export
 #' @details A simple function which returns
 #' marginal effects for a given level of the dataset.

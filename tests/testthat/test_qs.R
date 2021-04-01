@@ -25,7 +25,7 @@ lasso_diff = max(abs(coef(fit_br) - coef(fit_lasso_no_penalty)))
 
 
 de <- distributional_effects(fit)
-de_mat <- distributional_effects(fit, newdata = tail(test_data, 100))
+de_mat <- distributional_effects(fit, newdata = tail(test_data, 5))
 
 testthat::test_that("S3 Classes inherit properly", {
   testthat::expect_s3_class(fit, "qs")
@@ -39,7 +39,15 @@ testthat::test_that("Distributional effect functions work", {
   testthat::expect_length(de$r(10), 10)
   testthat::expect_type(de$q(0.8), "double")
   testthat::expect_error(de$q(10))
+  testthat::expect_type(de_mat$r(10), "double")
+  testthat::expect_equal(ncol(de_mat$r(10)), 10)
+  testthat::expect_type(de_mat$q(0.8), "double")
+  testthat::expect_error(de_mat$q(10))
+  testthat::expect_true(inherits(plot(de), "gg"))
+  testthat::expect_true(inherits(plot(de_mat), "gg"))
 })
+
+
 
 testthat::test_that("Prediction functions work", {
   testthat::expect_type(predict(fit), "double")

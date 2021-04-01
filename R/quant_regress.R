@@ -183,6 +183,8 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
 #' @param control ignored
 #' @param ... additional quantities passed to rq.fit.br
 #' @importFrom quantreg rq.fit.br
+#' @importFrom stats coef
+#' @importFrom stats resid
 rq.fit.br <- function(X, y, tau = 0.5,
                       weight_vec = NULL, control,...) {
 
@@ -218,7 +220,8 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @param lambda penalty parameter
 #' @param weight_vec optional vector of weights
 #' @param scale_x whether to scale the design matrix before estimation
-#' @param ... other arguments to pass to rqPen::rq.lasso.fit
+#' @param method method argument to be passed to [quantreg::rq]
+#' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
 #' @importFrom rqPen rq.lasso.fit
 rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
                          scale_x = T, method = "br", ...) {

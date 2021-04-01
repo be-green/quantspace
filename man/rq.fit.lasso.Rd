@@ -19,7 +19,9 @@ rq.fit.lasso(X, y, tau, lambda, weight_vec, scale_x = T, method = "br", ...)
 
 \item{scale_x}{whether to scale the design matrix before estimation}
 
-\item{...}{other arguments to pass to rqPen::rq.lasso.fit}
+\item{method}{method argument to be passed to [quantreg::rq]}
+
+\item{...}{other arguments to pass to [rqPen::rq.lasso.fit]}
 }
 \description{
 Quantile Regression w/ Lasso Penalty

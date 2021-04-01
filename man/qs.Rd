@@ -45,6 +45,9 @@ while boot bootstraps the standard errors.}
 
 \item{subsamplePct}{percent to subsample for standard error calculations}
 
+\item{algorithm}{What algorithm to use for fitting underlying regressions.
+Either one of "sfn", "br", "lasso" or a function name which estimates quantiles}
+
 \item{cluster_indices}{index of clusters for clustered standard errors}
 
 \item{stratum_indices}{index of strata for clustered standard errors}
@@ -64,8 +67,6 @@ while boot bootstraps the standard errors.}
 \item{seed}{what seed to use for replicable RNG}
 
 \item{...}{additional arguments, ignored for now}
-
-\item{save_rows}{whether to save rows, see [subsampleStandardErrors]}
 }
 \description{
 Compute quantile regressions via quantile spacings

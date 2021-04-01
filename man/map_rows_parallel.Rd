@@ -21,9 +21,13 @@ map_rows_parallel(
 
 \item{...}{parameters passed to function}
 
+\item{parallel}{T/F, whether to operate in parallel or in sequence}
+
 \item{ncores}{number of cores to use}
 
 \item{row_thresh}{required number of rows to use parallel processing}
+
+\item{collapse}{function to use when collapsing list of objects}
 }
 \description{
 Map a function along rows of a matrix or data.frame

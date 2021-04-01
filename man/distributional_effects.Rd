@@ -7,24 +7,22 @@
 \alias{distributional_effects.matrix}
 \title{Calculate distributional effects}
 \usage{
-distributional_effects(fit, newdata = NULL, tails = "gaussian", ...)
+distributional_effects(object, tails = "gaussian", ...)
 
-\method{distributional_effects}{qs}(fit, newdata = NULL, tails = "gaussian", ...)
+\method{distributional_effects}{qs}(object, tails = "gaussian", newdata = NULL, ...)
 
-\method{distributional_effects}{numeric}(quantiles, alphas, tails, ...)
+\method{distributional_effects}{numeric}(object, tails, alphas, ...)
 
-\method{distributional_effects}{matrix}(quantiles, alphas, tails, ...)
+\method{distributional_effects}{matrix}(object, tails = "gaussian", alphas, ...)
 }
 \arguments{
-\item{fit}{fit of class qs}
-
-\item{newdata}{new data to predict distributional outcomes for}
+\item{object}{fit of class qs or matrix of fitted quantiles}
 
 \item{tails}{one of "gaussian" or "exponential"}
 
 \item{...}{other parameters to pass}
 
-\item{quantiles}{fitted vector or matrix of quantiles}
+\item{newdata}{new data to predict distributional outcomes for}
 
 \item{alphas}{which quantiles these were fitted at}
 }

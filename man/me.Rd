@@ -11,8 +11,6 @@ me(fit, data)
 
 \item{data}{optional data.frame that specifies level of data to calculate
 marginal effects}
-
-\item{variable}{Which coefficient}
 }
 \description{
 Get marginal effects at a set of levels for the covariates

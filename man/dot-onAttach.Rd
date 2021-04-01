@@ -6,6 +6,11 @@
 \usage{
 .onAttach(libname, pkgname)
 }
+\arguments{
+\item{libname}{legacy requirement}
+
+\item{pkgname}{legacy requirement}
+}
 \description{
 Set bootstrap cores on load + welcome messages
 }

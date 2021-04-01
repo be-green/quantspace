@@ -12,6 +12,11 @@ interpolate_one_row(quantile, alphas, x, distn = "q", tails = "gaussian")
 \item{alphas}{values those quantiles are fit to}
 
 \item{x}{values along which to evaluate the CDF, PDF, or quantile function}
+
+\item{distn}{distribution to use, one of "q", "c", or "p"}
+
+\item{tails}{what distribution to use for fitting tail distributions, either "gaussian"
+or "exponential"}
 }
 \description{
 Interpolate a single set of quantiles

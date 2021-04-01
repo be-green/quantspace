@@ -31,6 +31,8 @@ subsampleStandardErrors(
 
 \item{data}{Regression specification matrix.}
 
+\item{algorithm}{function which is actually used to fit each quantile regression}
+
 \item{var_names}{RHS regression variable names.}
 
 \item{alpha}{Quantiles to be estimated.}
@@ -69,10 +71,7 @@ else, only use rows with residuals greater than small}
 (note, if draw weights is set to TRUE, this variable will be the element-wise product
 of itself and a random vector of weights)}
 
-\item{save_rows}{If set to TRUE, function will save vector of row numbers
-that triggered warnings by quantile regression}
-
-\item{square_ols_weights}{boolean value; if true, square user-supplied weight_vec for OLS}
+\item{...}{other arguments passed to quantile fitting function}
 }
 \value{
 list of cov: num_betas x num_betas covariance matrix using

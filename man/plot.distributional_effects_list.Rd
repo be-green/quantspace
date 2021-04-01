@@ -4,16 +4,16 @@
 \alias{plot.distributional_effects_list}
 \title{Visualize distributional effects}
 \usage{
-\method{plot}{distributional_effects_list}(distributional_effects_list, what = "cdf", tail_level = 0.01, ...)
+\method{plot}{distributional_effects_list}(x, what = "cdf", tail_level = 0.01, ...)
 }
 \arguments{
+\item{x}{estimate of distributional effects}
+
 \item{what}{what to plot, one of "pdf", "cdf", "quantiles"}
 
 \item{tail_level}{probability level to stop plotting tail}
 
 \item{...}{other arguments, ignored for now}
-
-\item{distributional_effects}{estimate of distributional effects}
 }
 \description{
 Visualize distributional effects
