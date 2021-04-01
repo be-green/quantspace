@@ -184,6 +184,7 @@ setCores <- function(ncores) {
 subsampleStandardErrors = function(
   dep_col,
   data,
+  algorithm,
   var_names,
   alpha,
   jstar,
@@ -191,8 +192,9 @@ subsampleStandardErrors = function(
   stratum_indices = NULL,
   M = 1,
   draw_weights = TRUE,
-  num_bs = 100, parallel = F, num_cores = getCores(), small = 1e-3,
-  trunc = FALSE, start_model, weight_vec = NULL) {
+  num_bs = 100, parallel = F, num_cores = getCores(), small = 1e-6,
+  trunc = FALSE, start_model, weight_vec = NULL,
+  ...) {
 
   # check to see if regression matrix is sparse. If not, then turn into CSR matrix
   if(!methods::is(data, 'matrix.csr')){
@@ -261,8 +263,10 @@ subsampleStandardErrors = function(
         jstar = jstar,
         small = small,
         trunc = trunc,
-        start_list = start_model,
-        weight_vec = rand_weight_vec)
+        start_list = NA,
+        weight_vec = rand_weight_vec,
+        algorithm = algorithm,
+        ...)
 
       return(cur_fit)
     }
@@ -313,8 +317,10 @@ subsampleStandardErrors = function(
         jstar = jstar,
         small = small,
         trunc = trunc,
-        start_list = start_model,
-        weight_vec = rand_weight_vec)
+        start_list = NA,
+        weight_vec = rand_weight_vec,
+        algorithm = algorithm,
+        ...)
 
       fit[[bs]] <- cur_fit
     }

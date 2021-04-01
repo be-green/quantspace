@@ -33,7 +33,7 @@ qs <- function(formula, data = NULL,
                se_method = "boot",
                weight_vec = NULL,
                subsamplePct = 0.2,
-               algorithm = "rq.fit.sfn",
+               algorithm = "sfn",
                cluster_indices = NULL,
                stratum_indices = NULL,
                draw_weights = TRUE,
@@ -44,6 +44,17 @@ qs <- function(formula, data = NULL,
                small = NULL,
                seed = NULL,
                ...) {
+
+  if(!exists(algorithm)) {
+    if(algorithm == "sfn") {
+      algorithm = "rq.fit.sfn"
+    } else if(algorithm == "lasso") {
+      algorithm = "rq.fit.lasso"
+    } else {
+      stop(paste0("Algorithm not implemented in quantspace, and not a function" ,
+                  " available in the current namespace."))
+    }
+  }
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 
@@ -97,6 +108,7 @@ qs <- function(formula, data = NULL,
       var_names = reg_spec_var_names,
       alpha = alpha,
       jstar = jstar,
+      algorithm = algorithm,
       M = subsamplePct,
       cluster_indices = cluster_indices,
       stratum_indices = stratum_indices,
@@ -106,7 +118,8 @@ qs <- function(formula, data = NULL,
       num_cores = num_cores,
       trunc = trunc,
       start_model = quantreg_fit$coef,
-      small = small)
+      small = small,
+      ...)
   } else {
     stop("This method is not yet implemented or integrated with qs.")
   }

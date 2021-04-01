@@ -12,7 +12,7 @@ qs(
   se_method = "boot",
   weight_vec = NULL,
   subsamplePct = 0.2,
-  algorithm = "rq.fit.sfn",
+  algorithm = "sfn",
   cluster_indices = NULL,
   stratum_indices = NULL,
   draw_weights = TRUE,

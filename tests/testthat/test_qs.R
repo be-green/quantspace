@@ -1,6 +1,12 @@
 context("Tests that qs function works.")
 
-fit <- qs(hp ~ mpg, data = mtcars)
+set.seed(100)
+
+x = matrix(rnorm(10000), ncol = 2)
+y = 1 + 2 * x[,1] - 0.4 * x[,2] + rnorm(nrow(x)) * ( x[,1]) * 4 + rnorm(nrow(x)) * ( x[,2]) *3
+
+fit <- qs(y ~ X1 + X2, data = data.frame(y = y, x), parallel = F)
+fit <- qs(y ~ X1 + X2, data = data.frame(y = y, x), parallel = F, algorithm = "lasso")
 
 de <- distributional_effects(fit)
 de_mat <- distributional_effects(fit, newdata = head(mtcars))
