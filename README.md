@@ -1,8 +1,7 @@
 # quantspace
   <!-- badges: start -->
   [![R build status](https://github.com/be-green/quantspace/workflows/R-CMD-check/badge.svg)](https://github.com/be-green/quantspace/actions)
-  <!-- badges: end -->
-    <!-- badges: start -->
+
   [![Codecov test coverage](https://codecov.io/gh/be-green/quantspace/branch/master/graph/badge.svg)](https://codecov.io/gh/be-green/quantspace?branch=master)
   <!-- badges: end -->
 
