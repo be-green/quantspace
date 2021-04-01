@@ -149,8 +149,10 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
 #' @param X structure of the design matrix X stored in csr format
 #' @param y response vector
 #' @param tau target quantile
+#' @param weight_vec optional vector of weights
 #' @param rhs right hand size of dual problem
 #' @param control control parameters for fitting routines
+#' @importFrom quantreg rq.fit.sfn
 rq.fit.sfn <- function(X, y, tau = 0.5,
                        weight_vec = NULL,
                        rhs = (1-tau)*c(t(X) %*% rep(1,length(y))),
@@ -173,85 +175,40 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
   quantreg::rq.fit.sfn(a = X, y, tau, rhs, control)
 }
 
-#' Rescale coefficients estimated on scaled data to match unscaled data
-#' @param coefs scaled coefficients
-#' @param mu_x vector of means for all (non-intercept) X variables
-#' @param sigma_x vector of scales for all (non-intercept) X variables
-#' @param intercept an integer for which column in design matrix is the intercept
-rescale_coefficients <- function (coefs, mu_x, sigma_x, intercept) {
-  new_coefs <- c()
-  new_slope_coefs <- c()
-  if (intercept != 0) {
-    int_coef <- coefs[intercept]
-    slope_coefs <- coefs[-intercept]
-    for (j in 1:length(slope_coefs)) {
-      new_slope_coefs[j] <- slope_coefs[j]/sigma_x[j]
-      int_coef <- int_coef - slope_coefs[j] * mu_x[j]/sigma_x[j]
-    }
-    new_coefs[intercept] <- int_coef
-    new_coefs[setdiff(1:length(coefs), intercept)] <- new_slope_coefs
-  } else {
-    for (j in 1:length(coefs)) {
-      new_coefs[j] <- coefs[j]/sigma_x[j]
-    }
-  }
-  new_coefs
-}
+#' Version that complies with more general requirements
+#' @param X structure of the design matrix X stored in csr format
+#' @param y response vector
+#' @param tau target quantile
+#' @param weight_vec optional vector of weights
+#' @param control ignored
+#' @param ... additional quantities passed to rq.fit.br
+#' @importFrom quantreg rq.fit.br
+rq.fit.br <- function(X, y, tau = 0.5,
+                      weight_vec = NULL, control,...) {
 
-#' Finds which column of X has the intercept term
-#' @param X design matrix for regression
-get_intercept <- function(X) {
-  which_cols <- 1:ncol(X)
-  i = 1
-  while(length(which_cols) > 1 & i <= nrow(X)) {
-    which_cols <- which(X[i, which_cols] == 1)
-    i = i + 1
+  # additional syntax to incorporate weights is included here
+  if (!is.null(weight_vec)){
+
+    n = nrow(X)
+    if(n != dim(as.matrix(weight_vec))[1]){
+      stop("Dimensions of design matrix and the weight vector not compatible")
+    }
+    # multiplying y by the weights
+    y <- y * weight_vec
+
+    # pre-multiplying the a matrix by a diagonal matrix of weights
+    #a <- sweep(a,MARGIN=1,weight_vec,`*`)
+    X <- as(as.vector(weight_vec), "matrix.diag.csr") %*% X
   }
 
-  if (length(which_cols) > 1) {
-    stop("Two intercept columns specified in design matrix. Please remove one.")
-  } else if (length(which_cols) == 0) {
-    0
-  } else {
-    if(all(X[, which_cols] == 1)) {
-      which_cols
-    } else {
-      0
-    }
-  }
-}
+  fit <- quantreg::rq.fit.br(x = X, y, tau, ...)
 
-#' Scale matrix for lasso regression
-#' @param X design matrix
-#' @param intercept column number for intercept
-scale_for_lasso <- function(X, intercept) {
-  if(intercept == 0) {
-    scale(X)
-  } else {
-    scaled_X = scale(X[,setdiff(1:ncol(X), intercept)])
-
-    out_X = matrix(nrow = nrow(X), ncol = ncol(X))
-    out_X[,intercept] = rep(1, nrow(X))
-    out_X[,setdiff(1:ncol(X), intercept)] = scaled_X
-
-    at = attributes(scaled_X)
-    at = subset(at, sapply(names(at), function(x) grepl(pattern = "scaled", x)))
-
-    for(i in 1:length(at)) {
-      attr(out_X, names(at)[i]) <- at[i][[1]]
-    }
-    out_X
-  }
-}
-
-#' Reorder coefficients in case intercept wasn't the first term
-#' @param coefficients vector of coefficients
-#' @param intercept column number for intercept term
-reorder_coefficients <- function(coefficients, intercept) {
-  reordered_coefs <- rep(NA, length(coefficients))
-  reordered_coefs[-intercept] <- coefficients[-1]
-  reordered_coefs[intercept] <- coefficients[1]
-  reordered_coefs
+  list(coefficients = coef(fit),
+       residuals = resid(fit),
+       control = list(),
+       ierr = 0,
+       it = 0,
+       weight_vec = weight_vec)
 }
 
 #' Quantile Regression w/ Lasso Penalty
@@ -327,6 +284,8 @@ rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
        it = est$it,
        weight_vec = weight_vec)
 }
+
+
 
 #' Estimate a single quantile regression
 #' @param X specification matrix for X variables
@@ -752,6 +711,15 @@ quantRegSpacing = function(
   return(rv)
 }
 
+#' Get the data inside the s4 slot of this sparse matrix class
+#' @param data some thing that could be a sparse matrix
+get_underlying <- function(data) {
+  if(is.matrix.csr(data)) {
+    data@ra
+  } else {
+    data
+  }
+}
 
 #' Compute quantiles given parameter coefficients and data
 #' @param spacingCoef J by p matrix; row is number of variables, p is number of quantiles
@@ -761,7 +729,7 @@ quantRegSpacing = function(
 #' @export
 spacingsToQuantiles <- function(spacingCoef, data, jstar) {
 
-  if(any(is.na(data@ra)) | any(is.na(spacingCoef))) {
+  if(any(is.na(get_underlying(data))) | any(is.na(spacingCoef))) {
     spacingCoef <- as.matrix(spacingCoef)
     data <- as.matrix(data)
   }

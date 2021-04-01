@@ -8,6 +8,7 @@ subsampling.}
 subsampleStandardErrors(
   dep_col,
   data,
+  algorithm,
   var_names,
   alpha,
   jstar,
@@ -18,10 +19,11 @@ subsampleStandardErrors(
   num_bs = 100,
   parallel = F,
   num_cores = getCores(),
-  small = 0.001,
+  small = 1e-06,
   trunc = FALSE,
   start_model,
-  weight_vec = NULL
+  weight_vec = NULL,
+  ...
 )
 }
 \arguments{

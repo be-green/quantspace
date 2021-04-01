@@ -4,7 +4,7 @@
 \alias{rq.fit.lasso}
 \title{Quantile Regression w/ Lasso Penalty}
 \usage{
-rq.fit.lasso(X, y, tau, lambda, weight_vec, scale_x = T, ...)
+rq.fit.lasso(X, y, tau, lambda, weight_vec, scale_x = T, method = "br", ...)
 }
 \arguments{
 \item{X}{Design matrix, X}
