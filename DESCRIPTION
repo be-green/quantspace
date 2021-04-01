@@ -20,7 +20,10 @@ Imports:
     RConics,
     Matrix.utils,
     ggplot2,
-    rqPen
+    rqPen,
+    Matrix,
+    data.table,
+    purrr
 RoxygenNote: 7.1.1
 Suggests: 
     covr
