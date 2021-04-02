@@ -14,6 +14,7 @@ de <- distributional_effects(fit)
 de_mat <- distributional_effects(fit, newdata = tail(test_data, 5))
 
 fit_no_se <- qs(mpg ~ cyl, data = mtcars, parallel = F, subsamplePct = 1, calc_se = F)
+fit_with_me <- qs(mpg ~ cyl, data = mtcars, parallel = F, subsamplePct = 1, calc_se = F, calc_avg_me = T)
 
 testthat::test_that("S3 Classes inherit properly", {
   testthat::expect_s3_class(fit, "qs")
@@ -27,7 +28,8 @@ testthat::test_that("qs errors and warnings work", {
   testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F))
   testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, subsamplePct = 10))
   testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, subsamplePct = -10))
-  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, se_method = "UNIMPLEMENTED_ALGORITHM"))
+  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F,
+                            se_method = "UNIMPLEMENTED_ALGORITHM"))
 })
 
 testthat::test_that("calc_se option doesn't calculate ses when set to false",{
@@ -38,6 +40,11 @@ test_baseline = qs(mpg ~ cyl, data = mtcars, calc_se = F, baseline_quantile = 0.
 
 testthat::test_that("Baseline quantile ends up in the mix if it isn't already present in quantiles", {
   testthat::expect_true(0.5 %in% test_baseline$specs$alpha)
+})
+
+
+testthat::test_that("qs returns marginal effects if required", {
+  testthat::expect_true(is.numeric(fit_with_me$quantreg_fit$me))
 })
 
 testthat::test_that("Distributional effect functions work", {
