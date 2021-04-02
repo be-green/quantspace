@@ -165,12 +165,13 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
     if(n != dim(as.matrix(weight_vec))[1]){
       stop("Dimensions of design matrix and the weight vector not compatible")
     }
+
     # multiplying y by the weights
     y <- y * weight_vec
-
     # pre-multiplying the a matrix by a diagonal matrix of weights
     #a <- sweep(a,MARGIN=1,weight_vec,`*`)
     X <- as(as.vector(weight_vec), "matrix.diag.csr") %*% X
+
   }
   quantreg::rq.fit.sfn(a = X, y, tau, rhs, control)
 }
@@ -400,6 +401,14 @@ quantRegSpacing = function(
   calculateAvgME = FALSE,
   ...) {
 
+  # number of observations that will default to an NA estimate of
+  # a quantile.
+  obs_thresh = 2
+
+  if(nrow(data) < obs_thresh) {
+    stop("Data contains fewer than ", obs_thresh, "observations.")
+  }
+
   width = dim(data)[2]
   tau = alpha[jstar]
   p = length(alpha)
@@ -488,15 +497,16 @@ quantRegSpacing = function(
   for (j in (jstar+1):p) {
     ind_hat = which(ehat > 0)
 
-    if(length(ind_hat) == 0) {
-      warning("When estimating coefficients quantile ", alpha[j], " there were no ",
-              "residuals found above previous quantile estimate. Returning NA.")
+    if(length(ind_hat) <= obs_thresh) {
+      warning("When estimating coefficients quantile ", alpha[j], " there were ", obs_thresh,
+              " or fewer residuals found above previous quantile estimate. Returning NA.")
+
       # Update residuals
       coef = rep(NA, length(star_model$coefficients))
       coef_df <- as.data.frame(t(coef))
 
       #get column names
-      colnames(coef_df) <- reg_spec_data$var_names
+      colnames(coef_df) <- reg_spec_starting_data$var_names
       coef_df <- addMissingSpecColumns(
         coef_df,
         var_names)
@@ -504,14 +514,15 @@ quantRegSpacing = function(
 
       #log results
       model[[j]] = coef_df
-      pseudo_r[[j]] = (1 - V/V0)
-      warnings_log[[j]] = j_model$ierr
-      iter_log[[j]] = j_model$it
-      count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
+      pseudo_r[[j]] = NA
+      warnings_log[[j]] = NA
+      iter_log[[j]] = NA
+      count_log[[j]] = NA
 
       # Update residuals
       ehat = NA
     } else {
+
       # Determine quantile to estimate
       tau.t = (alpha[j] - alpha[j-1])/(1 - alpha[j-1])
 
@@ -601,13 +612,15 @@ quantRegSpacing = function(
       ind_hat = which(ehat < 0)
     }
 
-    if(length(ind_hat) == 0) {
+    if(length(ind_hat) <= obs_thresh) {
+      warning("When estimating coefficients quantile ", alpha[j], " there were ", obs_thresh,
+              " or fewer residuals found above previous quantile estimate. Returning NA.")
       # Update residuals
       coef = rep(NA, length(star_model$coefficients))
       coef_df <- as.data.frame(t(coef))
 
       #get column names
-      colnames(coef_df) <- reg_spec_data$var_names
+      colnames(coef_df) <- reg_spec_starting_data$var_names
       coef_df <- addMissingSpecColumns(
         coef_df,
         var_names)
@@ -616,13 +629,14 @@ quantRegSpacing = function(
       #log results
       model[[j]] = coef_df
       pseudo_r[[j]] = NA
-      warnings_log[[j]] = j_model$ierr
-      iter_log[[j]] = j_model$it
-      count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
+      warnings_log[[j]] = NA
+      iter_log[[j]] = NA
+      count_log[[j]] = NA
 
       # Update residuals
       ehat = NA
     } else {
+
       # Determine quantile to estimate
       tau.t = (alpha[j + 1] - alpha[j])/(alpha[j + 1])
 

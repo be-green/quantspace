@@ -9,6 +9,7 @@
 #' @param algorithm What algorithm to use for fitting underlying regressions.
 #' Either one of "sfn", "br", "lasso" or a function name which estimates quantiles
 #' @param baseline_quantile baseline quantile to measure spacings from (defaults to 0.5)
+#' @param calc_se boolean, whether or not to calculate standard errors
 #' @param se_method one of "delta" or "boot". Delta uses the delta method approximation,
 #' while boot bootstraps the standard errors.
 #' @param trunc whether to truncate small values
@@ -31,6 +32,7 @@
 qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
                baseline_quantile = 0.5,
+               calc_se = T,
                se_method = "boot",
                weight_vec = NULL,
                subsamplePct = 0.2,
@@ -44,6 +46,8 @@ qs <- function(formula, data = NULL,
                trunc = T,
                small = NULL,
                seed = NULL,
+               output_quantiles = T,
+               calc_avg_me = F,
                ...) {
 
   if(!exists(algorithm)) {
@@ -85,7 +89,7 @@ qs <- function(formula, data = NULL,
 
   alpha <- sort(quantiles)
 
-  jstar <- which(quantiles == baseline_quantile)
+  jstar <- which(alpha == baseline_quantile)
 
   # message("Calculating initial quantile fit")
   quantreg_fit <- quantRegSpacing(
@@ -94,36 +98,46 @@ qs <- function(formula, data = NULL,
     var_names = reg_spec_var_names,
     alpha = alpha,
     jstar = jstar,
+    weight_vec = weight_vec,
     algorithm = algorithm,
-    outputQuantiles = T,
-    calculateAvgME = F,
+    outputQuantiles = output_quantiles,
+    calculateAvgME = calc_avg_me,
     ...
   )
 
-  if(subsamplePct > 1) subsamplePct = subsamplePct * 0.01
+  assertthat::assert_that(subsamplePct > 0)
+  assertthat::assert_that(subsamplePct <= 1)
 
-  if(se_method == "boot") {
-    se = subsampleStandardErrors(
-      dep_col = depCol,
-      data = reg_spec,
-      var_names = reg_spec_var_names,
-      alpha = alpha,
-      jstar = jstar,
-      algorithm = algorithm,
-      M = subsamplePct,
-      cluster_indices = cluster_indices,
-      stratum_indices = stratum_indices,
-      draw_weights = draw_weights,
-      num_bs = num_bs,
-      parallel = parallel,
-      num_cores = num_cores,
-      trunc = trunc,
-      start_model = quantreg_fit$coef,
-      small = small,
-      ...)
+  if(calc_se) {
+    if(se_method == "boot") {
+      se = subsampleStandardErrors(
+        dep_col = depCol,
+        data = reg_spec,
+        var_names = reg_spec_var_names,
+        alpha = alpha,
+        jstar = jstar,
+        algorithm = algorithm,
+        M = subsamplePct,
+        cluster_indices = cluster_indices,
+        stratum_indices = stratum_indices,
+        draw_weights = draw_weights,
+        num_bs = num_bs,
+        parallel = parallel,
+        num_cores = num_cores,
+        trunc = trunc,
+        start_model = quantreg_fit$coef,
+        small = small,
+        ...)
+    } else {
+      stop("This method is not yet implemented or integrated with qs.")
+    }
   } else {
-    stop("This method is not yet implemented or integrated with qs.")
+    se = list(
+      quant_cov = matrix(NA, nrow = ncol(reg_spec) * length(quantiles),
+                         ncol = ncol(reg_spec) * length(quantiles))
+    )
   }
+
 
 
   rv = list('quantreg_fit' = quantreg_fit,
