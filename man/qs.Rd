@@ -9,6 +9,7 @@ qs(
   data = NULL,
   quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
   baseline_quantile = 0.5,
+  calc_se = T,
   se_method = "boot",
   weight_vec = NULL,
   subsamplePct = 0.2,
@@ -22,6 +23,8 @@ qs(
   trunc = T,
   small = NULL,
   seed = NULL,
+  output_quantiles = T,
+  calc_avg_me = F,
   ...
 )
 }
@@ -37,6 +40,8 @@ If not found in data, the variables are taken from environment(formula)}
 \item{quantiles}{vector of quantiles to be estimated}
 
 \item{baseline_quantile}{baseline quantile to measure spacings from (defaults to 0.5)}
+
+\item{calc_se}{boolean, whether or not to calculate standard errors}
 
 \item{se_method}{one of "delta" or "boot". Delta uses the delta method approximation,
 while boot bootstraps the standard errors.}

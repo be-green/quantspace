@@ -242,15 +242,14 @@ capture_output <- function(x, ...) {
 #' Round if x is numeric, otherwise don't
 #' @param df data.frame whose columns I want to round
 #' @param d number of digits
-#' @importFrom purrr map_df
 round_if <- function(df, d){
-  rdf <- purrr::map_df(df, .f = function(x) {
+  rdf <- as.data.frame(lapply(df, FUN = function(x) {
     if(is.numeric(x)){
       signif(x, d)
     } else {
       x
     }
-  })
+  }))
   structure(rdf, class = class(df))
 }
 
