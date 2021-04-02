@@ -71,7 +71,11 @@ Either one of "sfn", "br", "lasso" or a function name which estimates quantiles}
 
 \item{seed}{what seed to use for replicable RNG}
 
+\item{output_quantiles}{whether to save fitted quantiles as part of the function output}
+
 \item{...}{additional arguments, ignored for now}
+
+\item{calv_avg_me}{whether to return average marginal effects as part of the fitted object}
 }
 \description{
 Compute quantile regressions via quantile spacings

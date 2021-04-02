@@ -23,6 +23,8 @@
 #' @param parallel whether to run bootstrap in parallel
 #' @param num_cores number of cores to use (defaults to setting from `getOption(mc.cores)`)
 #' @param seed what seed to use for replicable RNG
+#' @param output_quantiles whether to save fitted quantiles as part of the function output
+#' @param calv_avg_me whether to return average marginal effects as part of the fitted object
 #' @param ... additional arguments, ignored for now
 #' @importFrom assertthat assert_that
 #' @importFrom SparseM model.matrix
