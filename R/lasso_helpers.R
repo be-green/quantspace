@@ -60,6 +60,7 @@ scale_for_lasso <- function(X, intercept) {
     out_X[,intercept] = rep(1, nrow(X))
     out_X[,setdiff(1:ncol(X), intercept)] = scaled_X
 
+    # reattach attributes to the matrix that has the intercept added back
     at = attributes(scaled_X)
     at = subset(at, sapply(names(at), function(x) grepl(pattern = "scaled", x)))
 
@@ -74,8 +75,12 @@ scale_for_lasso <- function(X, intercept) {
 #' @param coefficients vector of coefficients
 #' @param intercept column number for intercept term
 reorder_coefficients <- function(coefficients, intercept) {
-  reordered_coefs <- rep(NA, length(coefficients))
-  reordered_coefs[-intercept] <- coefficients[-1]
-  reordered_coefs[intercept] <- coefficients[1]
-  reordered_coefs
+  if(intercept == 0) {
+    coefficients
+  } else {
+    reordered_coefs <- rep(NA, length(coefficients))
+    reordered_coefs[-intercept] <- coefficients[-1]
+    reordered_coefs[intercept] <- coefficients[1]
+    reordered_coefs
+  }
 }

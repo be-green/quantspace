@@ -9,6 +9,7 @@
 #' @param algorithm What algorithm to use for fitting underlying regressions.
 #' Either one of "sfn", "br", "lasso" or a function name which estimates quantiles
 #' @param baseline_quantile baseline quantile to measure spacings from (defaults to 0.5)
+#' @param calc_se boolean, whether or not to calculate standard errors
 #' @param se_method one of "delta" or "boot". Delta uses the delta method approximation,
 #' while boot bootstraps the standard errors.
 #' @param trunc whether to truncate small values
@@ -22,6 +23,8 @@
 #' @param parallel whether to run bootstrap in parallel
 #' @param num_cores number of cores to use (defaults to setting from `getOption(mc.cores)`)
 #' @param seed what seed to use for replicable RNG
+#' @param output_quantiles whether to save fitted quantiles as part of the function output
+#' @param calc_avg_me whether to return average marginal effects as part of the fitted object
 #' @param ... additional arguments, ignored for now
 #' @importFrom assertthat assert_that
 #' @importFrom SparseM model.matrix
@@ -31,6 +34,7 @@
 qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
                baseline_quantile = 0.5,
+               calc_se = T,
                se_method = "boot",
                weight_vec = NULL,
                subsamplePct = 0.2,
@@ -44,6 +48,8 @@ qs <- function(formula, data = NULL,
                trunc = T,
                small = NULL,
                seed = NULL,
+               output_quantiles = T,
+               calc_avg_me = F,
                ...) {
 
   if(!exists(algorithm)) {
@@ -85,7 +91,7 @@ qs <- function(formula, data = NULL,
 
   alpha <- sort(quantiles)
 
-  jstar <- which(quantiles == baseline_quantile)
+  jstar <- which(alpha == baseline_quantile)
 
   # message("Calculating initial quantile fit")
   quantreg_fit <- quantRegSpacing(
@@ -94,36 +100,46 @@ qs <- function(formula, data = NULL,
     var_names = reg_spec_var_names,
     alpha = alpha,
     jstar = jstar,
+    weight_vec = weight_vec,
     algorithm = algorithm,
-    outputQuantiles = T,
-    calculateAvgME = F,
+    outputQuantiles = output_quantiles,
+    calculateAvgME = calc_avg_me,
     ...
   )
 
-  if(subsamplePct > 1) subsamplePct = subsamplePct * 0.01
+  assertthat::assert_that(subsamplePct > 0)
+  assertthat::assert_that(subsamplePct <= 1)
 
-  if(se_method == "boot") {
-    se = subsampleStandardErrors(
-      dep_col = depCol,
-      data = reg_spec,
-      var_names = reg_spec_var_names,
-      alpha = alpha,
-      jstar = jstar,
-      algorithm = algorithm,
-      M = subsamplePct,
-      cluster_indices = cluster_indices,
-      stratum_indices = stratum_indices,
-      draw_weights = draw_weights,
-      num_bs = num_bs,
-      parallel = parallel,
-      num_cores = num_cores,
-      trunc = trunc,
-      start_model = quantreg_fit$coef,
-      small = small,
-      ...)
+  if(calc_se) {
+    if(se_method == "boot") {
+      se = subsampleStandardErrors(
+        dep_col = depCol,
+        data = reg_spec,
+        var_names = reg_spec_var_names,
+        alpha = alpha,
+        jstar = jstar,
+        algorithm = algorithm,
+        M = subsamplePct,
+        cluster_indices = cluster_indices,
+        stratum_indices = stratum_indices,
+        draw_weights = draw_weights,
+        num_bs = num_bs,
+        parallel = parallel,
+        num_cores = num_cores,
+        trunc = trunc,
+        start_model = quantreg_fit$coef,
+        small = small,
+        ...)
+    } else {
+      stop("This method is not yet implemented or integrated with qs.")
+    }
   } else {
-    stop("This method is not yet implemented or integrated with qs.")
+    se = list(
+      quant_cov = matrix(NA, nrow = ncol(reg_spec) * length(quantiles),
+                         ncol = ncol(reg_spec) * length(quantiles))
+    )
   }
+
 
 
   rv = list('quantreg_fit' = quantreg_fit,
@@ -228,15 +244,14 @@ capture_output <- function(x, ...) {
 #' Round if x is numeric, otherwise don't
 #' @param df data.frame whose columns I want to round
 #' @param d number of digits
-#' @importFrom purrr map_df
 round_if <- function(df, d){
-  rdf <- purrr::map_df(df, .f = function(x) {
+  rdf <- as.data.frame(lapply(df, FUN = function(x) {
     if(is.numeric(x)){
       signif(x, d)
     } else {
       x
     }
-  })
+  }))
   structure(rdf, class = class(df))
 }
 

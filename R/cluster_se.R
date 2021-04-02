@@ -217,7 +217,7 @@ subsampleStandardErrors = function(
       .packages = c('quantreg'),
       .export = c('quantRegSpacing', 'rq.fit.sfn_start_val','findRedundantCols',
                   'ensureSpecFullRank', 'getRank', 'addMissingSpecColumns', 'clusterSample',
-                  'rho', 'getColNums', 'regressResiduals', 'printWarnings', 'ols_sparse_fit'),
+                  'rho', 'getColNums', 'regressResiduals', 'printWarnings'),
       .errorhandling = 'stop' #, .options.snow = opts
     ) %dopar% {
       # if no clustering is specified, draw sample here.
