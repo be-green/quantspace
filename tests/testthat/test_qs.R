@@ -13,8 +13,8 @@ fit <- qs(y ~ X1 + X2, data = head(test_data, 900), parallel = F)
 de <- distributional_effects(fit)
 de_mat <- distributional_effects(fit, newdata = tail(test_data, 5))
 
-fit_no_se <- qs(mpg ~ cyl, data = mtcars, parallel = F, subsamplePct = 1, calc_se = F)
-fit_with_me <- qs(mpg ~ cyl, data = mtcars, parallel = F, subsamplePct = 1, calc_se = F, calc_avg_me = T)
+fit_no_se <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F)
+fit_with_me <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F, calc_avg_me = T)
 
 testthat::test_that("S3 Classes inherit properly", {
   testthat::expect_s3_class(fit, "qs")
@@ -24,10 +24,10 @@ testthat::test_that("S3 Classes inherit properly", {
 
 testthat::test_that("qs errors and warnings work", {
   testthat::expect_error(qs(y ~ X1, data = test_data, algorithm = "UNIMPLEMENTED_ALGORITHM"))
-  testthat::expect_warning(qs(y ~ X1, data = head(test_data, 3), subsamplePct = 1))
+  testthat::expect_warning(qs(y ~ X1, data = head(test_data, 3), se_method = "bootstrap"))
   testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F))
-  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, subsamplePct = 10))
-  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, subsamplePct = -10))
+  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, subsample_percent = 10))
+  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, subsample_percent = -10))
   testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F,
                             se_method = "UNIMPLEMENTED_ALGORITHM"))
 })

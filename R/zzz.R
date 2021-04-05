@@ -2,7 +2,11 @@
 #' @param libname legacy requirement
 #' @param pkgname legacy requirement
 #' @importFrom parallel detectCores
+#' @importFrom future sequential
+#' @importFrom future plan
 .onAttach <- function(libname, pkgname) {
+
+  future::plan(future::sequential)
 
   ncores = getOption('qs.cores')
   if(is.null(ncores)) {

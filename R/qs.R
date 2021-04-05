@@ -15,9 +15,8 @@
 #' @param trunc whether to truncate small values
 #' @param small level of "small" values to guarentee numerical stability
 #' @param weight_vec vector of weights for weighted quantile regression
-#' @param subsamplePct percent to subsample for standard error calculations
-#' @param cluster_indices index of clusters for clustered standard errors
-#' @param stratum_indices index of strata for clustered standard errors
+#' @param subsample_percent percent to subsample for standard error calculations
+#' @param cluster_formula formula (e.g. ~X1 + X2) giving the clustering formula
 #' @param draw_weights whether to use random exponential weights for bootstrap
 #' @param num_bs number of bootstrap draws
 #' @param parallel whether to run bootstrap in parallel
@@ -35,19 +34,19 @@ qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
                baseline_quantile = 0.5,
                calc_se = T,
-               se_method = "boot",
+               se_method = "weighted_bootstrap",
                weight_vec = NULL,
-               subsamplePct = 0.2,
+               subsample_percent = 0.2,
                algorithm = "sfn",
-               cluster_indices = NULL,
-               stratum_indices = NULL,
-               draw_weights = TRUE,
+               cluster_formula = NULL,
                num_bs = 100,
                parallel = TRUE,
                num_cores = getCores(),
                trunc = T,
                small = NULL,
                seed = NULL,
+               draw_weights = NULL,
+               sampling_method = NULL,
                output_quantiles = T,
                calc_avg_me = F,
                ...) {
@@ -65,16 +64,14 @@ qs <- function(formula, data = NULL,
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 
-  if(is.null(num_cores)) {
-    num_cores <- getCores()
+  if(!is.null(num_cores)) {
+    makePlan(num_cores)
   }
-
 
   m <- SparseM::model.matrix(formula, data)
   y <- SparseM::model.response(stats::model.frame(formula, data), type = "numeric")
 
   depCol <- y
-
 
   if(is.null(small)) {
     small = pmax(sd(y)/5000, .Machine$double.eps)
@@ -93,6 +90,12 @@ qs <- function(formula, data = NULL,
 
   jstar <- which(alpha == baseline_quantile)
 
+  if(is.null(cluster_formula)) {
+    cluster_matrix = NULL
+  } else {
+    cluster_matrix = SparseM::model.matrix(cluster_formula, data)
+  }
+
   # message("Calculating initial quantile fit")
   quantreg_fit <- quantRegSpacing(
     dep_col = depCol,
@@ -107,40 +110,33 @@ qs <- function(formula, data = NULL,
     ...
   )
 
-  assertthat::assert_that(subsamplePct > 0)
-  assertthat::assert_that(subsamplePct <= 1)
+  assertthat::assert_that(subsample_percent > 0)
+  assertthat::assert_that(subsample_percent <= 1)
 
   if(calc_se) {
-    if(se_method == "boot") {
-      se = subsampleStandardErrors(
-        dep_col = depCol,
-        data = reg_spec,
-        var_names = reg_spec_var_names,
-        alpha = alpha,
-        jstar = jstar,
-        algorithm = algorithm,
-        M = subsamplePct,
-        cluster_indices = cluster_indices,
-        stratum_indices = stratum_indices,
-        draw_weights = draw_weights,
-        num_bs = num_bs,
-        parallel = parallel,
-        num_cores = num_cores,
-        trunc = trunc,
-        start_model = quantreg_fit$coef,
-        small = small,
-        ...)
-    } else {
-      stop("This method is not yet implemented or integrated with qs.")
-    }
+    se = standard_errors(
+      dep_col = depCol,
+      data = reg_spec,
+      se_method = se_method,
+      cluster_matrix = cluster_matrix,
+      var_names = reg_spec_var_names,
+      alpha = alpha,
+      jstar = jstar,
+      algorithm = algorithm,
+      subsample_percent = subsample_percent,
+      draw_weights = draw_weights,
+      sampling_method = sampling_method,
+      num_bs = num_bs,
+      parallel = parallel,
+      trunc = trunc,
+      small = small,
+      ...)
   } else {
     se = list(
       quant_cov = matrix(NA, nrow = ncol(reg_spec) * length(quantiles),
                          ncol = ncol(reg_spec) * length(quantiles))
     )
   }
-
-
 
   rv = list('quantreg_fit' = quantreg_fit,
             'se' = se,
@@ -151,9 +147,7 @@ qs <- function(formula, data = NULL,
                            'jstar' = jstar,
                            'trunc' = trunc,
                            'small' = small,
-                           'subsamplePct' = subsamplePct,
-                           'cluster_indices'= cluster_indices,
-                           'stratum_indices' = stratum_indices,
+                           'subsample_percent' = subsample_percent,
                            'draw_weights' = draw_weights,
                            'num_bs' = num_bs,
                            'parallel' = parallel,
