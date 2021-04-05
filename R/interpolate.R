@@ -312,29 +312,34 @@ plot.distributional_effects_list <- function(x,
 #' @param collapse what function to use when collapsing arguments
 #' @details only works if the function's dependencies are completely
 #' contained in "quantspace" package
+#' @importFrom future plan
+#' @importFrom future sequential
+#' @importFrom future.apply future_lapply
 map_parallel <- function(l, f, ..., parallel = T,
-                              ncores = getCores(), thresh = 100,
-                              collapse = "list") {
+                         ncores = getCores(), thresh = 20,
+                         collapse = "list") {
   if(parallel & (length(l) > thresh)) {
-    cl = parallel::makeCluster(ncores)
-    doParallel::registerDoParallel(cl)
 
-    interp <- foreach::foreach(i=1:length(l), .packages = "quantspace",
-                               .combine = get(collapse),
-                               .multicombine = T,
-                               .maxcombine = length(l)) %dopar% {
-                                 f(l[[i]], ...)
-                               }
-    parallel::stopCluster(cl)
+    if(ncores != length(future::plan()()$workers)) {
+      makePlan(ncores)
+    }
+
+    interp <- future.apply::future_lapply(l, f, ...)
 
   } else {
+
+    old_plan <- future::plan()
+    future::plan(future::sequential)
+
     interp <- list()
     for(i in 1:length(l)) {
       interp[[i]] <- f(l[[i]], ...)
     }
-    interp <- (do.call(collapse,interp))
+
+    future::plan(old_plan)
+
   }
-  interp
+  do.call(collapse,interp)
 }
 
 #' Map a function along rows of a matrix or data.frame
@@ -345,31 +350,38 @@ map_parallel <- function(l, f, ..., parallel = T,
 #' @param collapse function to use when collapsing list of objects
 #' @param ncores number of cores to use
 #' @param row_thresh required number of rows to use parallel processing
+#' @importFrom future.apply future_apply
+#' @importFrom future nbrOfWorkers
+#' @importFrom future sequential
+#' @importFrom future plan
 #' @details only works if the function's dependencies are completely
 #' contained in "quantspace" package
 map_rows_parallel <- function(mat, f, ..., parallel = T,
                               ncores = getCores(), row_thresh = 20,
                               collapse = "rbind") {
   if(parallel & (nrow(mat) > row_thresh)) {
-    cl = parallel::makeCluster(ncores, outfile = '')
-    doParallel::registerDoParallel(cl)
 
-    interp <- foreach::foreach(i=1:nrow(mat), .packages = "quantspace",
-                               .combine = get(collapse),
-                               .multicombine = T,
-                               .maxcombine = nrow(mat)) %dopar% {
-                                 f(mat[i,], ...)
-                               }
-    parallel::stopCluster(cl)
+    if(ncores != future::nbrOfWorkers()) {
+      makePlan(ncores)
+    }
+
+    interp <- future.apply::future_apply(mat, MARGIN = 1, FUN = f, simplify = F)
 
   } else {
+
+    old_plan <- future::plan()
+    future::plan(future::sequential)
+
     interp <- list()
     for(i in 1:nrow(mat)) {
       interp[[i]] <- f(mat[i,], ...)
     }
     interp <- (do.call(collapse,interp))
+    future::plan(old_plan)
   }
-  interp
+
+  do.call(collapse,interp)
+
 }
 
 #' Interpolate quantiles and return a cumulative distribution function

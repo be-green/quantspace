@@ -10,19 +10,19 @@ qs(
   quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
   baseline_quantile = 0.5,
   calc_se = T,
-  se_method = "boot",
+  se_method = "weighted_bootstrap",
   weight_vec = NULL,
-  subsamplePct = 0.2,
+  subsample_percent = 0.2,
   algorithm = "sfn",
-  cluster_indices = NULL,
-  stratum_indices = NULL,
-  draw_weights = TRUE,
+  cluster_formula = NULL,
   num_bs = 100,
   parallel = TRUE,
   num_cores = getCores(),
   trunc = T,
   small = NULL,
   seed = NULL,
+  draw_weights = NULL,
+  sampling_method = NULL,
   output_quantiles = T,
   calc_avg_me = F,
   ...
@@ -48,16 +48,12 @@ while boot bootstraps the standard errors.}
 
 \item{weight_vec}{vector of weights for weighted quantile regression}
 
-\item{subsamplePct}{percent to subsample for standard error calculations}
+\item{subsample_percent}{percent to subsample for standard error calculations}
 
 \item{algorithm}{What algorithm to use for fitting underlying regressions.
 Either one of "sfn", "br", "lasso" or a function name which estimates quantiles}
 
-\item{cluster_indices}{index of clusters for clustered standard errors}
-
-\item{stratum_indices}{index of strata for clustered standard errors}
-
-\item{draw_weights}{whether to use random exponential weights for bootstrap}
+\item{cluster_formula}{formula (e.g. ~X1 + X2) giving the clustering formula}
 
 \item{num_bs}{number of bootstrap draws}
 
@@ -70,6 +66,13 @@ Either one of "sfn", "br", "lasso" or a function name which estimates quantiles}
 \item{small}{level of "small" values to guarentee numerical stability}
 
 \item{seed}{what seed to use for replicable RNG}
+
+\item{draw_weights}{whether to use random exponential weights for bootstrap}
+
+\item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".
+leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+given some percentage of the data (specified via subsample_percent), and boostrapRows
+samples with replacement.}
 
 \item{output_quantiles}{whether to save fitted quantiles as part of the function output}
 

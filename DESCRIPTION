@@ -23,7 +23,9 @@ Imports:
     rqPen,
     Matrix,
     data.table,
-    purrr
+    purrr,
+    future,
+    future.apply
 RoxygenNote: 7.1.1
 Suggests: 
     covr	
