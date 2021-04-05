@@ -9,9 +9,9 @@ getRows(rows, sampling_method, ...)
 \arguments{
 \item{rows}{rows to resample}
 
-\item{...}{other arguments passed on to the method}
+\item{sampling_method}{method for resampling}
 
-\item{method}{method for resampling}
+\item{...}{other arguments passed on to the method}
 }
 \description{
 Function which gets resampled rows

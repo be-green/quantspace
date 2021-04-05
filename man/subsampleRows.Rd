@@ -9,9 +9,9 @@ subsampleRows(rows, subsample_percent, ...)
 \arguments{
 \item{rows}{rows to potentially resample}
 
-\item{...}{other arguments, ignored}
+\item{subsample_percent}{percentage of data to use in subsampling}
 
-\item{subsamplePercent}{percentage of data to use in subsampling}
+\item{...}{other arguments, ignored}
 }
 \description{
 Function that fully bootstraps rows

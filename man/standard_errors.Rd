@@ -61,7 +61,6 @@ subsample(
   data,
   dep_col,
   sampling_method,
-  method,
   alpha,
   jstar,
   small,
@@ -102,6 +101,11 @@ standard_errors(
 (note, if draw weights is set to TRUE, this variable will be the element-wise product
 of itself and a random vector of weights)}
 
+\item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".
+leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+given some percentage of the data (specified via subsample_percent), and boostrapRows
+samples with replacement.}
+
 \item{draw_weights}{Boolean value; if true, draw a vector of exponential
 weights to use in subsample}
 
@@ -122,15 +126,17 @@ else, only use rows with residuals greater than small}
 
 \item{...}{other arguments passed to quantile fitting function}
 
+\item{cluster_matrix}{Matrix of cluster variables, as returned by a model formula}
+
+\item{se_method}{Method to use for standard errors, either "weighted_bootstrap",
+"subsample", "bootstrap" or "resample_qs" along with a specified subsampling method
+(one of "leaveRows", "subsampleRows", or "bootstrapRows") and a subsampling percent.}
+
 \item{num_bs}{Number of subsample draws (must be greater than 1).}
 
 \item{parallel}{whether to run in parallel or not}
 
 \item{seed}{Seed to be used when generating RNG}
-
-\item{num_cores}{number of cores to use, defaults to option set by `options(mc.cores)` if not specified}
-
-\item{start_model}{Starting values for regression's optimization.}
 }
 \description{
 Computes standard errors for the quantile regression spacing method using

@@ -366,7 +366,6 @@ map_rows_parallel <- function(mat, f, ..., parallel = T,
     }
 
     interp <- future.apply::future_apply(mat, MARGIN = 1, FUN = f, simplify = F)
-    parallel::stopCluster(cl)
 
   } else {
 

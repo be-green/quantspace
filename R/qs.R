@@ -10,10 +10,9 @@
 #' Either one of "sfn", "br", "lasso" or a function name which estimates quantiles
 #' @param baseline_quantile baseline quantile to measure spacings from (defaults to 0.5)
 #' @param calc_se boolean, whether or not to calculate standard errors
-#' @param se_method one of "delta" or "boot". Delta uses the delta method approximation,
-#' while boot bootstraps the standard errors.
-#' @param trunc whether to truncate small values
-#' @param small level of "small" values to guarentee numerical stability
+#' @param se_method Method to use for standard errors, either "weighted_bootstrap",
+#' "subsample", "bootstrap" or "resample_qs" along with a specified subsampling method and
+#' subsample percent.
 #' @param weight_vec vector of weights for weighted quantile regression
 #' @param subsample_percent percent to subsample for standard error calculations
 #' @param cluster_formula formula (e.g. ~X1 + X2) giving the clustering formula
@@ -22,9 +21,15 @@
 #' @param parallel whether to run bootstrap in parallel
 #' @param num_cores number of cores to use (defaults to setting from `getOption(mc.cores)`)
 #' @param seed what seed to use for replicable RNG
+#' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
+#' leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+#' given some percentage of the data (specified via subsample_percent), and boostrapRows
+#' samples with replacement.
 #' @param output_quantiles whether to save fitted quantiles as part of the function output
 #' @param calc_avg_me whether to return average marginal effects as part of the fitted object
 #' @param ... additional arguments, ignored for now
+#' @param trunc whether to truncate small values
+#' @param small level of "small" values to guarentee numerical stability
 #' @importFrom assertthat assert_that
 #' @importFrom SparseM model.matrix
 #' @importFrom stats model.frame
@@ -130,6 +135,7 @@ qs <- function(formula, data = NULL,
       parallel = parallel,
       trunc = trunc,
       small = small,
+      seed = seed,
       ...)
   } else {
     se = list(

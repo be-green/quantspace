@@ -69,6 +69,11 @@ Either one of "sfn", "br", "lasso" or a function name which estimates quantiles}
 
 \item{draw_weights}{whether to use random exponential weights for bootstrap}
 
+\item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".
+leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+given some percentage of the data (specified via subsample_percent), and boostrapRows
+samples with replacement.}
+
 \item{output_quantiles}{whether to save fitted quantiles as part of the function output}
 
 \item{calc_avg_me}{whether to return average marginal effects as part of the fitted object}

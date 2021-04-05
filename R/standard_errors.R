@@ -1,6 +1,6 @@
 #' Function which gets resampled rows
 #' @param rows rows to resample
-#' @param method method for resampling
+#' @param sampling_method method for resampling
 #' @param ... other arguments passed on to the method
 getRows <- function(rows, sampling_method, ...) {
   do.call(sampling_method, args = list(rows = rows, ...))
@@ -23,7 +23,7 @@ bootstrapRows <- function(rows, ...) {
 
 #' Function that fully bootstraps rows
 #' @param rows rows to potentially resample
-#' @param subsamplePercent percentage of data to use in subsampling
+#' @param subsample_percent percentage of data to use in subsampling
 #' @param ... other arguments, ignored
 subsampleRows <- function(rows, subsample_percent, ...) {
   sample(rows,floor(subsample_percent*length(rows)), replace = F)
@@ -130,7 +130,6 @@ bootstrap <- function(data,
 subsample <- function(data,
                       dep_col,
                       sampling_method,
-                      method,
                       alpha,
                       jstar,
                       small,
@@ -206,11 +205,17 @@ get_strata <- function(cluster_matrix) {
 #'                 weights to use in subsample
 #' @param num_bs Number of subsample draws (must be greater than 1).
 #' @param parallel whether to run in parallel or not
-#' @param num_cores number of cores to use, defaults to option set by `options(mc.cores)` if not specified
 #' @param small Minimum size of residuals for computational accuracy.
 #' @param trunc Boolean value; if true, replace those dependent values less than small with small itself;
 #'         else, only use rows with residuals greater than small
-#' @param start_model Starting values for regression's optimization.
+#' @param cluster_matrix Matrix of cluster variables, as returned by a model formula
+#' @param se_method Method to use for standard errors, either "weighted_bootstrap",
+#' "subsample", "bootstrap" or "resample_qs" along with a specified subsampling method
+#' (one of "leaveRows", "subsampleRows", or "bootstrapRows") and a subsampling percent.
+#' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
+#' leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+#' given some percentage of the data (specified via subsample_percent), and boostrapRows
+#' samples with replacement.
 #' @param weight_vec vector of same length and order as dependent column, to be used as weights for estimation
 #'              (note, if draw weights is set to TRUE, this variable will be the element-wise product
 #'              of itself and a random vector of weights)
