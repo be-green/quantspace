@@ -4,7 +4,7 @@
 \alias{rq.fit.br}
 \title{Version that complies with more general requirements}
 \usage{
-rq.fit.br(X, y, tau = 0.5, weight_vec = NULL, control, ...)
+rq.fit.br(X, y, tau = 0.5, weight_vec = NULL, control, lambda, ...)
 }
 \arguments{
 \item{X}{structure of the design matrix X stored in csr format}
@@ -16,6 +16,8 @@ rq.fit.br(X, y, tau = 0.5, weight_vec = NULL, control, ...)
 \item{weight_vec}{optional vector of weights}
 
 \item{control}{ignored}
+
+\item{lambda}{ignored}
 
 \item{...}{additional quantities passed to rq.fit.br}
 }

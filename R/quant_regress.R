@@ -13,12 +13,16 @@
 #' @param sv startin value for optimization, useful when bootstrapping
 #' @param control control parameters for fitting routines: see [quantreg::sfn.control()]
 #' @param weight_vec Optional vector of weights for regression
+#' @param lambda ignored
+#' @param ... other parameters, ignored
 #' @export
 rq.fit.sfn_start_val <- function(X,y,tau=.5,
                                  rhs = (1-tau)*c(t(a) %*% rep(1,length(y))),
                                  control,
                                  sv,
-                                 weight_vec = NULL) {
+                                 weight_vec = NULL,
+                                 lambda,
+                                 ...) {
   a <- X
   y <- -y
   n <- length(y)
@@ -142,7 +146,8 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
        control = ctrl,
        ierr = ierr,
        it = fit$maxiter,
-       weight_vec = weight_vec)
+       weight_vec = weight_vec,
+       out = NA)
 }
 
 #' Version that complies with more general requirements
@@ -152,11 +157,15 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
 #' @param weight_vec optional vector of weights
 #' @param rhs right hand size of dual problem
 #' @param control control parameters for fitting routines
+#' @param lambda ignored
+#' @param ... other arguments, ignored
 #' @importFrom quantreg rq.fit.sfn
 rq.fit.sfn <- function(X, y, tau = 0.5,
                        weight_vec = NULL,
                        rhs = (1-tau)*c(t(X) %*% rep(1,length(y))),
-                       control) {
+                       control,
+                       lambda,
+                       ...) {
 
   # additional syntax to incorporate weights is included here
   if (!is.null(weight_vec)){
@@ -173,7 +182,7 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
     X <- as(as.vector(weight_vec), "matrix.diag.csr") %*% X
 
   }
-  quantreg::rq.fit.sfn(a = X, y, tau, rhs, control)
+  c(quantreg::rq.fit.sfn(a = X, y, tau, rhs, control), out = NA)
 }
 
 #' Version that complies with more general requirements
@@ -182,12 +191,14 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
 #' @param tau target quantile
 #' @param weight_vec optional vector of weights
 #' @param control ignored
+#' @param lambda ignored
 #' @param ... additional quantities passed to rq.fit.br
 #' @importFrom quantreg rq.fit.br
 #' @importFrom stats coef
 #' @importFrom stats resid
 rq.fit.br <- function(X, y, tau = 0.5,
-                      weight_vec = NULL, control,...) {
+                      weight_vec = NULL, control,
+                      lambda, ...) {
 
   # additional syntax to incorporate weights is included here
   if (!is.null(weight_vec)){
@@ -211,7 +222,8 @@ rq.fit.br <- function(X, y, tau = 0.5,
        control = list(),
        ierr = 0,
        it = 0,
-       weight_vec = weight_vec)
+       weight_vec = weight_vec,
+       out = NA)
 }
 
 #' Quantile Regression w/ Lasso Penalty
@@ -224,13 +236,27 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @param method method argument to be passed to [quantreg::rq]
 #' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
 #' @importFrom rqPen rq.lasso.fit
+#' @importFrom rqPen cv.rq.pen
 rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
                          scale_x = T, method = "br", ...) {
 
   if(!is.matrix(X)) {
     X <- as.matrix(X)
   }
+
+  if(nrow(X) < 100) {
+    nfold = round(nrow(X)/10)
+  } else {
+    nfold = 10
+  }
+
+
   intercept <- get_intercept(X)
+
+  if(ncol(X) - (intercept > 0) <= 1) {
+    stop("Model must have more than 1 covariate when using lasso.")
+  }
+
 
   # additional syntax to incorporate weights is included here
   if (!is.null(weight_vec)){
@@ -256,6 +282,19 @@ rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
     sigma_x <- attr(X, "scaled:scale")
     attr(X, "scaled:center") <- NULL
     attr(X, "scaled:scale") <- NULL
+  }
+
+  if(is.null(lambda)) {
+    message("No lambda provided, selecting based on 10-fold cross-validation.")
+    suppressWarnings({
+      cv_fit <- rqPen::cv.rq.pen(x = X[,-intercept],
+                              y = y, tau = tau,
+                              intercept = T,
+                              penalty = "LASSO",
+                              criteria = "CV",
+                              nfolds = nfold)
+    })
+    lambda = cv_fit$lambda.min
   }
 
   est <- rqPen::rq.lasso.fit(x = X[,-intercept],
@@ -286,8 +325,116 @@ rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
        control = NA,
        ierr = 0,
        it = est$it,
-       weight_vec = weight_vec)
+       weight_vec = weight_vec,
+       out = list(lambda = lambda))
 }
+
+#' Quantile Regression w/ Lasso Penalty
+#' @param X Design matrix, X
+#' @param y outcome variable, y
+#' @param tau quantile to estimate
+#' @param lambda penalty parameter
+#' @param weight_vec optional vector of weights
+#' @param scale_x whether to scale the design matrix before estimation
+#' @param method method argument to be passed to [quantreg::rq]
+#' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
+#' @importFrom rqPen rq.lasso.fit
+rq.fit.post_lasso <- function(X, y, tau, lambda, weight_vec,
+                         scale_x = T, method = "br", ...) {
+
+  if(!is.matrix(X)) {
+    X <- as.matrix(X)
+  }
+
+  intercept <- get_intercept(X)
+
+  if(nrow(X) < 100) {
+    nfold = round(nrow(X)/10)
+  } else {
+    nfold = 10
+  }
+
+
+  if(ncol(X) - (intercept > 0) <= 1) {
+    stop("Model must have more than 1 covariate when using lasso.")
+  }
+
+  # additional syntax to incorporate weights is included here
+  if (!is.null(weight_vec)){
+    message("No lambda provided, selecting based on 10-fold cross-validation.")
+    n = nrow(X)
+
+    if(n != dim(as.matrix(weight_vec))[1]){
+      stop("Dimensions of design matrix and the weight vector not compatible")
+    }
+
+    # multiplying y by the weights
+    y <- y * weight_vec
+
+    # pre-multiplying the a matrix by a diagonal matrix of weights
+    X <- diag(weight_vec) %*% X
+  }
+
+  # get the intercept, and then scale everything except the intercept
+  if (scale_x) {
+    unscaled_X <- X
+    X <- scale_for_lasso(X, intercept)
+    mu_x <- attr(X, "scaled:center")
+    sigma_x <- attr(X, "scaled:scale")
+    attr(X, "scaled:center") <- NULL
+    attr(X, "scaled:scale") <- NULL
+  }
+
+  if(is.null(lambda)) {
+    message("No lambda provided, selecting based on 10-fold cross-validation.")
+    suppressWarnings({
+      cv_fit <- rqPen::cv.rq.pen(x = X[,-intercept],
+                                 y = y, tau = tau,
+                                 intercept = T,nfolds = nfold,
+                                 penalty = "LASSO",
+                                 criteria = "CV")
+    })
+    lambda = cv_fit$lambda.min
+  }
+
+  est <- rqPen::rq.lasso.fit(x = X[,-intercept],
+                             y = y,
+                             tau = tau,
+                             lambda = lambda,
+                             intercept = T,
+                             scalex = F,
+                             method = method,
+                             ...)
+
+  coefficients <- est$coefficients
+  coefficients <- reorder_coefficients(coefficients, intercept)
+
+  if(scale_x) {
+    coefficients <- rescale_coefficients(coefficients, mu_x, sigma_x, intercept)
+    X = unscaled_X
+  }
+
+  not_zero = which(coefficients != 0)
+  new_X = X[,not_zero]
+
+  est <- quantreg::rq.fit(x = new_X, y = y, tau = tau, method = method)
+  coefficients[not_zero] <- est$coefficients
+
+  residuals = y - X %*% coefficients
+
+  if (!is.null(weight_vec)){
+    residuals <- residuals / weight_vec
+  }
+
+  list(coefficients = coefficients,
+       residuals = residuals,
+       control = NA,
+       ierr = 0,
+       it = est$it,
+       weight_vec = weight_vec,
+       out = list(lambda = lambda))
+}
+
 
 
 
@@ -377,6 +524,8 @@ regressResiduals = function(reg_spec_data,
 #' @param weight_vec vector of optional weights
 #' @param outputQuantiles TRUE or FALSE, whether to output quantiles
 #' @param calculateAvgME TRUE or FALSE, whether to output average marginal effects
+#' @param lambda optional penalty parameter, ignored except for penalized regression
+#' algorithms
 #' @param ... other parameters passed to the algorithm
 #' @import SparseM
 #' @return
@@ -399,6 +548,7 @@ quantRegSpacing = function(
   weight_vec = NULL,
   outputQuantiles = FALSE,
   calculateAvgME = FALSE,
+  lambda = NULL,
   ...) {
 
   # number of observations that will default to an NA estimate of
@@ -425,6 +575,8 @@ quantRegSpacing = function(
   model = list() # Collect the quantile regressions into a list
   length(model) = p
 
+  out = as.list(rep(NA, length(alpha)))
+
   # check to see if regression matrix is sparse. If not, then turn into CSR matrix
   if(!is(data, 'matrix.csr')) {
     data = denseMatrixToSparse(data)
@@ -439,6 +591,18 @@ quantRegSpacing = function(
   # Ensure matrix is not rank deficient
   reg_spec_starting_data <- ensureSpecFullRank(spec_mat = data, col_names = var_names)
 
+
+
+  if(!is.null(lambda)) {
+    if(length(lambda) > 1) {
+      star_lambda = lambda[jstar]
+    } else {
+      star_lambda = lambda
+    }
+  } else {
+    star_lambda = NULL
+  }
+
   # Calculate initial fit
   if(any(is.na(start_list))){ # if user supplied starting values, then use them
     star_model = fitQuantileRegression(
@@ -448,6 +612,7 @@ quantRegSpacing = function(
       control = list(tmpmax = tmpmax),
       weight_vec = weight_vec,
       algorithm = algorithm,
+      lambda = star_lambda,
       ...)
    } else {
      col_nums = getColNums(start_list, reg_spec_starting_data, alpha, jstar)
@@ -460,6 +625,7 @@ quantRegSpacing = function(
        sv = as.numeric(start_list[col_nums]),
        weight_vec = weight_vec,
        algorithm = algorithm,
+       lambda = star_lambda,
        ...
       )
    }
@@ -491,11 +657,22 @@ quantRegSpacing = function(
   warnings_log[[jstar]] = star_model$ierr
   iter_log[[jstar]] = star_model$it
   count_log[[jstar]] = dim(reg_spec_starting_data$spec_matrix)[1]
+  out[[jstar]] = star_model$out
 
   # Estimate upper quantiles sequentially
   ehat = ehat0
   for (j in (jstar+1):p) {
     ind_hat = which(ehat > 0)
+
+    if(!is.null(lambda)) {
+      if(length(lambda) > 1) {
+        j_lambda = lambda[j]
+      } else {
+        j_lambda = lambda
+      }
+    } else {
+      j_lambda = NULL
+    }
 
     if(length(ind_hat) <= obs_thresh) {
       warning("When estimating coefficients quantile ", alpha[j], " there were ", obs_thresh,
@@ -546,13 +723,14 @@ quantRegSpacing = function(
                                     sv = sv, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
                                     small = small, control = list(tmpmax = tmpmax),
                                     weight_vec = weight_vec[ind_hat],
-                                    algorithm = algorithm, ...)
+                                    algorithm = algorithm, lambda = j_lambda,
+                                    ...)
       } else{
         j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
                                     ind_hat = ind_hat, tau = tau.t, trunc =  trunc,
                                     small = small, control = list(tmpmax = tmpmax),
                                     weight_vec = weight_vec[ind_hat],
-                                    algorithm = algorithm,
+                                    algorithm = algorithm, lambda = j_lambda,
                                     ...)
       }
       printWarnings(j_model)
@@ -587,6 +765,7 @@ quantRegSpacing = function(
       warnings_log[[j]] = j_model$ierr
       iter_log[[j]] = j_model$it
       count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
+      out[[j]] = j_model$out
 
       # Update residuals
       ehat = ehat - exp(
@@ -601,6 +780,16 @@ quantRegSpacing = function(
   # Estimate lower quantiles sequentially
   ehat = ehat0
   for (j in (jstar-1):1) {
+
+    if(!is.null(lambda)) {
+      if(length(lambda) > 1) {
+        j_lambda = lambda[j]
+      } else {
+        j_lambda = lambda
+      }
+    } else {
+      j_lambda = NULL
+    }
 
     # Ensure the cut of the starting data that we take for
     # current spacing is not rank-deficient
@@ -654,7 +843,7 @@ quantRegSpacing = function(
                                     ind_hat = ind_hat,
                                     tau = tau.t, trunc = trunc, small = small,
                                     control = list(tmpmax = tmpmax),
-                                    algorithm = algorithm,
+                                    algorithm = algorithm, lambda = j_lambda,
                                     weight_vec = weight_vec[ind_hat], ...)
       } else {
         j_model <- regressResiduals(reg_spec_data = reg_spec_data,
@@ -663,7 +852,9 @@ quantRegSpacing = function(
                                     tau = tau.t, trunc = trunc, small = small,
                                     control = list(tmpmax = tmpmax),
                                     algorithm = algorithm,
-                                    weight_vec = weight_vec[ind_hat], ...)
+                                    weight_vec = weight_vec[ind_hat],
+                                    lambda = j_lambda,
+                                    ...)
       }
 
       printWarnings(j_model)
@@ -692,6 +883,7 @@ quantRegSpacing = function(
       warnings_log[[j]] = j_model$ierr
       iter_log[[j]] = j_model$it
       count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
+      out[[j]] = j_model$out
 
         ehat = ehat + exp(as.matrix(
           data %*%
@@ -702,7 +894,8 @@ quantRegSpacing = function(
             'pseudo_r' = do.call(cbind, pseudo_r),
             'warnings' = do.call(cbind, warnings_log),
             'iter' = do.call(cbind, iter_log),
-            'counts' = do.call(cbind, count_log))
+            'counts' = do.call(cbind, count_log),
+            'out' = out)
 
   # calculate average marginal effects if user-specified
   if(calculateAvgME){

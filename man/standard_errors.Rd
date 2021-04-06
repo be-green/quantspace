@@ -89,6 +89,7 @@ standard_errors(
   weight_vec = NULL,
   subsample_percent,
   seed = NULL,
+  lambda = NULL,
   ...
 )
 }
@@ -103,7 +104,7 @@ of itself and a random vector of weights)}
 
 \item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".
 leaveRows doesn't resample rows at all. subsampleRows samples without replacement
-given some percentage of the data (specified via subsample_percent), and boostrapRows
+given some percentage of the data (specified via subsample_percent), and bootstrapRows
 samples with replacement.}
 
 \item{draw_weights}{Boolean value; if true, draw a vector of exponential
@@ -137,6 +138,8 @@ else, only use rows with residuals greater than small}
 \item{parallel}{whether to run in parallel or not}
 
 \item{seed}{Seed to be used when generating RNG}
+
+\item{lambda}{optional penalty parameter to be passed to quantile regression}
 }
 \description{
 Computes standard errors for the quantile regression spacing method using
