@@ -214,13 +214,14 @@ get_strata <- function(cluster_matrix) {
 #' (one of "leaveRows", "subsampleRows", or "bootstrapRows") and a subsampling percent.
 #' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
 #' leaveRows doesn't resample rows at all. subsampleRows samples without replacement
-#' given some percentage of the data (specified via subsample_percent), and boostrapRows
+#' given some percentage of the data (specified via subsample_percent), and bootstrapRows
 #' samples with replacement.
 #' @param weight_vec vector of same length and order as dependent column, to be used as weights for estimation
 #'              (note, if draw weights is set to TRUE, this variable will be the element-wise product
 #'              of itself and a random vector of weights)
 #' @param algorithm function which is actually used to fit each quantile regression
 #' @param seed Seed to be used when generating RNG
+#' @param lambda optional penalty parameter to be passed to quantile regression
 #' @param ... other arguments passed to quantile fitting function
 #' @importFrom methods is
 #' @importFrom stats rexp
@@ -247,6 +248,7 @@ standard_errors <- function(dep_col,
                             weight_vec = NULL,
                             subsample_percent,
                             seed = NULL,
+                            lambda = NULL,
                             ...) {
 
   # if they set parallel to false, we still
@@ -296,7 +298,7 @@ standard_errors <- function(dep_col,
                               alpha = alpha, jstar = jstar, small = small,
                               trunc = trunc, algorithm = algorithm,
                               subsample_percent = subsample_percent,
-                              var_names = var_names,
+                              var_names = var_names, lambda = lambda,
                               ...))
         }
         purrr::pmap(clustered_fits, rbind)

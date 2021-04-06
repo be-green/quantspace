@@ -10,7 +10,9 @@ rq.fit.sfn(
   tau = 0.5,
   weight_vec = NULL,
   rhs = (1 - tau) * c(t(X) \%*\% rep(1, length(y))),
-  control
+  control,
+  lambda,
+  ...
 )
 }
 \arguments{
@@ -25,6 +27,10 @@ rq.fit.sfn(
 \item{rhs}{right hand size of dual problem}
 
 \item{control}{control parameters for fitting routines}
+
+\item{lambda}{ignored}
+
+\item{...}{other arguments, ignored}
 }
 \description{
 Version that complies with more general requirements

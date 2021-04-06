@@ -10,7 +10,7 @@ qs(
   quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
   baseline_quantile = 0.5,
   calc_se = T,
-  se_method = "weighted_bootstrap",
+  se_method = "subsample",
   weight_vec = NULL,
   subsample_percent = 0.2,
   algorithm = "sfn",
@@ -25,6 +25,7 @@ qs(
   sampling_method = NULL,
   output_quantiles = T,
   calc_avg_me = F,
+  lambda = NULL,
   ...
 )
 }
@@ -43,8 +44,9 @@ If not found in data, the variables are taken from environment(formula)}
 
 \item{calc_se}{boolean, whether or not to calculate standard errors}
 
-\item{se_method}{one of "delta" or "boot". Delta uses the delta method approximation,
-while boot bootstraps the standard errors.}
+\item{se_method}{Method to use for standard errors, either "weighted_bootstrap",
+"subsample", "bootstrap" or "resample_qs" along with a specified subsampling method and
+subsample percent.}
 
 \item{weight_vec}{vector of weights for weighted quantile regression}
 
@@ -77,6 +79,9 @@ samples with replacement.}
 \item{output_quantiles}{whether to save fitted quantiles as part of the function output}
 
 \item{calc_avg_me}{whether to return average marginal effects as part of the fitted object}
+
+\item{lambda}{optional penalty parameter, ignored except for penalized quantile
+regressions}
 
 \item{...}{additional arguments, ignored for now}
 }

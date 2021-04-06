@@ -13,6 +13,8 @@
 #' @param se_method Method to use for standard errors, either "weighted_bootstrap",
 #' "subsample", "bootstrap" or "resample_qs" along with a specified subsampling method and
 #' subsample percent.
+#' @param lambda optional penalty parameter, ignored except for penalized quantile
+#' regressions
 #' @param weight_vec vector of weights for weighted quantile regression
 #' @param subsample_percent percent to subsample for standard error calculations
 #' @param cluster_formula formula (e.g. ~X1 + X2) giving the clustering formula
@@ -33,13 +35,14 @@
 #' @importFrom assertthat assert_that
 #' @importFrom SparseM model.matrix
 #' @importFrom stats model.frame
+#' @importFrom future nbrOfWorkers
 #' @importFrom SparseM model.response
 #' @export
 qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
                baseline_quantile = 0.5,
                calc_se = T,
-               se_method = "weighted_bootstrap",
+               se_method = "subsample",
                weight_vec = NULL,
                subsample_percent = 0.2,
                algorithm = "sfn",
@@ -54,22 +57,28 @@ qs <- function(formula, data = NULL,
                sampling_method = NULL,
                output_quantiles = T,
                calc_avg_me = F,
+               lambda = NULL,
                ...) {
 
-  if(!exists(algorithm)) {
-    if(algorithm == "sfn") {
-      algorithm = "rq.fit.sfn"
-    } else if(algorithm == "lasso") {
-      algorithm = "rq.fit.lasso"
-    } else {
+
+  if(algorithm == "sfn") {
+    algorithm = "rq.fit.sfn"
+  } else if (algorithm == "lasso") {
+    algorithm = "rq.fit.lasso"
+  } else if(algorithm == "post_lasso") {
+    algorithm = "rq.fit.post_lasso"
+  } else if(algorithm == "br") {
+    algorithm = "rq.fit.br"
+  } else {
+    if(!exists(algorithm)) {
       stop(paste0("Algorithm not implemented in quantspace, and not a function" ,
-                  " available in the current namespace."))
+                  " available in the current environment."))
     }
   }
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 
-  if(!is.null(num_cores)) {
+  if(!is.null(num_cores) & num_cores != future::nbrOfWorkers() & parallel) {
     makePlan(num_cores)
   }
 
@@ -101,7 +110,6 @@ qs <- function(formula, data = NULL,
     cluster_matrix = SparseM::model.matrix(cluster_formula, data)
   }
 
-  # message("Calculating initial quantile fit")
   quantreg_fit <- quantRegSpacing(
     dep_col = depCol,
     data = reg_spec,
@@ -112,11 +120,20 @@ qs <- function(formula, data = NULL,
     algorithm = algorithm,
     outputQuantiles = output_quantiles,
     calculateAvgME = calc_avg_me,
+    lambda = lambda,
     ...
   )
 
-  assertthat::assert_that(subsample_percent > 0)
-  assertthat::assert_that(subsample_percent <= 1)
+  if(!is.null(subsample_percent)) {
+    assertthat::assert_that(subsample_percent > 0)
+    assertthat::assert_that(subsample_percent <= 1)
+  }
+
+  if(grepl("lasso", algorithm)) {
+    lambda = sapply(quantreg_fit$out, function(x) x$lambda)
+  } else {
+    lambda = NULL
+  }
 
   if(calc_se) {
     se = standard_errors(
@@ -136,6 +153,7 @@ qs <- function(formula, data = NULL,
       trunc = trunc,
       small = small,
       seed = seed,
+      lambda = lambda,
       ...)
   } else {
     se = list(
@@ -218,7 +236,7 @@ summary.qs = function(object, ...){
                               Coefficient = beta_vec, `Standard Error` = se_vec)
 
 
-  if(object$specs$algorithm == "rq.fit.lasso") {
+  if(grepl("lasso", object$specs$algorithm)) {
     quant_out_mat <- quant_out_mat[which(quant_out_mat$Coefficient != 0),]
     baseline_mat <- baseline_mat[which(baseline_mat$Coefficient != 0),]
   }
@@ -281,7 +299,7 @@ print.qs <- function(x, digits = 4, ...) {
   cat("Spacings Coefficients:\n",
       s_coefs, "\n\n")
 
-  if(x$algorithm == "rq.fit.lasso") {
+  if(grepl("lasso", x$algorithm)) {
     cat("Only displaying non-zero coefficients.")
   }
 }

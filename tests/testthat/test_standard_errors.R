@@ -9,7 +9,7 @@ suppressWarnings({
                    draw_weights = T, sampling_method = "subsample",
                    subsample_percent = 0.3)
   cluster_fit <- qs(mpg ~ hp, data = mtcars, se_method = "bootstrap",
-                    cluster_formula =  ~ cyl)
+                    cluster_formula = ~ cyl)
 })
 
 

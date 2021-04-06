@@ -17,6 +17,7 @@ quantRegSpacing(
   weight_vec = NULL,
   outputQuantiles = FALSE,
   calculateAvgME = FALSE,
+  lambda = NULL,
   ...
 )
 }
@@ -46,6 +47,9 @@ else, only use rows with residuals greater than small}
 \item{outputQuantiles}{TRUE or FALSE, whether to output quantiles}
 
 \item{calculateAvgME}{TRUE or FALSE, whether to output average marginal effects}
+
+\item{lambda}{optional penalty parameter, ignored except for penalized regression
+algorithms}
 
 \item{...}{other parameters passed to the algorithm}
 }
