@@ -110,7 +110,7 @@ qs <- function(formula, data = NULL,
     cluster_matrix = SparseM::model.matrix(cluster_formula, data)
   }
 
-  quantreg_fit <- quantRegSpacing(
+  quantreg_fit <- quant_reg_spacing(
     dep_col = depCol,
     data = reg_spec,
     var_names = reg_spec_var_names,
@@ -402,7 +402,7 @@ predict.qs <- function(object, newdata = NULL, ...) {
     } else {
       X <- SparseM::model.matrix(stats::as.formula(object$specs$formula),
                                  data = object$specs$X)
-      p_q <- spacingsToQuantiles(matrix(as.numeric(object$quantreg_fit$coef),
+      p_q <- spacings_to_quantiles(matrix(as.numeric(object$quantreg_fit$coef),
                                         ncol = length(object$specs$alpha)),
                                  X,
                                  jstar = object$specs$jstar)
@@ -413,7 +413,7 @@ predict.qs <- function(object, newdata = NULL, ...) {
     tt <- stats::delete.response(tt)
     X <- stats::model.matrix(tt,
                               data = newdata)
-    p_q <- spacingsToQuantiles(matrix(as.numeric(object$quantreg_fit$coef),
+    p_q <- spacings_to_quantiles(matrix(as.numeric(object$quantreg_fit$coef),
                                       ncol = length(object$specs$alpha)),
                                X,
                                jstar = object$specs$jstar)

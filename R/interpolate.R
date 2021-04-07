@@ -365,7 +365,8 @@ map_rows_parallel <- function(mat, f, ..., parallel = T,
       makePlan(ncores)
     }
 
-    interp <- future.apply::future_apply(mat, MARGIN = 1, FUN = f, simplify = F)
+    interp <- future.apply::future_apply(mat, MARGIN = 1, FUN = f,
+                                         simplify = F, ...)
 
   } else {
 

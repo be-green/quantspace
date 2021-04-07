@@ -365,7 +365,7 @@ eval_density_R <- function(y, alphas, m = 1, s = 1, distn = "p",
   eta_theta <- matrix(c(eta_theta_temp[1:(round(p/2)-1)], m,
                         eta_theta_temp[round(p/2):(p-1)]), nrow = 1)
 
-  quantiles<-spacingsToQuantiles(eta_theta, matrix(1, N, 1), jstar)
+  quantiles<-spacings_to_quantiles(eta_theta, matrix(1, N, 1), jstar)
   spline_params <- q_spline_R(quantiles, alphas, tails = tails)
   y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]],
                     spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],
