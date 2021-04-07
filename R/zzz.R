@@ -4,13 +4,14 @@
 #' @importFrom parallel detectCores
 #' @importFrom future sequential
 #' @importFrom future plan
+#' @importFrom future availableCores
 .onAttach <- function(libname, pkgname) {
 
   future::plan(future::sequential)
 
   ncores = getOption('qs.cores')
   if(is.null(ncores)) {
-    ncores = round(parallel::detectCores()/2)
+    ncores = round(future::availableCores()/2)
   }
 
   setCores(ncores)
