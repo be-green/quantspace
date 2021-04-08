@@ -110,7 +110,7 @@ qs <- function(formula, data = NULL,
     cluster_matrix = SparseM::model.matrix(cluster_formula, data)
   }
 
-  quantreg_fit <- quant_reg_spacing(
+  quantreg_fit <- quantreg_spacing(
     dep_col = depCol,
     data = reg_spec,
     var_names = reg_spec_var_names,

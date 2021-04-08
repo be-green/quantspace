@@ -535,7 +535,7 @@ regressResiduals = function(reg_spec_data,
 #' warnings is a 1 by p matrix of warnings produced by each quantile regression call.
 #' iter: is a 1 by p matrix of iterations ran by each quantile regression call.
 #' @export
-quant_reg_spacing = function(
+quantreg_spacing = function(
   dep_col,
   data,
   var_names,
