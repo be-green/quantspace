@@ -28,6 +28,6 @@ A function to evaluate the quantile or density of
 given data based on normal distribution
 }
 \details{
-the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
+the \code{distn} argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
 and "q" to evaluate a quantile distribution.
 }

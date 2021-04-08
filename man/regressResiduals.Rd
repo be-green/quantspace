@@ -33,7 +33,7 @@ else, only use rows with residuals greater than small}
 \item{weight_vec}{vector of optional weights}
 
 \item{algorithm}{The name of a function which will estimate a quantile regression.
-Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`}
+Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to \code{do.call}}
 
 \item{...}{other arguments to the function specified by the algorithm argument}
 }

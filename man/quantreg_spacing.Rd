@@ -5,26 +5,22 @@
 \title{Computes coefficients for the quantile regression spacing method.}
 \usage{
 quantreg_spacing(
-  dep_col,
-  data,
+  y,
+  X,
   var_names,
   alpha,
   jstar,
-  algorithm = "rq.fit.sfn_start_val",
-  small = 0.001,
-  trunc = FALSE,
-  start_list = NA,
-  weight_vec = NULL,
-  outputQuantiles = FALSE,
-  calculateAvgME = FALSE,
-  lambda = NULL,
+  algorithm = "rq.fit.sfn",
+  weights = NULL,
+  control = list(small = 1e-06, trunc = TRUE, start_list = NA, output_quantiles =
+    FALSE, calc_avg_me = FALSE),
   ...
 )
 }
 \arguments{
-\item{dep_col}{Column of response variable.}
+\item{y}{Column of response variable.}
 
-\item{data}{Regression specification matrix.}
+\item{X}{Regression specification matrix.}
 
 \item{var_names}{RHS regression variable names.}
 
@@ -33,7 +29,22 @@ quantreg_spacing(
 \item{jstar}{First quantile to be estimated (usually the center one)}
 
 \item{algorithm}{The name of a function which will estimate a quantile regression.
-Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`}
+Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to \code{do.call}}
+
+\item{weights}{vector of optional weights}
+
+\item{control}{control parameters to pass to the control arguments of \code{\link{quantreg_spacing}},
+the lower-level function called by \code{\link{qs}}. This is set via the function \code{\link{qs_control}},
+which returns a named list, with elements including:
+\itemize{
+\item \code{trunc}: whether to truncate residual values below the argument "small"
+\item \code{small}: level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.
+\item \code{output_quantiles}: whether to save fitted quantiles as part of the function output
+\item \code{calc_avg_me}: whether to return average marginal effects as part of the fitted object
+\item \code{lambda}: the penalization factor to be passed to penalized regression algorithms
+}}
+
+\item{...}{other parameters passed to the algorithm}
 
 \item{small}{Minimum size of residuals for computational accuracy.}
 
@@ -41,17 +52,6 @@ Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`
 else, only use rows with residuals greater than small}
 
 \item{start_list}{Starting values for regression optimization.}
-
-\item{weight_vec}{vector of optional weights}
-
-\item{outputQuantiles}{TRUE or FALSE, whether to output quantiles}
-
-\item{calculateAvgME}{TRUE or FALSE, whether to output average marginal effects}
-
-\item{lambda}{optional penalty parameter, ignored except for penalized regression
-algorithms}
-
-\item{...}{other parameters passed to the algorithm}
 }
 \value{
 Returns a list of coefficients.

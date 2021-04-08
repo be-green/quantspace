@@ -146,8 +146,7 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
        control = ctrl,
        ierr = ierr,
        it = fit$maxiter,
-       weight_vec = weight_vec,
-       out = NA)
+       weight_vec = weight_vec)
 }
 
 #' Version that complies with more general requirements
@@ -182,7 +181,7 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
     X <- as(as.vector(weight_vec), "matrix.diag.csr") %*% X
 
   }
-  c(quantreg::rq.fit.sfn(a = X, y, tau, rhs, control), out = NA)
+  quantreg::rq.fit.sfn(a = X, y, tau, rhs, control)
 }
 
 #' Version that complies with more general requirements
@@ -222,8 +221,7 @@ rq.fit.br <- function(X, y, tau = 0.5,
        control = list(),
        ierr = 0,
        it = 0,
-       weight_vec = weight_vec,
-       out = NA)
+       weight_vec = weight_vec)
 }
 
 #' Quantile Regression w/ Lasso Penalty
@@ -326,7 +324,7 @@ rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
        ierr = 0,
        it = est$it,
        weight_vec = weight_vec,
-       out = list(lambda = lambda))
+       lambda = lambda)
 }
 
 #' Quantile Regression w/ Lasso Penalty
@@ -432,7 +430,7 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weight_vec,
        ierr = 0,
        it = est$it,
        weight_vec = weight_vec,
-       out = list(lambda = lambda))
+       lambda = lambda)
 }
 
 
@@ -508,10 +506,20 @@ regressResiduals = function(reg_spec_data,
   return(j_model)
 }
 
+#' return NA if argument is null
+#' @param x value to check if null
+na_if_null <- function(x) {
+  if(is.null(x)){
+      NA
+  } else {
+    x
+  }
+}
+
 
 #' Computes coefficients for the quantile regression spacing method.
-#' @param dep_col Column of response variable.
-#' @param data Regression specification matrix.
+#' @param y Column of response variable.
+#' @param X Regression specification matrix.
 #' @param var_names RHS regression variable names.
 #' @param alpha Quantiles to be estimated.
 #' @param jstar First quantile to be estimated (usually the center one)
@@ -521,11 +529,15 @@ regressResiduals = function(reg_spec_data,
 #' @param algorithm The name of a function which will estimate a quantile regression.
 #' Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`
 #' @param start_list Starting values for regression optimization.
-#' @param weight_vec vector of optional weights
-#' @param outputQuantiles TRUE or FALSE, whether to output quantiles
-#' @param calculateAvgME TRUE or FALSE, whether to output average marginal effects
-#' @param lambda optional penalty parameter, ignored except for penalized regression
-#' algorithms
+#' @param weights vector of optional weights
+#' @param control control parameters to pass to the control arguments of [`quantreg_spacing`],
+#' the lower-level function called by [`qs`]. This is set via the function [`qs_control`],
+#' which returns a named list, with elements including:
+#' * `trunc`: whether to truncate residual values below the argument "small"
+#' * `small`: level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.
+#' * `output_quantiles`: whether to save fitted quantiles as part of the function output
+#' * `calc_avg_me`: whether to return average marginal effects as part of the fitted object
+#' * `lambda`: the penalization factor to be passed to penalized regression algorithms
 #' @param ... other parameters passed to the algorithm
 #' @import SparseM
 #' @return
@@ -536,30 +548,48 @@ regressResiduals = function(reg_spec_data,
 #' iter: is a 1 by p matrix of iterations ran by each quantile regression call.
 #' @export
 quantreg_spacing = function(
-  dep_col,
-  data,
+  y,
+  X,
   var_names,
   alpha,
   jstar,
-  algorithm = "rq.fit.sfn_start_val",
-  small = 1e-3,
-  trunc = FALSE,
-  start_list = NA,
-  weight_vec = NULL,
-  outputQuantiles = FALSE,
-  calculateAvgME = FALSE,
-  lambda = NULL,
+  algorithm = "rq.fit.sfn",
+  weights = NULL,
+  control = list(
+    small = 1e-6,
+    trunc = TRUE,
+    start_list = NA,
+    output_quantiles = FALSE,
+    calc_avg_me = FALSE
+  ),
   ...) {
+
+  # disperse control parameters
+  small = control$small
+  trunc = control$trunc
+  start_list = na_if_null(control$start_list)
+  weight_vec = weights
+  output_quantiles = control$output_quantiles
+  calc_avg_me = control$calc_avg_me
+  lambda = control$lambda
+
+  if(is.null(output_quantiles)) {
+    output_quantiles <- TRUE
+  }
+
+  if(is.null(calc_avg_me)) {
+    calc_avg_me <- FALSE
+  }
 
   # number of observations that will default to an NA estimate of
   # a quantile.
   obs_thresh = 2
 
-  if(nrow(data) < obs_thresh) {
+  if(nrow(X) < obs_thresh) {
     stop("Data contains fewer than ", obs_thresh, "observations.")
   }
 
-  width = dim(data)[2]
+  width = dim(X)[2]
   tau = alpha[jstar]
   p = length(alpha)
 
@@ -575,23 +605,21 @@ quantreg_spacing = function(
   model = list() # Collect the quantile regressions into a list
   length(model) = p
 
-  out = as.list(rep(NA, length(alpha)))
+  out_lambda = as.list(rep(NA, length(alpha)))
 
   # check to see if regression matrix is sparse. If not, then turn into CSR matrix
-  if(!is(data, 'matrix.csr')) {
-    data = denseMatrixToSparse(data)
+  if(!is(X, 'matrix.csr')) {
+    X = denseMatrixToSparse(X)
   }
 
   if(missing(var_names) | is.null(var_names)) {
-    var_names <- paste0("v", 1:ncol(data))
+    var_names <- paste0("v", 1:ncol(X))
   }
 
-  tmpmax <- floor(1e5 + exp(-12.1)*(pmin(data@ia[width+1], max(data@ia), na.rm = T)-1)^2.35)
+  tmpmax <- floor(1e5 + exp(-12.1)*(pmin(X@ia[width+1], max(X@ia), na.rm = T)-1)^2.35)
 
   # Ensure matrix is not rank deficient
-  reg_spec_starting_data <- ensureSpecFullRank(spec_mat = data, col_names = var_names)
-
-
+  reg_spec_starting_data <- ensureSpecFullRank(spec_mat = X, col_names = var_names)
 
   if(!is.null(lambda)) {
     if(length(lambda) > 1) {
@@ -607,7 +635,7 @@ quantreg_spacing = function(
   if(any(is.na(start_list))){ # if user supplied starting values, then use them
     star_model = fitQuantileRegression(
       X = reg_spec_starting_data$spec_matrix,
-      y = dep_col,
+      y = y,
       tau = tau,
       control = list(tmpmax = tmpmax),
       weight_vec = weight_vec,
@@ -619,7 +647,7 @@ quantreg_spacing = function(
      sv = as.numeric(start_list[col_nums])
      star_model = fitQuantileRegression(
        X = reg_spec_starting_data$spec_matrix,
-       y = dep_col,
+       y = y,
        tau = tau,
        control = list(tmpmax = tmpmax),
        sv = as.numeric(start_list[col_nums]),
@@ -636,8 +664,8 @@ quantreg_spacing = function(
 
   #Calculate R^2
   V <- sum(rho(u = ehat0, tau = tau, weight_vec = weight_vec))
-  V0 <- fitQuantileRegression(X = as.matrix.csr(rep(1, length(dep_col))),
-                             y = dep_col,
+  V0 <- fitQuantileRegression(X = as.matrix.csr(rep(1, length(y))),
+                             y = y,
                              tau = tau,
                              weight_vec = weight_vec,
                              algorithm = 'rq.fit.sfn_start_val')$residuals
@@ -657,7 +685,7 @@ quantreg_spacing = function(
   warnings_log[[jstar]] = star_model$ierr
   iter_log[[jstar]] = star_model$it
   count_log[[jstar]] = dim(reg_spec_starting_data$spec_matrix)[1]
-  out[[jstar]] = star_model$out
+  out_lambda[[jstar]] = na_if_null(star_model$lambda)
 
   # Estimate upper quantiles sequentially
   ehat = ehat0
@@ -765,12 +793,12 @@ quantreg_spacing = function(
       warnings_log[[j]] = j_model$ierr
       iter_log[[j]] = j_model$it
       count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
-      out[[j]] = j_model$out
+      out_lambda[[j]] = na_if_null(j_model$lambda)
 
       # Update residuals
       ehat = ehat - exp(
         as.matrix(
-          data %*%
+          X %*%
             unname(t(as.matrix(model[[j]])))))
 
     }
@@ -883,10 +911,10 @@ quantreg_spacing = function(
       warnings_log[[j]] = j_model$ierr
       iter_log[[j]] = j_model$it
       count_log[[j]] = dim(reg_spec_data$spec_matrix)[1]
-      out[[j]] = j_model$out
+      out_lambda[[j]] = na_if_null(j_model$lambda)
 
         ehat = ehat + exp(as.matrix(
-          data %*%
+          X %*%
             unname(t(as.matrix(model[[j]])))))
     }
   }
@@ -895,12 +923,12 @@ quantreg_spacing = function(
             'warnings' = do.call(cbind, warnings_log),
             'iter' = do.call(cbind, iter_log),
             'counts' = do.call(cbind, count_log),
-            'out' = out)
+            'lambda' = out_lambda)
 
   # calculate average marginal effects if user-specified
-  if(calculateAvgME){
+  if(calc_avg_me){
     # calculate the average spacing (column-wise average)
-    averageSpacing = calcAvgSpacing(data, rv$coef, alpha,
+    averageSpacing = calcAvgSpacing(X, rv$coef, alpha,
                                     jstar, trim=.01)
     qreg_coef = matrix(as.numeric(rv$coef), ncol = p)
     me = getMarginalEffects(qreg_coeffs = qreg_coef,
@@ -913,10 +941,10 @@ quantreg_spacing = function(
   }
 
   # calculate quantiles induced by spacings if user-specified
-  if(outputQuantiles) {
+  if(output_quantiles) {
     rv$quantiles = spacings_to_quantiles(spacingCoef = matrix(as.numeric(rv$coef),
                                                             ncol = p),
-                                       data, jstar)
+                                         X, jstar)
   }
   return(rv)
 }

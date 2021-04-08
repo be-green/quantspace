@@ -27,5 +27,6 @@ Imports:
     future,
     future.apply
 RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
 Suggests: 
     covr	

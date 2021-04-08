@@ -7,7 +7,7 @@
 me_by_variable(fit, variable, data = NA, size = NA, trim = 0.05)
 }
 \arguments{
-\item{fit}{A fitted model from the `qs` function}
+\item{fit}{A fitted model from the \code{qs} function}
 
 \item{variable}{variable to calculate marginal effects over}
 

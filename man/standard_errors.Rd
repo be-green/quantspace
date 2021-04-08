@@ -10,30 +10,28 @@
 subsampling.}
 \usage{
 resample_qs(
-  data,
-  dep_col,
-  weight_vec,
+  X,
+  y,
+  weights,
   sampling_method,
-  draw_weights,
   alpha,
   jstar,
-  small,
-  trunc,
+  control,
   algorithm,
-  subsample_percent,
+  draw_weights,
   var_names,
+  subsample_percent,
   ...
 )
 
 weighted_bootstrap(
-  data,
-  dep_col,
-  weight_vec,
+  X,
+  y,
+  weights,
   sampling_method,
   alpha,
   jstar,
-  small,
-  trunc,
+  control,
   algorithm,
   draw_weights,
   var_names,
@@ -42,14 +40,13 @@ weighted_bootstrap(
 )
 
 bootstrap(
-  data,
-  dep_col,
-  weight_vec,
+  X,
+  y,
+  weights,
   sampling_method,
   alpha,
   jstar,
-  small,
-  trunc,
+  control,
   algorithm,
   draw_weights,
   var_names,
@@ -58,90 +55,175 @@ bootstrap(
 )
 
 subsample(
-  data,
-  dep_col,
+  X,
+  y,
+  weights,
   sampling_method,
   alpha,
   jstar,
-  small,
-  trunc,
+  control,
   algorithm,
-  subsample_percent,
-  var_names,
   draw_weights,
-  weight_vec,
+  var_names,
+  subsample_percent,
   ...
 )
 
 standard_errors(
-  dep_col,
-  data,
+  y,
+  X,
   cluster_matrix,
   algorithm,
-  se_method,
+  control = qs_control(),
+  std_err_control = std_err_control(),
   var_names,
   alpha,
   jstar,
-  num_bs = 100,
   parallel = F,
-  small = 1e-06,
-  trunc = FALSE,
-  weight_vec = NULL,
-  subsample_percent,
+  weights = NULL,
   seed = NULL,
-  lambda = NULL,
+  ...
+)
+
+resample_qs(
+  X,
+  y,
+  weights,
+  sampling_method,
+  alpha,
+  jstar,
+  control,
+  algorithm,
+  draw_weights,
+  var_names,
+  subsample_percent,
+  ...
+)
+
+weighted_bootstrap(
+  X,
+  y,
+  weights,
+  sampling_method,
+  alpha,
+  jstar,
+  control,
+  algorithm,
+  draw_weights,
+  var_names,
+  subsample_percent,
+  ...
+)
+
+bootstrap(
+  X,
+  y,
+  weights,
+  sampling_method,
+  alpha,
+  jstar,
+  control,
+  algorithm,
+  draw_weights,
+  var_names,
+  subsample_percent,
+  ...
+)
+
+subsample(
+  X,
+  y,
+  weights,
+  sampling_method,
+  alpha,
+  jstar,
+  control,
+  algorithm,
+  draw_weights,
+  var_names,
+  subsample_percent,
+  ...
+)
+
+standard_errors(
+  y,
+  X,
+  cluster_matrix,
+  algorithm,
+  control = qs_control(),
+  std_err_control = std_err_control(),
+  var_names,
+  alpha,
+  jstar,
+  parallel = F,
+  weights = NULL,
+  seed = NULL,
   ...
 )
 }
 \arguments{
-\item{data}{Regression specification matrix.}
+\item{X}{Regression specification matrix.}
 
-\item{dep_col}{Column of response variable.}
+\item{y}{Column of response variable.}
 
-\item{weight_vec}{vector of same length and order as dependent column, to be used as weights for estimation
+\item{weights}{vector of same length and order as dependent column, to be used as weights for estimation
 (note, if draw weights is set to TRUE, this variable will be the element-wise product
 of itself and a random vector of weights)}
 
-\item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".
-leaveRows doesn't resample rows at all. subsampleRows samples without replacement
-given some percentage of the data (specified via subsample_percent), and bootstrapRows
-samples with replacement.}
-
-\item{draw_weights}{Boolean value; if true, draw a vector of exponential
-weights to use in subsample}
+\item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".}
 
 \item{alpha}{Quantiles to be estimated.}
 
 \item{jstar}{First quantile to be estimated (usually the center one)}
 
-\item{small}{Minimum size of residuals for computational accuracy.}
-
-\item{trunc}{Boolean value; if true, replace those dependent values less than small with small itself;
-else, only use rows with residuals greater than small}
+\item{control}{control parameters to pass to the control arguments of \code{\link{quantreg_spacing}},
+the lower-level function called by \code{\link{qs}}. This is a named list, with possible elements including:
+\itemize{
+\item \code{trunc}: whether to truncate residual values below the argument "small"
+\item \code{small}: level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.
+\item \code{lambda}: For penalized regression, you can specify a level of lambda which will weight the penalty. If not set, will be determined based on 10-fold cross-validation.
+\item \code{output_quantiles}: whether to save fitted quantiles as part of the function output
+\item \code{calc_avg_me}: whether to return average marginal effects as part of the fitted object
+\item Any other arguments passed to specific downstream quantile regression algorithms (e.g. rq.fit).
+}}
 
 \item{algorithm}{function which is actually used to fit each quantile regression}
 
-\item{subsample_percent}{percentage of clusters to sample, must be greater than 0 but less than or equal to 1}
+\item{draw_weights}{Whether to use random exponential weights for bootstrap, either TRUE or FALSE}
 
 \item{var_names}{RHS regression variable names.}
+
+\item{subsample_percent}{A number between 0 and one, specifying the percent of the data to subsample for standard error calculations}
 
 \item{...}{other arguments passed to quantile fitting function}
 
 \item{cluster_matrix}{Matrix of cluster variables, as returned by a model formula}
 
-\item{se_method}{Method to use for standard errors, either "weighted_bootstrap",
-"subsample", "bootstrap" or "resample_qs" along with a specified subsampling method
-(one of "leaveRows", "subsampleRows", or "bootstrapRows") and a subsampling percent.}
-
-\item{num_bs}{Number of subsample draws (must be greater than 1).}
+\item{std_err_control}{control parameters to pass to the control arguments of \code{\link{quantreg_spacing}},
+the lower-level function called by \code{\link{standard_errors}}. Possible arguments include:
+\itemize{
+\item \code{se_method}: Method to use for standard errors, either "weighted_bootstrap",
+"subsample", "bootstrap" or "custom" along with a specified subsampling method and
+subsample percent. If specifying "custom", must also specify \code{subsampling_percent} and
+\code{draw_weights}. If you specify "subsample", subsampling percent defaults to 0.2, but can be
+changed. See details for details.
+\item \code{num_bs}: Number of bootstrap iterations to use, defaults to 100.
+\item \code{subsample_percent}: A number between 0 and one, specifying the percent of the data to subsample for standard error calculations
+\item \code{draw_weights}: Whether to use random exponential weights for bootstrap, either TRUE or FALSE
+\item \code{sampling_method} One of "leaveRows", "subsampleRows", or "bootstrapRows".
+leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+given some percentage of the data (specified via subsample_percent), and boostrapRows
+samples with replacement.`
+}}
 
 \item{parallel}{whether to run in parallel or not}
 
 \item{seed}{Seed to be used when generating RNG}
-
-\item{lambda}{optional penalty parameter to be passed to quantile regression}
 }
 \description{
+Computes standard errors for the quantile regression spacing method using
+subsampling.
+
 Computes standard errors for the quantile regression spacing method using
 subsampling.
 }

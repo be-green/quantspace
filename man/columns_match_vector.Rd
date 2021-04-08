@@ -5,6 +5,8 @@
 \title{Check which rows of a matrix match a whole vector}
 \usage{
 columns_match_vector(X, Y)
+
+columns_match_vector(X, Y)
 }
 \arguments{
 \item{X}{first matrix}
@@ -12,5 +14,7 @@ columns_match_vector(X, Y)
 \item{Y}{vector to match}
 }
 \description{
+Check which rows of a matrix match a whole vector
+
 Check which rows of a matrix match a whole vector
 }

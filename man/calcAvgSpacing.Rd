@@ -20,7 +20,7 @@ a given column in the regression_spec by betas product before the mean is comput
 }
 \value{
 Matrix with rows containing means for each quantile for various slices
- of the specification.
+of the specification.
 }
 \description{
 Computes means for various slices of a regression_spec by betas product.

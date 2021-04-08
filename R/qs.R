@@ -1,3 +1,67 @@
+#' Control standard_errors parameters
+#' @details se_control control parameters to pass to the control arguments of [`quantreg_spacing`],
+#' the lower-level function called by [`standard_errors`].
+#' @param se_method Method to use for standard errors, either "weighted_bootstrap",
+#' "subsample", "bootstrap" or "rq_sample" (the last one is fully customized per the other se_control parameters)
+#' along with a specified subsampling method and
+#' subsample percent. If specifying "custom", must also specify `subsampling_percent` and
+#' `draw_weights`. If you specify "subsample", subsampling percent defaults to 0.2, but can be
+#' changed.
+#' @param num_bs  Number of bootstrap iterations to use, defaults to 100.
+#' @param subsample_percent A number between 0 and one, specifying the percent of the data to subsample for standard error calculations
+#' @param draw_weights Whether to use random exponential weights for bootstrap, either TRUE or FALSE
+#' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
+#' @param ... Other arguments, ignored for now
+#' leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+#' given some percentage of the data (specified via subsample_percent), and bootstrapRows
+#' samples with replacement.
+#' @param parallel_thresh threshold for when to use parallel, based on `nrow(X) * num_bs`. To always
+#' use parallel, set to 0. Designed to avoid slow overhead when problem is relatively small.
+#' @export
+se_control <- function(se_method = "subsample",
+                       subsample_percent = 0.2,
+                       num_bs = 100,
+                       draw_weights = F,
+                       sampling_method = "subsampleRows",
+                       parallel_thresh = 100000,
+                       ...) {
+  list(
+    se_method = se_method,
+    subsample_percent = subsample_percent,
+    num_bs = num_bs,
+    draw_weights = draw_weights,
+    sampling_method = sampling_method,
+    parallel_thresh = parallel_thresh,
+    ...)
+}
+
+#' Control quantreg_spacing parameters
+#' @details control parameters to pass to the control arguments of [`quantreg_spacing`],
+#' the lower-level function called by [`qs`]. This is set via the function [`qs_control`],
+#' which returns a named list, with elements including:
+#' @param trunc whether to truncate residual values below the argument "small"
+#' @param small level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.
+#' @param lambda For penalized regression, you can specify a level of lambda which will weight the penalty. If not set, will be determined based on 10-fold cross-validation.
+#' @param output_quantiles whether to save fitted quantiles as part of the function output
+#' @param calc_avg_me whether to return average marginal effects as part of the fitted object
+#' @param ... Other arguments, ignored for now
+#' @export
+qs_control <- function(trunc = TRUE,
+                       small = NULL,
+                       lambda = NULL,
+                       output_quantiles = TRUE,
+                       calc_avg_me = FALSE,
+                       ...) {
+
+  list(trunc = trunc,
+       small = small,
+       lambda = lambda,
+       output_quantiles = output_quantiles,
+       calc_avg_me = calc_avg_me,
+       ...)
+}
+
+
 #' Compute quantile regressions via quantile spacings
 #' @param formula an object of class "formula" (or one that can
 #' be coerced to that class): a symbolic description of the model
@@ -6,32 +70,40 @@
 #' coercible by as.data.frame to a data frame) containing the variables in the model.
 #' If not found in data, the variables are taken from environment(formula)
 #' @param quantiles vector of quantiles to be estimated
-#' @param algorithm What algorithm to use for fitting underlying regressions.
-#' Either one of "sfn", "br", "lasso" or a function name which estimates quantiles
 #' @param baseline_quantile baseline quantile to measure spacings from (defaults to 0.5)
 #' @param calc_se boolean, whether or not to calculate standard errors
-#' @param se_method Method to use for standard errors, either "weighted_bootstrap",
-#' "subsample", "bootstrap" or "resample_qs" along with a specified subsampling method and
-#' subsample percent.
-#' @param lambda optional penalty parameter, ignored except for penalized quantile
-#' regressions
-#' @param weight_vec vector of weights for weighted quantile regression
-#' @param subsample_percent percent to subsample for standard error calculations
+#' @param weights optional vector of weights for weighted quantile regression
 #' @param cluster_formula formula (e.g. ~X1 + X2) giving the clustering formula
-#' @param draw_weights whether to use random exponential weights for bootstrap
-#' @param num_bs number of bootstrap draws
 #' @param parallel whether to run bootstrap in parallel
-#' @param num_cores number of cores to use (defaults to setting from `getOption(mc.cores)`)
 #' @param seed what seed to use for replicable RNG
-#' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
+#' @param algorithm What algorithm to use for fitting underlying regressions. Either one of "sfn", "br", "lasso", "post_lasso", or a function name which estimates quantiles. See details.
+#' @param control control parameters to pass to the control arguments of [`quantreg_spacing`],
+#' the lower-level function called by [`qs`]. This is set via the function [`qs_control`],
+#' which returns a named list, with elements including:
+#' * `trunc`: whether to truncate residual values below the argument "small"
+#' * `small`: level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.
+#' * `lambda`: For penalized regression, you can specify a level of lambda which will weight the penalty. If not set, will be determined based on 10-fold cross-validation.
+#' * `output_quantiles`: whether to save fitted quantiles as part of the function output
+#' * `calc_avg_me`: whether to return average marginal effects as part of the fitted object
+#' * `lambda`: the penalization factor to be passed to penalized regression algorithms
+#' @param std_err_control control parameters to pass to the control arguments of [`quantreg_spacing`],
+#' the lower-level function called by [`standard_errors`]. Possible arguments include:
+#' * `se_method`: Method to use for standard errors, either "weighted_bootstrap",
+#' "subsample", "bootstrap" or "custom" along with a specified subsampling method and
+#' subsample percent. If specifying "custom", must also specify `subsampling_percent` and
+#' `draw_weights`. If you specify "subsample", subsampling percent defaults to 0.2, but can be
+#' changed. See details for details.
+#' * `num_bs`: Number of bootstrap iterations to use, defaults to 100.
+#' * `subsample_percent`: A number between 0 and one, specifying the percent of the data to subsample for standard error calculations
+#' * `draw_weights`: Whether to use random exponential weights for bootstrap, either TRUE or FALSE
+#' * `sampling_method` One of "leaveRows", "subsampleRows", or "bootstrapRows".
 #' leaveRows doesn't resample rows at all. subsampleRows samples without replacement
-#' given some percentage of the data (specified via subsample_percent), and boostrapRows
-#' samples with replacement.
-#' @param output_quantiles whether to save fitted quantiles as part of the function output
-#' @param calc_avg_me whether to return average marginal effects as part of the fitted object
+#' given some percentage of the data (specified via subsample_percent), and bootstrapRows
+#' samples with replacement.`
 #' @param ... additional arguments, ignored for now
-#' @param trunc whether to truncate small values
-#' @param small level of "small" values to guarentee numerical stability
+#' @details The qs function is a higher-level interface to fitting quantile spacings model,
+#' handling both the quantile spacings regression, allowing the user to specify a number
+#' of possible algorithms and methods for standard errors. It also supports
 #' @importFrom assertthat assert_that
 #' @importFrom SparseM model.matrix
 #' @importFrom stats model.frame
@@ -41,25 +113,15 @@
 qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
                baseline_quantile = 0.5,
-               calc_se = T,
-               se_method = "subsample",
-               weight_vec = NULL,
-               subsample_percent = 0.2,
-               algorithm = "sfn",
                cluster_formula = NULL,
-               num_bs = 100,
+               weights = NULL,
+               algorithm = "sfn",
+               control = qs_control(),
+               std_err_control = se_control(),
                parallel = TRUE,
-               num_cores = getCores(),
-               trunc = T,
-               small = NULL,
+               calc_se = TRUE,
                seed = NULL,
-               draw_weights = NULL,
-               sampling_method = NULL,
-               output_quantiles = T,
-               calc_avg_me = F,
-               lambda = NULL,
                ...) {
-
 
   if(algorithm == "sfn") {
     algorithm = "rq.fit.sfn"
@@ -78,17 +140,13 @@ qs <- function(formula, data = NULL,
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 
-  if(!is.null(num_cores) & num_cores != future::nbrOfWorkers() & parallel) {
-    makePlan(num_cores)
-  }
-
   m <- SparseM::model.matrix(formula, data)
-  y <- SparseM::model.response(stats::model.frame(formula, data), type = "numeric")
+  y <- SparseM::model.response(stats::model.frame(formula, data,
+                                                  na.action = "na.pass"),
+                               type = "numeric")
 
-  depCol <- y
-
-  if(is.null(small)) {
-    small = pmax(sd(y)/5000, .Machine$double.eps)
+  if(is.null(control$small)) {
+    control$small = pmax(sd(y)/5000, .Machine$double.eps)
   }
 
   quantiles <- unique(quantiles)
@@ -111,49 +169,41 @@ qs <- function(formula, data = NULL,
   }
 
   quantreg_fit <- quantreg_spacing(
-    dep_col = depCol,
-    data = reg_spec,
+    y = y,
+    X = reg_spec,
     var_names = reg_spec_var_names,
     alpha = alpha,
     jstar = jstar,
-    weight_vec = weight_vec,
+    weights = weights,
+    control = control,
     algorithm = algorithm,
-    outputQuantiles = output_quantiles,
-    calculateAvgME = calc_avg_me,
-    lambda = lambda,
     ...
   )
 
-  if(!is.null(subsample_percent)) {
-    assertthat::assert_that(subsample_percent > 0)
-    assertthat::assert_that(subsample_percent <= 1)
-  }
-
   if(grepl("lasso", algorithm)) {
-    lambda = sapply(quantreg_fit$out, function(x) x$lambda)
+    lambda = unlist(quantreg_fit$lambda)
   } else {
     lambda = NULL
   }
 
   if(calc_se) {
+    if(!is.null(control$subsample_percent)) {
+      assertthat::assert_that(control$subsample_percent > 0)
+      assertthat::assert_that(control$subsample_percent <= 1)
+    }
     se = standard_errors(
-      dep_col = depCol,
-      data = reg_spec,
-      se_method = se_method,
+      y = y,
+      X = reg_spec,
       cluster_matrix = cluster_matrix,
       var_names = reg_spec_var_names,
+      weights = weights,
       alpha = alpha,
       jstar = jstar,
       algorithm = algorithm,
-      subsample_percent = subsample_percent,
-      draw_weights = draw_weights,
-      sampling_method = sampling_method,
-      num_bs = num_bs,
+      std_err_control = std_err_control,
       parallel = parallel,
-      trunc = trunc,
-      small = small,
-      seed = seed,
-      lambda = lambda,
+      control = qs_control(control$trunc, control$small, lambda = lambda,
+                           output_quantiles = F, calc_avg_me = F),
       ...)
   } else {
     se = list(
@@ -166,16 +216,15 @@ qs <- function(formula, data = NULL,
             'se' = se,
             'specs' = list('formula' = formula,
                            'X' = data,
-                           'Y' = depCol,
+                           'Y' = y,
                            'alpha' = alpha,
                            'jstar' = jstar,
                            'trunc' = trunc,
-                           'small' = small,
-                           'subsample_percent' = subsample_percent,
-                           'draw_weights' = draw_weights,
-                           'num_bs' = num_bs,
+                           'small' = control$small,
+                           'subsample_percent' = std_err_control$subsample_percent,
+                           'draw_weights' = std_err_control$draw_weights,
+                           'num_bs' = std_err_control$num_bs,
                            'parallel' = parallel,
-                           'num_cores' = num_cores,
                            'coef_names' = colnames(m),
                            'algorithm' = algorithm))
 
@@ -245,7 +294,8 @@ summary.qs = function(object, ...){
     baseline_coefs = baseline_mat,
     spacing_coefs = quant_out_mat[which(quant_out_mat$Quantile != object$specs$alpha[baseline_quantile]),],
     R2 = list(psuedo_r = pseudo_r),
-    algorithm = object$specs$algorithm
+    algorithm = object$specs$algorithm,
+    quantiles = object$specs$alpha
   )
 
   structure(final_output, class = "qs_summary")
@@ -364,7 +414,7 @@ print.qs_summary <- function(x, digits = 4, ...) {
 
   psuedo_r2 <- signif(x$R2$psuedo_r, d)
   psuedo_message <- paste0(paste0("    ",
-                                  unique(x$spacing_coefs$Quantile),
+                                  unique(x$quantiles),
                                       ":\t",
                                       psuedo_r2), collapse = "\n")
 

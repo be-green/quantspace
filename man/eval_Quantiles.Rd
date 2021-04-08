@@ -21,6 +21,6 @@ eval_Quantiles(y, quantiles, alphas, distn = "q", tails = "gaussian")
 Evaluate CDF given quantiles and residuals
 }
 \details{
-the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
+the \code{distn} argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
 and "q" to evaluate a quantile distribution.
 }

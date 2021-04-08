@@ -4,15 +4,19 @@
 \alias{getWeights}
 \title{Function that returns the correct weights for weighted bootstrap}
 \usage{
-getWeights(weight_vec, draw_weights, n)
+getWeights(weights, draw_weights, n)
+
+getWeights(weights, draw_weights, n)
 }
 \arguments{
-\item{weight_vec}{vector of existing regression weights}
+\item{weights}{vector of existing regression weights}
 
 \item{draw_weights}{whether draw random exponential weights}
 
 \item{n}{number of weights to draw}
 }
 \description{
+Function that returns the correct weights for weighted bootstrap
+
 Function that returns the correct weights for weighted bootstrap
 }

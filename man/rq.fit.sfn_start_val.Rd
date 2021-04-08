@@ -27,7 +27,7 @@ rq.fit.sfn_start_val(
 but in special cases can be quite usefully altered to meet special needs.
 See e.g. Section 6.8 of Koenker (2005).}
 
-\item{control}{control parameters for fitting routines: see [quantreg::sfn.control()]}
+\item{control}{control parameters for fitting routines: see \code{\link[quantreg:sfn.control]{quantreg::sfn.control()}}}
 
 \item{sv}{startin value for optimization, useful when bootstrapping}
 

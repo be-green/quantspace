@@ -7,7 +7,7 @@
 \method{predict}{qs}(object, newdata = NULL, ...)
 }
 \arguments{
-\item{object}{fitted `qs` model}
+\item{object}{fitted \code{qs} model}
 
 \item{newdata}{optional new data to pass}
 
