@@ -70,7 +70,7 @@ resample_qs <- function(data,
   rows <- getRows(1:nrow(data), sampling_method = sampling_method, subsample_percent = subsample_percent)
   weights <- getWeights(weight_vec, draw_weights, length(rows))
 
-  quantRegSpacing(
+  quantreg_spacing(
     data = data[rows,],
     dep_col = dep_col[rows],
     var_names = var_names,

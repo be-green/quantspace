@@ -535,7 +535,7 @@ regressResiduals = function(reg_spec_data,
 #' warnings is a 1 by p matrix of warnings produced by each quantile regression call.
 #' iter: is a 1 by p matrix of iterations ran by each quantile regression call.
 #' @export
-quantRegSpacing = function(
+quantreg_spacing = function(
   dep_col,
   data,
   var_names,
@@ -914,7 +914,7 @@ quantRegSpacing = function(
 
   # calculate quantiles induced by spacings if user-specified
   if(outputQuantiles) {
-    rv$quantiles = spacingsToQuantiles(spacingCoef = matrix(as.numeric(rv$coef),
+    rv$quantiles = spacings_to_quantiles(spacingCoef = matrix(as.numeric(rv$coef),
                                                             ncol = p),
                                        data, jstar)
   }
@@ -937,7 +937,7 @@ get_underlying <- function(data) {
 #' @param jstar index of median quantiles
 #' @return N by p matrix of quantiles
 #' @export
-spacingsToQuantiles <- function(spacingCoef, data, jstar) {
+spacings_to_quantiles <- function(spacingCoef, data, jstar) {
 
   if(any(is.na(get_underlying(data))) | any(is.na(spacingCoef))) {
     spacingCoef <- as.matrix(spacingCoef)
