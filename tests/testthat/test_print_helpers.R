@@ -8,7 +8,7 @@ fit <- qs(mpg ~ cyl, data = mtcars, calc_se = F)
 # don't want it to throw a warning
 suppressWarnings({
   fit_lasso <- qs(mpg ~ ., data = mtcars, calc_se = F,
-                  algorithm = "lasso", lambda = 1)
+                  algorithm = "lasso", control = qs_control(lambda = 1))
 })
 
 testthat::test_that("qs print and rounding functions work", {

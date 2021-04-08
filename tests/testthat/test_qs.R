@@ -14,7 +14,7 @@ de <- distributional_effects(fit)
 de_mat <- distributional_effects(fit, newdata = tail(test_data, 5))
 
 fit_no_se <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F)
-fit_with_me <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F, calc_avg_me = T)
+fit_with_me <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F, control = qs_control(calc_avg_me = T))
 
 testthat::test_that("S3 Classes inherit properly", {
   testthat::expect_s3_class(fit, "qs")
@@ -24,10 +24,13 @@ testthat::test_that("S3 Classes inherit properly", {
 
 testthat::test_that("qs errors and warnings work", {
   testthat::expect_error(qs(y ~ X1, data = test_data, algorithm = "UNIMPLEMENTED_ALGORITHM"))
-  testthat::expect_warning(qs(y ~ X1, data = head(test_data, 3), se_method = "bootstrap"))
+  testthat::expect_warning(qs(y ~ X1, data = head(test_data, 3),
+                              std_err_control = se_control(se_method = "bootstrap")))
   testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F))
-  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, subsample_percent = 10))
-  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F, subsample_percent = -10))
+  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F,
+                            std_err_control = se_control(subsample_percent = 10)))
+  testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F,
+                            std_err_control = se_control(subsample_percent = -10)))
   testthat::expect_error(qs(y ~ X1, data = head(test_data, 1), parallel = F,
                             se_method = "UNIMPLEMENTED_ALGORITHM"))
 })
@@ -68,4 +71,9 @@ testthat::test_that("Prediction functions work", {
   testthat::expect_true(is.matrix(predict(fit, newdata = tail(test_data, 100))))
   testthat::expect_true(is.matrix(predict(fit_no_quantiles)))
   testthat::expect_true(is.matrix(predict(fit_no_quantiles, newdata = tail(test_data, 100))))
+})
+
+testthat::test_that("NA if null works",{
+  testthat::expect_equal(na_if_null(NA), NA)
+  testthat::expect_equal(na_if_null(NULL), NA)
 })

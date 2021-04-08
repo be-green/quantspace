@@ -7,7 +7,7 @@
 marginal_effects(fit, variable = "all", data = NA, size = NA, trim = 0.05)
 }
 \arguments{
-\item{fit}{model fitted by `qs()`}
+\item{fit}{model fitted by \code{qs()}}
 
 \item{variable}{which variable to calculate marginal effects on}
 

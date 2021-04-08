@@ -9,23 +9,14 @@ qs(
   data = NULL,
   quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
   baseline_quantile = 0.5,
-  calc_se = T,
-  se_method = "subsample",
-  weight_vec = NULL,
-  subsample_percent = 0.2,
-  algorithm = "sfn",
   cluster_formula = NULL,
-  num_bs = 100,
+  weights = NULL,
+  algorithm = "sfn",
+  control = qs_control(),
+  std_err_control = se_control(),
   parallel = TRUE,
-  num_cores = getCores(),
-  trunc = T,
-  small = NULL,
+  calc_se = TRUE,
   seed = NULL,
-  draw_weights = NULL,
-  sampling_method = NULL,
-  output_quantiles = T,
-  calc_avg_me = F,
-  lambda = NULL,
   ...
 )
 }
@@ -42,49 +33,54 @@ If not found in data, the variables are taken from environment(formula)}
 
 \item{baseline_quantile}{baseline quantile to measure spacings from (defaults to 0.5)}
 
-\item{calc_se}{boolean, whether or not to calculate standard errors}
-
-\item{se_method}{Method to use for standard errors, either "weighted_bootstrap",
-"subsample", "bootstrap" or "resample_qs" along with a specified subsampling method and
-subsample percent.}
-
-\item{weight_vec}{vector of weights for weighted quantile regression}
-
-\item{subsample_percent}{percent to subsample for standard error calculations}
-
-\item{algorithm}{What algorithm to use for fitting underlying regressions.
-Either one of "sfn", "br", "lasso" or a function name which estimates quantiles}
-
 \item{cluster_formula}{formula (e.g. ~X1 + X2) giving the clustering formula}
 
-\item{num_bs}{number of bootstrap draws}
+\item{weights}{optional vector of weights for weighted quantile regression}
+
+\item{algorithm}{What algorithm to use for fitting underlying regressions. Either one of "sfn", "br", "lasso", "post_lasso", or a function name which estimates quantiles. See details.}
+
+\item{control}{control parameters to pass to the control arguments of \code{\link{quantreg_spacing}},
+the lower-level function called by \code{\link{qs}}. This is set via the function \code{\link{qs_control}},
+which returns a named list, with elements including:
+\itemize{
+\item \code{trunc}: whether to truncate residual values below the argument "small"
+\item \code{small}: level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.
+\item \code{lambda}: For penalized regression, you can specify a level of lambda which will weight the penalty. If not set, will be determined based on 10-fold cross-validation.
+\item \code{output_quantiles}: whether to save fitted quantiles as part of the function output
+\item \code{calc_avg_me}: whether to return average marginal effects as part of the fitted object
+\item \code{lambda}: the penalization factor to be passed to penalized regression algorithms
+}}
+
+\item{std_err_control}{control parameters to pass to the control arguments of \code{\link{quantreg_spacing}},
+the lower-level function called by \code{\link{standard_errors}}. Possible arguments include:
+\itemize{
+\item \code{se_method}: Method to use for standard errors, either "weighted_bootstrap",
+"subsample", "bootstrap" or "custom" along with a specified subsampling method and
+subsample percent. If specifying "custom", must also specify \code{subsampling_percent} and
+\code{draw_weights}. If you specify "subsample", subsampling percent defaults to 0.2, but can be
+changed. See details for details.
+\item \code{num_bs}: Number of bootstrap iterations to use, defaults to 100.
+\item \code{subsample_percent}: A number between 0 and one, specifying the percent of the data to subsample for standard error calculations
+\item \code{draw_weights}: Whether to use random exponential weights for bootstrap, either TRUE or FALSE
+\item \code{sampling_method} One of "leaveRows", "subsampleRows", or "bootstrapRows".
+leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+given some percentage of the data (specified via subsample_percent), and bootstrapRows
+samples with replacement.`
+}}
 
 \item{parallel}{whether to run bootstrap in parallel}
 
-\item{num_cores}{number of cores to use (defaults to setting from `getOption(mc.cores)`)}
-
-\item{trunc}{whether to truncate small values}
-
-\item{small}{level of "small" values to guarentee numerical stability}
+\item{calc_se}{boolean, whether or not to calculate standard errors}
 
 \item{seed}{what seed to use for replicable RNG}
-
-\item{draw_weights}{whether to use random exponential weights for bootstrap}
-
-\item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".
-leaveRows doesn't resample rows at all. subsampleRows samples without replacement
-given some percentage of the data (specified via subsample_percent), and boostrapRows
-samples with replacement.}
-
-\item{output_quantiles}{whether to save fitted quantiles as part of the function output}
-
-\item{calc_avg_me}{whether to return average marginal effects as part of the fitted object}
-
-\item{lambda}{optional penalty parameter, ignored except for penalized quantile
-regressions}
 
 \item{...}{additional arguments, ignored for now}
 }
 \description{
 Compute quantile regressions via quantile spacings
+}
+\details{
+The qs function is a higher-level interface to fitting quantile spacings model,
+handling both the quantile spacings regression, allowing the user to specify a number
+of possible algorithms and methods for standard errors. It also supports
 }

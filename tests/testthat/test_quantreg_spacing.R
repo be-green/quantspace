@@ -1,7 +1,8 @@
 context("Test Quantile Regression Algorithm Interface")
 
 X <- SparseM::model.matrix(mpg ~ cyl, data = mtcars)
-y <- SparseM::model.response(stats::model.frame(mpg ~ cyl, data = mtcars), type = "numeric")
+y <- SparseM::model.response(stats::model.frame(mpg ~ cyl, data = mtcars),
+                             type = "numeric")
 
 reg_spec <- denseMatrixToSparse(X)
 
@@ -35,7 +36,7 @@ fit_lasso_no_penalty <- qs(y ~ X1 + X2, data = head(test_data, 900),
                            parallel = F, scale_x = F,
                            algorithm = "lasso",
                            method = "br",
-                           lambda = 0)
+                           control = qs_control(lambda = 0))
 
 fit_br <- qs(y ~ X1 + X2, data = head(test_data, 900),
              parallel = F,

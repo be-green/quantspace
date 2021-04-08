@@ -2,13 +2,18 @@ context("Test standard errors")
 
 # these will all generate warnings, ignore it for now
 suppressWarnings({
-  boot_fit <- qs(mpg ~ hp, data = mtcars, se_method = "bootstrap")
-  wboot_fit <- qs(mpg ~ hp, data = mtcars, se_method = "weighted_bootstrap")
-  subsample_fit <- qs(mpg ~ hp, data = mtcars, se_method = "subsample")
-  custom_fit <- qs(mpg ~ hp, data = mtcars, se_method = "resample_qs",
+  boot_fit <- qs(mpg ~ hp, data = mtcars,
+                 std_err_control = se_control(se_method = "bootstrap"))
+  wboot_fit <- qs(mpg ~ hp, data = mtcars,
+                  std_err_control = se_control(se_method = "weighted_bootstrap"))
+  subsample_fit <- qs(mpg ~ hp, data = mtcars,
+                      std_err_control = se_control(se_method = "subsample"))
+  custom_fit <- qs(mpg ~ hp, data = mtcars,
+                   std_err_control = se_control(se_method = "resample_qs",
                    draw_weights = T, sampling_method = "subsample",
-                   subsample_percent = 0.3)
-  cluster_fit <- qs(mpg ~ hp, data = mtcars, se_method = "bootstrap",
+                   subsample_percent = 0.3))
+  cluster_fit <- qs(mpg ~ hp, data = mtcars,
+                    std_err_control = se_control(se_method = "bootstrap"),
                     cluster_formula = ~ cyl)
 })
 

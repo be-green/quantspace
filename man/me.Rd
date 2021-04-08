@@ -7,7 +7,7 @@
 me(fit, data)
 }
 \arguments{
-\item{fit}{A fitted model from the `qs` function}
+\item{fit}{A fitted model from the \code{qs} function}
 
 \item{data}{optional data.frame that specifies level of data to calculate
 marginal effects}

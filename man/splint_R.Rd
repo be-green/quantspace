@@ -45,6 +45,6 @@ A vector of quantiles or density corresponding to y
 A function to conduct the interpolation given data and fitted quantiles
 }
 \details{
-the `distn` argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
+the \code{distn} argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
 and "q" to evaluate a quantile distribution.
 }
