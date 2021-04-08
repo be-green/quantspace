@@ -12,7 +12,7 @@
 #' See e.g. Section 6.8 of Koenker (2005).
 #' @param sv startin value for optimization, useful when bootstrapping
 #' @param control control parameters for fitting routines: see [quantreg::sfn.control()]
-#' @param weight_vec Optional vector of weights for regression
+#' @param weights Optional vector of weights for regression
 #' @param lambda ignored
 #' @param ... other parameters, ignored
 #' @export
@@ -20,7 +20,7 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
                                  rhs = (1-tau)*c(t(a) %*% rep(1,length(y))),
                                  control,
                                  sv,
-                                 weight_vec = NULL,
+                                 weights = NULL,
                                  lambda,
                                  ...) {
   a <- X
@@ -32,16 +32,16 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
   }
 
   # additional syntax to incorporate weights is included here
-  if (!is.null(weight_vec)){
-    if(n != dim(as.matrix(weight_vec))[1]){
+  if (!is.null(weights)){
+    if(n != dim(as.matrix(weights))[1]){
       stop("Dimensions of design matrix and the weight vector not compatible")
     }
     # multiplying y by the weights
-    y <- y * weight_vec
+    y <- y * weights
 
     # pre-multiplying the a matrix by a diagonal matrix of weights
-    #a <- sweep(a,MARGIN=1,weight_vec,`*`)
-    a <- as(as.vector(weight_vec), "matrix.diag.csr") %*% a
+    #a <- sweep(a,MARGIN=1,weights,`*`)
+    a <- as(as.vector(weights), "matrix.diag.csr") %*% a
   }
 
   u <- rep(1,length=n)
@@ -137,8 +137,8 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
   }
 
   residuals <- -y - a %*% coefficients
-  if (!is.null(weight_vec)){
-    residuals <- residuals / weight_vec
+  if (!is.null(weights)){
+    residuals <- residuals / weights
   }
 
   list(coefficients = coefficients,
@@ -146,39 +146,39 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
        control = ctrl,
        ierr = ierr,
        it = fit$maxiter,
-       weight_vec = weight_vec)
+       weights = weights)
 }
 
 #' Version that complies with more general requirements
 #' @param X structure of the design matrix X stored in csr format
 #' @param y response vector
 #' @param tau target quantile
-#' @param weight_vec optional vector of weights
+#' @param weights optional vector of weights
 #' @param rhs right hand size of dual problem
 #' @param control control parameters for fitting routines
 #' @param lambda ignored
 #' @param ... other arguments, ignored
 #' @importFrom quantreg rq.fit.sfn
 rq.fit.sfn <- function(X, y, tau = 0.5,
-                       weight_vec = NULL,
+                       weights = NULL,
                        rhs = (1-tau)*c(t(X) %*% rep(1,length(y))),
                        control,
                        lambda,
                        ...) {
 
   # additional syntax to incorporate weights is included here
-  if (!is.null(weight_vec)){
+  if (!is.null(weights)){
 
     n = nrow(X)
-    if(n != dim(as.matrix(weight_vec))[1]){
+    if(n != dim(as.matrix(weights))[1]){
       stop("Dimensions of design matrix and the weight vector not compatible")
     }
 
     # multiplying y by the weights
-    y <- y * weight_vec
+    y <- y * weights
     # pre-multiplying the a matrix by a diagonal matrix of weights
-    #a <- sweep(a,MARGIN=1,weight_vec,`*`)
-    X <- as(as.vector(weight_vec), "matrix.diag.csr") %*% X
+    #a <- sweep(a,MARGIN=1,weights,`*`)
+    X <- as(as.vector(weights), "matrix.diag.csr") %*% X
 
   }
   quantreg::rq.fit.sfn(a = X, y, tau, rhs, control)
@@ -188,7 +188,7 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
 #' @param X structure of the design matrix X stored in csr format
 #' @param y response vector
 #' @param tau target quantile
-#' @param weight_vec optional vector of weights
+#' @param weights optional vector of weights
 #' @param control ignored
 #' @param lambda ignored
 #' @param ... additional quantities passed to rq.fit.br
@@ -196,22 +196,22 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
 #' @importFrom stats coef
 #' @importFrom stats resid
 rq.fit.br <- function(X, y, tau = 0.5,
-                      weight_vec = NULL, control,
+                      weights = NULL, control,
                       lambda, ...) {
 
   # additional syntax to incorporate weights is included here
-  if (!is.null(weight_vec)){
+  if (!is.null(weights)){
 
     n = nrow(X)
-    if(n != dim(as.matrix(weight_vec))[1]){
+    if(n != dim(as.matrix(weights))[1]){
       stop("Dimensions of design matrix and the weight vector not compatible")
     }
     # multiplying y by the weights
-    y <- y * weight_vec
+    y <- y * weights
 
     # pre-multiplying the a matrix by a diagonal matrix of weights
-    #a <- sweep(a,MARGIN=1,weight_vec,`*`)
-    X <- as(as.vector(weight_vec), "matrix.diag.csr") %*% X
+    #a <- sweep(a,MARGIN=1,weights,`*`)
+    X <- as(as.vector(weights), "matrix.diag.csr") %*% X
   }
 
   fit <- quantreg::rq.fit.br(x = X, y, tau, ...)
@@ -221,7 +221,7 @@ rq.fit.br <- function(X, y, tau = 0.5,
        control = list(),
        ierr = 0,
        it = 0,
-       weight_vec = weight_vec)
+       weights = weights)
 }
 
 #' Quantile Regression w/ Lasso Penalty
@@ -229,13 +229,13 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @param y outcome variable, y
 #' @param tau quantile to estimate
 #' @param lambda penalty parameter
-#' @param weight_vec optional vector of weights
+#' @param weights optional vector of weights
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method argument to be passed to [quantreg::rq]
 #' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
 #' @importFrom rqPen rq.lasso.fit
 #' @importFrom rqPen cv.rq.pen
-rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
+rq.fit.lasso <- function(X, y, tau, lambda, weights,
                          scale_x = T, method = "br", ...) {
 
   if(!is.matrix(X)) {
@@ -257,19 +257,19 @@ rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
 
 
   # additional syntax to incorporate weights is included here
-  if (!is.null(weight_vec)){
+  if (!is.null(weights)){
 
     n = nrow(X)
 
-    if(n != dim(as.matrix(weight_vec))[1]){
+    if(n != dim(as.matrix(weights))[1]){
       stop("Dimensions of design matrix and the weight vector not compatible")
     }
 
     # multiplying y by the weights
-    y <- y * weight_vec
+    y <- y * weights
 
     # pre-multiplying the a matrix by a diagonal matrix of weights
-    X <- diag(weight_vec) %*% X
+    X <- diag(weights) %*% X
   }
 
   # get the intercept, and then scale everything except the intercept
@@ -314,8 +314,8 @@ rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
 
   residuals = y - X %*% coefficients
 
-  if (!is.null(weight_vec)){
-    residuals <- residuals / weight_vec
+  if (!is.null(weights)){
+    residuals <- residuals / weights
   }
 
   list(coefficients = coef(est),
@@ -323,7 +323,7 @@ rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
        control = NA,
        ierr = 0,
        it = est$it,
-       weight_vec = weight_vec,
+       weights = weights,
        lambda = lambda)
 }
 
@@ -332,12 +332,12 @@ rq.fit.lasso <- function(X, y, tau, lambda, weight_vec,
 #' @param y outcome variable, y
 #' @param tau quantile to estimate
 #' @param lambda penalty parameter
-#' @param weight_vec optional vector of weights
+#' @param weights optional vector of weights
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method argument to be passed to [quantreg::rq]
 #' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
 #' @importFrom rqPen rq.lasso.fit
-rq.fit.post_lasso <- function(X, y, tau, lambda, weight_vec,
+rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
                          scale_x = T, method = "br", ...) {
 
   if(!is.matrix(X)) {
@@ -358,19 +358,19 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weight_vec,
   }
 
   # additional syntax to incorporate weights is included here
-  if (!is.null(weight_vec)){
+  if (!is.null(weights)){
     message("No lambda provided, selecting based on 10-fold cross-validation.")
     n = nrow(X)
 
-    if(n != dim(as.matrix(weight_vec))[1]){
+    if(n != dim(as.matrix(weights))[1]){
       stop("Dimensions of design matrix and the weight vector not compatible")
     }
 
     # multiplying y by the weights
-    y <- y * weight_vec
+    y <- y * weights
 
     # pre-multiplying the a matrix by a diagonal matrix of weights
-    X <- diag(weight_vec) %*% X
+    X <- diag(weights) %*% X
   }
 
   # get the intercept, and then scale everything except the intercept
@@ -420,8 +420,8 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weight_vec,
 
   residuals = y - X %*% coefficients
 
-  if (!is.null(weight_vec)){
-    residuals <- residuals / weight_vec
+  if (!is.null(weights)){
+    residuals <- residuals / weights
   }
 
   list(coefficients = coefficients,
@@ -429,7 +429,7 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weight_vec,
        control = NA,
        ierr = 0,
        it = est$it,
-       weight_vec = weight_vec,
+       weights = weights,
        lambda = lambda)
 }
 
@@ -458,7 +458,7 @@ fitQuantileRegression <- function(X, y, tau, algorithm = "rq.fit.sfn_start_val",
 #' @param small Value used with trunc; values less than small 'blow up' too greatly when logged
 #' @param algorithm The name of a function which will estimate a quantile regression.
 #' Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`
-#' @param weight_vec vector of optional weights
+#' @param weights vector of optional weights
 #' @param ... other arguments to the function specified by the algorithm argument
 #' @import SparseM
 #' @return List of estimated coefficients, warnings, iterations, and controls as in
@@ -470,21 +470,21 @@ regressResiduals = function(reg_spec_data,
                         tau,
                         trunc,
                         small,
-                        weight_vec,
+                        weights,
                         algorithm = "rq.fit.sfn_start_val",
                         ...) {
 
   resids = ehat[ind_hat]
 
-  if (!is.null(weight_vec)){
-    weight_vec = as.matrix(weight_vec)
+  if (!is.null(weights)){
+    weights = as.matrix(weights)
   }
 
   if(trunc) {
     resids <- log(pmax(resids,small))
     spec_mat <- reg_spec_data$spec_matrix
   } else {
-    weight_vec = weight_vec[resids > small]
+    weights = weights[resids > small]
     # if the dimensions for the regression match, we don't subset the
     # x matrix, otherwise we do
     if(nrow(reg_spec_data$spec_matrix) == sum(resids > small)) {
@@ -500,7 +500,7 @@ regressResiduals = function(reg_spec_data,
     y = resids,
     tau = tau,
     algorithm = algorithm,
-    weight_vec = as.vector(weight_vec),
+    weights = as.vector(weights),
     ...)
 
   return(j_model)
@@ -568,7 +568,7 @@ quantreg_spacing = function(
   small = control$small
   trunc = control$trunc
   start_list = na_if_null(control$start_list)
-  weight_vec = weights
+  weights = weights
   output_quantiles = control$output_quantiles
   calc_avg_me = control$calc_avg_me
   lambda = control$lambda
@@ -638,7 +638,7 @@ quantreg_spacing = function(
       y = y,
       tau = tau,
       control = list(tmpmax = tmpmax),
-      weight_vec = weight_vec,
+      weights = weights,
       algorithm = algorithm,
       lambda = star_lambda,
       ...)
@@ -651,7 +651,7 @@ quantreg_spacing = function(
        tau = tau,
        control = list(tmpmax = tmpmax),
        sv = as.numeric(start_list[col_nums]),
-       weight_vec = weight_vec,
+       weights = weights,
        algorithm = algorithm,
        lambda = star_lambda,
        ...
@@ -663,13 +663,13 @@ quantreg_spacing = function(
   ehat0 = star_model$residuals
 
   #Calculate R^2
-  V <- sum(rho(u = ehat0, tau = tau, weight_vec = weight_vec))
+  V <- sum(rho(u = ehat0, tau = tau, weights = weights))
   V0 <- fitQuantileRegression(X = as.matrix.csr(rep(1, length(y))),
                              y = y,
                              tau = tau,
-                             weight_vec = weight_vec,
+                             weights = weights,
                              algorithm = 'rq.fit.sfn_start_val')$residuals
-  V0 <- sum(rho(u = V0, tau = tau,weight_vec = weight_vec))
+  V0 <- sum(rho(u = V0, tau = tau,weights = weights))
 
   #set column names
   coef_df <- as.data.frame(t(star_model$coefficients))
@@ -750,31 +750,31 @@ quantreg_spacing = function(
         j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
                                     sv = sv, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
                                     small = small, control = list(tmpmax = tmpmax),
-                                    weight_vec = weight_vec[ind_hat],
+                                    weights = weights[ind_hat],
                                     algorithm = algorithm, lambda = j_lambda,
                                     ...)
       } else{
         j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
                                     ind_hat = ind_hat, tau = tau.t, trunc =  trunc,
                                     small = small, control = list(tmpmax = tmpmax),
-                                    weight_vec = weight_vec[ind_hat],
+                                    weights = weights[ind_hat],
                                     algorithm = algorithm, lambda = j_lambda,
                                     ...)
       }
       printWarnings(j_model)
 
       #Calculate R^2
-      V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
+      V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
       V0 <- regressResiduals(
         reg_spec_data = list(
           spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
         ),
         ehat = ehat, ind_hat = ind_hat,
         tau = tau.t, trunc = trunc,
-        small = small, weight_vec = weight_vec[ind_hat],
+        small = small, weights = weights[ind_hat],
         algorithm = 'rq.fit.sfn')
       V0 <- sum(rho(u = V0$residuals, tau = tau.t,
-                    weight_vec = V0$weight_vec))
+                    weights = V0$weights))
 
       # Update residuals
       coef = j_model$coefficients
@@ -872,7 +872,7 @@ quantreg_spacing = function(
                                     tau = tau.t, trunc = trunc, small = small,
                                     control = list(tmpmax = tmpmax),
                                     algorithm = algorithm, lambda = j_lambda,
-                                    weight_vec = weight_vec[ind_hat], ...)
+                                    weights = weights[ind_hat], ...)
       } else {
         j_model <- regressResiduals(reg_spec_data = reg_spec_data,
                                     ehat = -ehat,
@@ -880,7 +880,7 @@ quantreg_spacing = function(
                                     tau = tau.t, trunc = trunc, small = small,
                                     control = list(tmpmax = tmpmax),
                                     algorithm = algorithm,
-                                    weight_vec = weight_vec[ind_hat],
+                                    weights = weights[ind_hat],
                                     lambda = j_lambda,
                                     ...)
       }
@@ -888,11 +888,11 @@ quantreg_spacing = function(
       printWarnings(j_model)
 
       #Calculate pseudo-R^2
-      V <- sum(rho(u = j_model$residuals, tau = tau.t, weight_vec = j_model$weight_vec))
+      V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
       V0 <- regressResiduals(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
                              ehat = -ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                             small = small, weight_vec = weight_vec[ind_hat], algorithm = 'rq.fit.sfn')
-      V0 <- sum(rho(u = V0$residuals, tau = tau.t, weight_vec = V0$weight_vec))
+                             small = small, weights = weights[ind_hat], algorithm = 'rq.fit.sfn')
+      V0 <- sum(rho(u = V0$residuals, tau = tau.t, weights = V0$weights))
 
       # Update residuals
       coef = j_model$coefficients

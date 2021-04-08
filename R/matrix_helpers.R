@@ -3,14 +3,14 @@
 #' Evaluates the check objective function (possibly weighted) for QREG
 #' @param u vector of residuals
 #' @param tau probability index parameter (quantile of interest)
-#' @param weight_vec optional vector of weights
+#' @param weights optional vector of weights
 #' @return Sum of absolute residuals
-rho <- function(u,tau=.5,weight_vec = NULL){
+rho <- function(u,tau=.5,weights = NULL){
 
-  if (is.null(weight_vec)){
+  if (is.null(weights)){
     ( u*(tau - (u < 0)) )
   } else {
-    ( weight_vec*u*(tau - (u < 0)) )
+    ( weights*u*(tau - (u < 0)) )
   }
 
 }
