@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute quantile regressions via quantile spacings — qs • quantspace</title>
+<title>Imputation function to be used with the mice packe — mice.impute.qs • quantspace</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Compute quantile regressions via quantile spacings — qs" />
-<meta property="og:description" content="Compute quantile regressions via quantile spacings" />
+<meta property="og:title" content="Imputation function to be used with the mice packe — mice.impute.qs" />
+<meta property="og:description" content="Imputation function to be used with the mice packe" />
 
 
 
@@ -103,28 +103,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute quantile regressions via quantile spacings</h1>
+    <h1>Imputation function to be used with the mice packe</h1>
     
-    <div class="hidden name"><code>qs.Rd</code></div>
+    <div class="hidden name"><code>mice.impute.qs.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Compute quantile regressions via quantile spacings</p>
+    <p>Imputation function to be used with the mice packe</p>
     </div>
 
-    <pre class="usage"><span class='fu'>qs</span><span class='op'>(</span>
-  <span class='va'>formula</span>,
-  data <span class='op'>=</span> <span class='cn'>NULL</span>,
-  quantiles <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.9</span>, <span class='fl'>0.75</span>, <span class='fl'>0.5</span>, <span class='fl'>0.25</span>, <span class='fl'>0.1</span><span class='op'>)</span>,
+    <pre class="usage"><span class='fu'>mice.impute.qs</span><span class='op'>(</span>
+  <span class='va'>y</span>,
+  <span class='va'>ry</span>,
+  <span class='va'>x</span>,
+  wy <span class='op'>=</span> <span class='cn'>NULL</span>,
+  quantiles <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.1</span>, <span class='fl'>0.25</span>, <span class='fl'>0.5</span>, <span class='fl'>0.75</span>, <span class='fl'>0.9</span><span class='op'>)</span>,
   baseline_quantile <span class='op'>=</span> <span class='fl'>0.5</span>,
-  cluster_formula <span class='op'>=</span> <span class='cn'>NULL</span>,
-  weights <span class='op'>=</span> <span class='cn'>NULL</span>,
   algorithm <span class='op'>=</span> <span class='st'>"sfn"</span>,
+  tails <span class='op'>=</span> <span class='st'>"gaussian"</span>,
+  parallel <span class='op'>=</span> <span class='cn'>F</span>,
+  calc_se <span class='op'>=</span> <span class='cn'>F</span>,
+  weights <span class='op'>=</span> <span class='cn'>NULL</span>,
   control <span class='op'>=</span> <span class='fu'><a href='qs_control.html'>qs_control</a></span><span class='op'>(</span><span class='op'>)</span>,
-  std_err_control <span class='op'>=</span> <span class='fu'><a href='se_control.html'>se_control</a></span><span class='op'>(</span><span class='op'>)</span>,
-  parallel <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  calc_se <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  seed <span class='op'>=</span> <span class='cn'>NULL</span>,
+  std_err_control <span class='op'>=</span> <span class='fu'><a href='se_control.html'>se_control</a></span><span class='op'>(</span>se_method <span class='op'>=</span> <span class='st'>"weighted_bootstrap"</span><span class='op'>)</span>,
   <span class='va'>...</span>
 <span class='op'>)</span></pre>
 
@@ -132,16 +133,20 @@
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>formula</th>
-      <td><p>an object of class "formula" (or one that can
-be coerced to that class): a symbolic description of the model
-to be fitted.</p></td>
+      <th>y</th>
+      <td><p>vector to be imputed</p></td>
     </tr>
     <tr>
-      <th>data</th>
-      <td><p>an optional data frame, list or environment (or object
-coercible by as.data.frame to a data frame) containing the variables in the model.
-If not found in data, the variables are taken from environment(formula)</p></td>
+      <th>ry</th>
+      <td><p>indicator for complete cases</p></td>
+    </tr>
+    <tr>
+      <th>x</th>
+      <td><p>independent variables</p></td>
+    </tr>
+    <tr>
+      <th>wy</th>
+      <td><p>cases to be imputed</p></td>
     </tr>
     <tr>
       <th>quantiles</th>
@@ -152,21 +157,27 @@ If not found in data, the variables are taken from environment(formula)</p></td>
       <td><p>baseline quantile to measure spacings from (defaults to 0.5)</p></td>
     </tr>
     <tr>
-      <th>cluster_formula</th>
-      <td><p>formula (e.g. ~X1 + X2) giving the clustering formula</p></td>
+      <th>algorithm</th>
+      <td><p>What algorithm to use for fitting underlying regressions.
+Either one of "sfn", "br", "lasso", "post_lasso", or a function name which estimates
+quantiles. Defaults to sfn for now.</p></td>
+    </tr>
+    <tr>
+      <th>parallel</th>
+      <td><p>whether to run bootstrap in parallel</p></td>
+    </tr>
+    <tr>
+      <th>calc_se</th>
+      <td><p>boolean, whether or not to calculate standard errors. Defaults to FALSE.</p></td>
     </tr>
     <tr>
       <th>weights</th>
       <td><p>optional vector of weights for weighted quantile regression</p></td>
     </tr>
     <tr>
-      <th>algorithm</th>
-      <td><p>What algorithm to use for fitting underlying regressions. Either one of "sfn", "br", "lasso", "post_lasso", or a function name which estimates quantiles. See details.</p></td>
-    </tr>
-    <tr>
       <th>control</th>
       <td><p>control parameters to pass to the control arguments of <code><a href='quantreg_spacing.html'>quantreg_spacing</a></code>,
-the lower-level function called by <code>qs</code>. This is set via the function <code><a href='qs_control.html'>qs_control</a></code>,
+the lower-level function called by <code><a href='qs.html'>qs</a></code>. This is set via the function <code><a href='qs_control.html'>qs_control</a></code>,
 which returns a named list, with elements including:</p><ul>
 <li><p><code>trunc</code>: whether to truncate residual values below the argument "small"</p></li>
 <li><p><code>small</code>: level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.</p></li>
@@ -179,7 +190,8 @@ which returns a named list, with elements including:</p><ul>
     <tr>
       <th>std_err_control</th>
       <td><p>control parameters to pass to the control arguments of <code><a href='quantreg_spacing.html'>quantreg_spacing</a></code>,
-the lower-level function called by <code><a href='resample_qs.html'>standard_errors</a></code>. Possible arguments include:</p><ul>
+the lower-level function called by <code><a href='resample_qs.html'>standard_errors</a></code>. Constructed via the <code><a href='se_control.html'>se_control</a></code> function.
+Possible arguments include:</p><ul>
 <li><p><code>se_method</code>: Method to use for standard errors, either "weighted_bootstrap",
 "subsample", "bootstrap" or "custom" along with a specified subsampling method and
 subsample percent. If specifying "custom", must also specify <code>subsampling_percent</code> and
@@ -195,29 +207,29 @@ samples with replacement.`</p></li>
 </ul></td>
     </tr>
     <tr>
-      <th>parallel</th>
-      <td><p>whether to run bootstrap in parallel</p></td>
+      <th>...</th>
+      <td><p>other arguments to be passed to quantreg_spacing</p></td>
     </tr>
     <tr>
-      <th>calc_se</th>
-      <td><p>boolean, whether or not to calculate standard errors</p></td>
+      <th>cluster_formula</th>
+      <td><p>formula (e.g. ~X1 + X2) giving the clustering formula</p></td>
     </tr>
     <tr>
       <th>seed</th>
       <td><p>what seed to use for replicable RNG</p></td>
     </tr>
-    <tr>
-      <th>...</th>
-      <td><p>additional arguments, ignored for now</p></td>
-    </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>The qs function is a higher-level interface to fitting quantile spacings model,
-handling both the quantile spacings regression, allowing the user to specify a number
-of possible algorithms and methods for standard errors. It also supports</p>
-
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/amices/mice'>mice</a></span><span class='op'>)</span>
+<span class='va'>x</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>1000</span><span class='op'>)</span>
+<span class='va'>x</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span>, <span class='fl'>100</span><span class='op'>)</span><span class='op'>]</span> <span class='op'>&lt;-</span> <span class='cn'>NA</span>
+<span class='va'>x</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span><span class='op'>(</span><span class='va'>x</span>, ncol <span class='op'>=</span> <span class='fl'>10</span><span class='op'>)</span>
+<span class='fu'><a href='https://amices.org/mice/reference/mice.html'>mice</a></span><span class='op'>(</span><span class='va'>x</span>, method <span class='op'>=</span> <span class='st'>"qs"</span>, calc_se <span class='op'>=</span> <span class='cn'>F</span><span class='op'>)</span>
+<span class='op'>}</span>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

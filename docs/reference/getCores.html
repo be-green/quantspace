@@ -127,12 +127,12 @@
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>`getCores()` and `setCores()` determine the number of cores
+    <p><code>getCores()</code> and <code>setCores()</code> determine the number of cores
 used in the boostrap procedure used to generate standard errors for the
 quantile spacings estimator. By default, this is set to half of available
-cores, or whatever is found in `getOption('qs.cores')`. This package uses
-the `future` backend for parallelization, so if you would like to specify
-a custom plan for futures use `future::plan()` after loading the package.
+cores, or whatever is found in <code><a href='https://rdrr.io/r/base/options.html'>getOption('qs.cores')</a></code>. This package uses
+the <code>future</code> backend for parallelization, so if you would like to specify
+a custom plan for futures use <code><a href='https://rdrr.io/pkg/future/man/plan.html'>future::plan()</a></code> after loading the package.
 A better interface for custom plans is on the roadmap for the package but
 isn't currently implemented.</p>
 

@@ -119,7 +119,7 @@
   rhs <span class='op'>=</span> <span class='op'>(</span><span class='fl'>1</span> <span class='op'>-</span> <span class='va'>tau</span><span class='op'>)</span> <span class='op'>*</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/t.html'>t</a></span><span class='op'>(</span><span class='va'>a</span><span class='op'>)</span> <span class='op'>%*%</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='fl'>1</span>, <span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>y</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span>,
   <span class='va'>control</span>,
   <span class='va'>sv</span>,
-  weight_vec <span class='op'>=</span> <span class='cn'>NULL</span>,
+  weights <span class='op'>=</span> <span class='cn'>NULL</span>,
   <span class='va'>lambda</span>,
   <span class='va'>...</span>
 <span class='op'>)</span></pre>
@@ -147,14 +147,14 @@ See e.g. Section 6.8 of Koenker (2005).</p></td>
     </tr>
     <tr>
       <th>control</th>
-      <td><p>control parameters for fitting routines: see [quantreg::sfn.control()]</p></td>
+      <td><p>control parameters for fitting routines: see <code><a href='https://rdrr.io/pkg/quantreg/man/sfn.control.html'>quantreg::sfn.control()</a></code></p></td>
     </tr>
     <tr>
       <th>sv</th>
       <td><p>startin value for optimization, useful when bootstrapping</p></td>
     </tr>
     <tr>
-      <th>weight_vec</th>
+      <th>weights</th>
       <td><p>Optional vector of weights for regression</p></td>
     </tr>
     <tr>

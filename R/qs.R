@@ -13,10 +13,9 @@ check_algorithm <- function(algorithm) {
     if(!exists(algorithm)) {
       stop(paste0("Algorithm not implemented in quantspace, and not a function" ,
                   " available in the current environment."))
-    } else {
-      algorithm
     }
   }
+  algorithm
 }
 
 
@@ -147,7 +146,7 @@ qs <- function(formula, data = NULL,
                seed = NULL,
                ...) {
 
-  algorithm <- check_algorithm(check_algorithm)
+  algorithm <- check_algorithm(algorithm)
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 

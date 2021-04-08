@@ -8,7 +8,7 @@ rq.fit.sfn(
   X,
   y,
   tau = 0.5,
-  weight_vec = NULL,
+  weights = NULL,
   rhs = (1 - tau) * c(t(X) \%*\% rep(1, length(y))),
   control,
   lambda,
@@ -22,7 +22,7 @@ rq.fit.sfn(
 
 \item{tau}{target quantile}
 
-\item{weight_vec}{optional vector of weights}
+\item{weights}{optional vector of weights}
 
 \item{rhs}{right hand size of dual problem}
 

@@ -5,14 +5,14 @@
 \title{Function for calculating Pseudo-R^2 values
 Evaluates the check objective function (possibly weighted) for QREG}
 \usage{
-rho(u, tau = 0.5, weight_vec = NULL)
+rho(u, tau = 0.5, weights = NULL)
 }
 \arguments{
 \item{u}{vector of residuals}
 
 \item{tau}{probability index parameter (quantile of interest)}
 
-\item{weight_vec}{optional vector of weights}
+\item{weights}{optional vector of weights}
 }
 \value{
 Sum of absolute residuals

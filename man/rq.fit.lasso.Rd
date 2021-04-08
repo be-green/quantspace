@@ -4,7 +4,7 @@
 \alias{rq.fit.lasso}
 \title{Quantile Regression w/ Lasso Penalty}
 \usage{
-rq.fit.lasso(X, y, tau, lambda, weight_vec, scale_x = T, method = "br", ...)
+rq.fit.lasso(X, y, tau, lambda, weights, scale_x = T, method = "br", ...)
 }
 \arguments{
 \item{X}{Design matrix, X}
@@ -15,7 +15,7 @@ rq.fit.lasso(X, y, tau, lambda, weight_vec, scale_x = T, method = "br", ...)
 
 \item{lambda}{penalty parameter}
 
-\item{weight_vec}{optional vector of weights}
+\item{weights}{optional vector of weights}
 
 \item{scale_x}{whether to scale the design matrix before estimation}
 
