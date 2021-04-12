@@ -11,7 +11,7 @@ rq.fit.sfn_start_val(
   rhs = (1 - tau) * c(t(a) \%*\% rep(1, length(y))),
   control,
   sv,
-  weight_vec = NULL,
+  weights = NULL,
   lambda,
   ...
 )
@@ -31,7 +31,7 @@ See e.g. Section 6.8 of Koenker (2005).}
 
 \item{sv}{startin value for optimization, useful when bootstrapping}
 
-\item{weight_vec}{Optional vector of weights for regression}
+\item{weights}{Optional vector of weights for regression}
 
 \item{lambda}{ignored}
 

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get marginal effects at a set of levels for the covariates — me • quantspace</title>
+<title>Control standard_errors parameters — se_control • quantspace</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Get marginal effects at a set of levels for the covariates — me" />
-<meta property="og:description" content="Get marginal effects at a set of levels for the covariates" />
+<meta property="og:title" content="Control standard_errors parameters — se_control" />
+<meta property="og:description" content="Control standard_errors parameters" />
 
 
 
@@ -103,35 +103,71 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get marginal effects at a set of levels for the covariates</h1>
+    <h1>Control standard_errors parameters</h1>
     
-    <div class="hidden name"><code>me.Rd</code></div>
+    <div class="hidden name"><code>se_control.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Get marginal effects at a set of levels for the covariates</p>
+    <p>Control standard_errors parameters</p>
     </div>
 
-    <pre class="usage"><span class='fu'>me</span><span class='op'>(</span><span class='va'>fit</span>, <span class='va'>data</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>se_control</span><span class='op'>(</span>
+  se_method <span class='op'>=</span> <span class='st'>"subsample"</span>,
+  subsample_percent <span class='op'>=</span> <span class='fl'>0.2</span>,
+  num_bs <span class='op'>=</span> <span class='fl'>100</span>,
+  draw_weights <span class='op'>=</span> <span class='cn'>F</span>,
+  sampling_method <span class='op'>=</span> <span class='st'>"subsampleRows"</span>,
+  parallel_thresh <span class='op'>=</span> <span class='fl'>1e+05</span>,
+  <span class='va'>...</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>fit</th>
-      <td><p>A fitted model from the <code>qs</code> function</p></td>
+      <th>se_method</th>
+      <td><p>Method to use for standard errors, either "weighted_bootstrap",
+"subsample", "bootstrap" or "rq_sample" (the last one is fully customized per the other se_control parameters)
+along with a specified subsampling method and
+subsample percent. If specifying "custom", must also specify <code>subsampling_percent</code> and
+<code>draw_weights</code>. If you specify "subsample", subsampling percent defaults to 0.2, but can be
+changed.</p></td>
     </tr>
     <tr>
-      <th>data</th>
-      <td><p>optional data.frame that specifies level of data to calculate
-marginal effects</p></td>
+      <th>subsample_percent</th>
+      <td><p>A number between 0 and one, specifying the percent of the data to subsample for standard error calculations</p></td>
+    </tr>
+    <tr>
+      <th>num_bs</th>
+      <td><p>Number of bootstrap iterations to use, defaults to 100.</p></td>
+    </tr>
+    <tr>
+      <th>draw_weights</th>
+      <td><p>Whether to use random exponential weights for bootstrap, either TRUE or FALSE</p></td>
+    </tr>
+    <tr>
+      <th>sampling_method</th>
+      <td><p>One of "leaveRows", "subsampleRows", or "bootstrapRows".</p></td>
+    </tr>
+    <tr>
+      <th>parallel_thresh</th>
+      <td><p>threshold for when to use parallel, based on <code>nrow(X) * num_bs</code>. To always
+use parallel, set to 0. Designed to avoid slow overhead when problem is relatively small.</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>Other arguments, ignored for now
+leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+given some percentage of the data (specified via subsample_percent), and bootstrapRows
+samples with replacement.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>A simple function which returns
-marginal effects for a given level of the dataset.</p>
+    <p>se_control control parameters to pass to the control arguments of <code><a href='quantreg_spacing.html'>quantreg_spacing</a></code>,
+the lower-level function called by <code><a href='resample_qs.html'>standard_errors</a></code>.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

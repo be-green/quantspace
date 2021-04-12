@@ -1,3 +1,26 @@
+#' Check if algorithm exists
+#' @param algorithm algorithm to check
+check_algorithm <- function(algorithm) {
+  if(algorithm == "sfn") {
+    algorithm = "rq.fit.sfn"
+  } else if (algorithm == "lasso") {
+    algorithm = "rq.fit.lasso"
+  } else if(algorithm == "post_lasso") {
+    algorithm = "rq.fit.post_lasso"
+  } else if(algorithm == "br") {
+    algorithm = "rq.fit.br"
+  } else {
+    if(!exists(algorithm)) {
+      stop(paste0("Algorithm not implemented in quantspace, and not a function" ,
+                  " available in the current environment."))
+    }
+  }
+  algorithm
+}
+
+
+
+
 #' Control standard_errors parameters
 #' @details se_control control parameters to pass to the control arguments of [`quantreg_spacing`],
 #' the lower-level function called by [`standard_errors`].
@@ -123,20 +146,12 @@ qs <- function(formula, data = NULL,
                seed = NULL,
                ...) {
 
-  if(algorithm == "sfn") {
-    algorithm = "rq.fit.sfn"
-  } else if (algorithm == "lasso") {
-    algorithm = "rq.fit.lasso"
-  } else if(algorithm == "post_lasso") {
-    algorithm = "rq.fit.post_lasso"
-  } else if(algorithm == "br") {
-    algorithm = "rq.fit.br"
-  } else {
-    if(!exists(algorithm)) {
-      stop(paste0("Algorithm not implemented in quantspace, and not a function" ,
-                  " available in the current environment."))
-    }
+  if(calc_se == T) {
+    ncores <- getCores()
+    setCores(ncores)
   }
+
+  algorithm <- check_algorithm(algorithm)
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 

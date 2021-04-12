@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get marginal effects at a set of levels for the covariates — me • quantspace</title>
+<title>Control quantreg_spacing parameters — qs_control • quantspace</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Get marginal effects at a set of levels for the covariates — me" />
-<meta property="og:description" content="Get marginal effects at a set of levels for the covariates" />
+<meta property="og:title" content="Control quantreg_spacing parameters — qs_control" />
+<meta property="og:description" content="Control quantreg_spacing parameters" />
 
 
 
@@ -103,35 +103,58 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get marginal effects at a set of levels for the covariates</h1>
+    <h1>Control quantreg_spacing parameters</h1>
     
-    <div class="hidden name"><code>me.Rd</code></div>
+    <div class="hidden name"><code>qs_control.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Get marginal effects at a set of levels for the covariates</p>
+    <p>Control quantreg_spacing parameters</p>
     </div>
 
-    <pre class="usage"><span class='fu'>me</span><span class='op'>(</span><span class='va'>fit</span>, <span class='va'>data</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>qs_control</span><span class='op'>(</span>
+  trunc <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  small <span class='op'>=</span> <span class='cn'>NULL</span>,
+  lambda <span class='op'>=</span> <span class='cn'>NULL</span>,
+  output_quantiles <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  calc_avg_me <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  <span class='va'>...</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>fit</th>
-      <td><p>A fitted model from the <code>qs</code> function</p></td>
+      <th>trunc</th>
+      <td><p>whether to truncate residual values below the argument "small"</p></td>
     </tr>
     <tr>
-      <th>data</th>
-      <td><p>optional data.frame that specifies level of data to calculate
-marginal effects</p></td>
+      <th>small</th>
+      <td><p>level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.</p></td>
+    </tr>
+    <tr>
+      <th>lambda</th>
+      <td><p>For penalized regression, you can specify a level of lambda which will weight the penalty. If not set, will be determined based on 10-fold cross-validation.</p></td>
+    </tr>
+    <tr>
+      <th>output_quantiles</th>
+      <td><p>whether to save fitted quantiles as part of the function output</p></td>
+    </tr>
+    <tr>
+      <th>calc_avg_me</th>
+      <td><p>whether to return average marginal effects as part of the fitted object</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>Other arguments, ignored for now</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>A simple function which returns
-marginal effects for a given level of the dataset.</p>
+    <p>control parameters to pass to the control arguments of <code><a href='quantreg_spacing.html'>quantreg_spacing</a></code>,
+the lower-level function called by <code><a href='qs.html'>qs</a></code>. This is set via the function <code>qs_control</code>,
+which returns a named list, with elements including:</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

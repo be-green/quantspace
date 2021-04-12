@@ -25,7 +25,8 @@ Imports:
     data.table,
     purrr,
     future,
-    future.apply
+    future.apply,
+    MASS
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
 Suggests: 

@@ -113,19 +113,15 @@
     </div>
 
     <pre class="usage"><span class='fu'>quantreg_spacing</span><span class='op'>(</span>
-  <span class='va'>dep_col</span>,
-  <span class='va'>data</span>,
+  <span class='va'>y</span>,
+  <span class='va'>X</span>,
   <span class='va'>var_names</span>,
   <span class='va'>alpha</span>,
   <span class='va'>jstar</span>,
-  algorithm <span class='op'>=</span> <span class='st'>"rq.fit.sfn_start_val"</span>,
-  small <span class='op'>=</span> <span class='fl'>0.001</span>,
-  trunc <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  start_list <span class='op'>=</span> <span class='cn'>NA</span>,
-  weight_vec <span class='op'>=</span> <span class='cn'>NULL</span>,
-  outputQuantiles <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  calculateAvgME <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  lambda <span class='op'>=</span> <span class='cn'>NULL</span>,
+  algorithm <span class='op'>=</span> <span class='st'>"rq.fit.sfn"</span>,
+  weights <span class='op'>=</span> <span class='cn'>NULL</span>,
+  control <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span>small <span class='op'>=</span> <span class='fl'>1e-06</span>, trunc <span class='op'>=</span> <span class='cn'>TRUE</span>, start_list <span class='op'>=</span> <span class='cn'>NA</span>, output_quantiles <span class='op'>=</span>
+    <span class='cn'>FALSE</span>, calc_avg_me <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span>,
   <span class='va'>...</span>
 <span class='op'>)</span></pre>
 
@@ -133,11 +129,11 @@
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>dep_col</th>
+      <th>y</th>
       <td><p>Column of response variable.</p></td>
     </tr>
     <tr>
-      <th>data</th>
+      <th>X</th>
       <td><p>Regression specification matrix.</p></td>
     </tr>
     <tr>
@@ -155,7 +151,27 @@
     <tr>
       <th>algorithm</th>
       <td><p>The name of a function which will estimate a quantile regression.
-Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`</p></td>
+Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to <code>do.call</code></p></td>
+    </tr>
+    <tr>
+      <th>weights</th>
+      <td><p>vector of optional weights</p></td>
+    </tr>
+    <tr>
+      <th>control</th>
+      <td><p>control parameters to pass to the control arguments of <code>quantreg_spacing</code>,
+the lower-level function called by <code><a href='qs.html'>qs</a></code>. This is set via the function <code><a href='qs_control.html'>qs_control</a></code>,
+which returns a named list, with elements including:</p><ul>
+<li><p><code>trunc</code>: whether to truncate residual values below the argument "small"</p></li>
+<li><p><code>small</code>: level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.</p></li>
+<li><p><code>output_quantiles</code>: whether to save fitted quantiles as part of the function output</p></li>
+<li><p><code>calc_avg_me</code>: whether to return average marginal effects as part of the fitted object</p></li>
+<li><p><code>lambda</code>: the penalization factor to be passed to penalized regression algorithms</p></li>
+</ul></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>other parameters passed to the algorithm</p></td>
     </tr>
     <tr>
       <th>small</th>
@@ -169,27 +185,6 @@ else, only use rows with residuals greater than small</p></td>
     <tr>
       <th>start_list</th>
       <td><p>Starting values for regression optimization.</p></td>
-    </tr>
-    <tr>
-      <th>weight_vec</th>
-      <td><p>vector of optional weights</p></td>
-    </tr>
-    <tr>
-      <th>outputQuantiles</th>
-      <td><p>TRUE or FALSE, whether to output quantiles</p></td>
-    </tr>
-    <tr>
-      <th>calculateAvgME</th>
-      <td><p>TRUE or FALSE, whether to output average marginal effects</p></td>
-    </tr>
-    <tr>
-      <th>lambda</th>
-      <td><p>optional penalty parameter, ignored except for penalized regression
-algorithms</p></td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td><p>other parameters passed to the algorithm</p></td>
     </tr>
     </table>
 
