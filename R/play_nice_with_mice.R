@@ -1,7 +1,7 @@
 #' @rdname mice-helpers
 #' @param data data to be interpolated by mice
 #' @param ... other controls to be passed to the [`qs`] function
-#' @importFrom mice make.blots
+#' @importFrom stats complete.cases
 #' @export
 make_penalized_blots <- function(data, ...) {
 
@@ -9,14 +9,21 @@ make_penalized_blots <- function(data, ...) {
     data <- as.data.frame(data)
   }
 
-  l <- mice::make.blots(data)
+  l <- vector("list", ncol(data))
+
+  for (i in seq_along(l)) {
+    l[[i]] <- alist()
+  }
+
+  names(l) <- colnames(data)
+
   use_qs <- apply(data,MARGIN = 2, function(x) is.numeric(x) & length(unique(x)) > 2)
 
   for(i in 1:length(l)) {
     if(use_qs[[i]]) {
       formula <- as.formula(paste0(colnames(data)[i], "~ ."))
 
-      fit <- qs(formula, data = data[complete.cases(data),],
+      fit <- qs(formula, data = data[stats::complete.cases(data),],
                 calc_se = F, algorithm = "lasso")
 
       l[[i]]$control <- qs_control(lambda = unlist(fit$quantreg_fit$lambda))
@@ -24,7 +31,6 @@ make_penalized_blots <- function(data, ...) {
   }
   l
 }
-
 
 
 #' Imputation function to be used with the mice package

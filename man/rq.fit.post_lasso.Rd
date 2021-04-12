@@ -31,6 +31,8 @@ rq.fit.post_lasso(
 
 \item{method}{method argument to be passed to \link[quantreg:rq]{quantreg::rq}}
 
+\item{nfold}{number of folds to use when cross-validating}
+
 \item{...}{other arguments to pass to \link[rqPen:rq.lasso.fit]{rqPen::rq.lasso.fit}}
 }
 \description{

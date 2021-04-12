@@ -234,6 +234,7 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @param weights optional vector of weights
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method argument to be passed to [quantreg::rq]
+#' @param nfold number of folds to use when cross-validating
 #' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
 #' @importFrom rqPen rq.lasso.fit
 #' @importFrom rqPen cv.rq.pen
@@ -335,6 +336,7 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
 #' @param weights optional vector of weights
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method argument to be passed to [quantreg::rq]
+#' @param nfold number of folds to use when cross-validating
 #' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
 #' @importFrom rqPen rq.lasso.fit
 rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
