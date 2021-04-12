@@ -19,7 +19,7 @@ Get user defined cores
 \code{getCores()} and \code{setCores()} determine the number of cores
 used in the boostrap procedure used to generate standard errors for the
 quantile spacings estimator. By default, this is set to half of available
-cores, or whatever is found in \code{getOption('qs.cores')}. This package uses
+cores, or whatever is found in \code{getOption('mc.cores')}. This package uses
 the \code{future} backend for parallelization, so if you would like to specify
 a custom plan for futures use \code{future::plan()} after loading the package.
 A better interface for custom plans is on the roadmap for the package but

@@ -3,7 +3,7 @@
 #' @rdname getCores
 #' @export
 getCores <- function() {
-  mc_cores <- getOption("qs.cores")
+  mc_cores <- getOption("mc.cores")
   if(is.null(mc_cores)) {
     1
   } else {
@@ -18,7 +18,7 @@ getCores <- function() {
 #' @details `getCores()` and `setCores()` determine the number of cores
 #' used in the boostrap procedure used to generate standard errors for the
 #' quantile spacings estimator. By default, this is set to half of available
-#' cores, or whatever is found in `getOption('qs.cores')`. This package uses
+#' cores, or whatever is found in `getOption('mc.cores')`. This package uses
 #' the `future` backend for parallelization, so if you would like to specify
 #' a custom plan for futures use `future::plan()` after loading the package.
 #' A better interface for custom plans is on the roadmap for the package but
@@ -26,7 +26,7 @@ getCores <- function() {
 setCores <- function(ncores) {
   assertthat::assert_that(is.numeric(ncores))
   assertthat::assert_that(ncores > 0)
-  options(qs.cores = ncores)
+  options(mc.cores = ncores)
   makePlan(ncores)
 }
 
@@ -40,11 +40,14 @@ setCores <- function(ncores) {
 #' @importFrom future sequential
 #' @importFrom future multisession
 #' @importFrom future multicore
+#' @importFrom future nbrOfWorkers
 makePlan <- function(ncores) {
   assertthat::assert_that(is.numeric(ncores))
   assertthat::assert_that(ncores > 0)
   if(ncores == 1) {
     future::plan(future::sequential)
+  } else if(ncores == future::nbrOfWorkers()) {
+    # don't change anything
   } else if(future::supportsMulticore()) {
     future::plan(future::multicore, workers = ncores)
   } else {

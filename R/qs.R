@@ -146,6 +146,11 @@ qs <- function(formula, data = NULL,
                seed = NULL,
                ...) {
 
+  if(calc_se == T) {
+    ncores <- getCores()
+    setCores(ncores)
+  }
+
   algorithm <- check_algorithm(algorithm)
 
   assertthat::assert_that(length(baseline_quantile) == 1)
