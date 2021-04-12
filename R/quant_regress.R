@@ -291,7 +291,8 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
                               intercept = T,
                               penalty = "LASSO",
                               criteria = "CV",
-                              nfolds = nfold)
+                              nfolds = nfold,
+                              method = method)
     })
     lambda = cv_fit$lambda.min
   }
@@ -389,7 +390,8 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
                                  y = y, tau = tau,
                                  intercept = T,nfolds = nfold,
                                  penalty = "LASSO",
-                                 criteria = "CV")
+                                 criteria = "CV",
+                                 method = method)
     })
     lambda = cv_fit$lambda.min
   }
