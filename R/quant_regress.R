@@ -159,6 +159,7 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
 #' @param lambda ignored
 #' @param ... other arguments, ignored
 #' @importFrom quantreg rq.fit.sfn
+#' @export
 rq.fit.sfn <- function(X, y, tau = 0.5,
                        weights = NULL,
                        rhs = (1-tau)*c(t(X) %*% rep(1,length(y))),
@@ -195,6 +196,7 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
 #' @importFrom quantreg rq.fit.br
 #' @importFrom stats coef
 #' @importFrom stats resid
+#' @export
 rq.fit.br <- function(X, y, tau = 0.5,
                       weights = NULL, control,
                       lambda, ...) {
@@ -232,27 +234,26 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @param weights optional vector of weights
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method argument to be passed to [quantreg::rq]
+#' @param nfold number of folds to use when cross-validating
 #' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
 #' @importFrom rqPen rq.lasso.fit
 #' @importFrom rqPen cv.rq.pen
+#' @export
 rq.fit.lasso <- function(X, y, tau, lambda, weights,
-                         scale_x = T, method = "br", ...) {
+                         scale_x = T, method = "br", nfold = 10, ...) {
 
   if(!is.matrix(X)) {
     X <- as.matrix(X)
   }
 
-  if(nrow(X) < 100) {
-    nfold = round(nrow(X)/10)
-  } else {
-    nfold = 10
-  }
-
-
   intercept <- get_intercept(X)
 
   if(ncol(X) - (intercept > 0) <= 1) {
     stop("Model must have more than 1 covariate when using lasso.")
+  }
+
+  if(nrow(X) < nfold) {
+    nfold = nrow(X)
   }
 
 
@@ -283,7 +284,7 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
   }
 
   if(is.null(lambda)) {
-    message("No lambda provided, selecting based on 10-fold cross-validation.")
+    message("No lambda provided, selecting based on ",nfold,"-fold cross-validation.")
     suppressWarnings({
       cv_fit <- rqPen::cv.rq.pen(x = X[,-intercept],
                               y = y, tau = tau,
@@ -335,23 +336,21 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
 #' @param weights optional vector of weights
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method argument to be passed to [quantreg::rq]
+#' @param nfold number of folds to use when cross-validating
 #' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
 #' @importFrom rqPen rq.lasso.fit
 rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
-                         scale_x = T, method = "br", ...) {
+                         scale_x = T, method = "br", nfold = 10, ...) {
 
   if(!is.matrix(X)) {
     X <- as.matrix(X)
   }
 
-  intercept <- get_intercept(X)
-
-  if(nrow(X) < 100) {
-    nfold = round(nrow(X)/10)
-  } else {
-    nfold = 10
+  if(nrow(X) < nfold) {
+    nfold = nrow(X)
   }
 
+  intercept <- get_intercept(X)
 
   if(ncol(X) - (intercept > 0) <= 1) {
     stop("Model must have more than 1 covariate when using lasso.")
@@ -359,7 +358,7 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
 
   # additional syntax to incorporate weights is included here
   if (!is.null(weights)){
-    message("No lambda provided, selecting based on 10-fold cross-validation.")
+    message("No lambda provided, selecting based on ",nfold,"-fold cross-validation.")
     n = nrow(X)
 
     if(n != dim(as.matrix(weights))[1]){
@@ -384,7 +383,7 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
   }
 
   if(is.null(lambda)) {
-    message("No lambda provided, selecting based on 10-fold cross-validation.")
+    message("No lambda provided, selecting based on ",nfold,"-fold cross-validation.")
     suppressWarnings({
       cv_fit <- rqPen::cv.rq.pen(x = X[,-intercept],
                                  y = y, tau = tau,

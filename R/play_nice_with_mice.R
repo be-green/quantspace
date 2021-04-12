@@ -1,5 +1,40 @@
+#' @rdname mice-helpers
+#' @param data data to be interpolated by mice
+#' @param ... other controls to be passed to the [`qs`] function
+#' @importFrom stats complete.cases
+#' @export
+make_penalized_blots <- function(data, ...) {
 
-#' Imputation function to be used with the mice packe
+  if(!is.data.frame(data)) {
+    data <- as.data.frame(data)
+  }
+
+  l <- vector("list", ncol(data))
+
+  for (i in seq_along(l)) {
+    l[[i]] <- alist()
+  }
+
+  names(l) <- colnames(data)
+
+  use_qs <- apply(data,MARGIN = 2, function(x) is.numeric(x) & length(unique(x)) > 2)
+
+  for(i in 1:length(l)) {
+    if(use_qs[[i]]) {
+      formula <- as.formula(paste0(colnames(data)[i], "~ ."))
+
+      fit <- qs(formula, data = data[stats::complete.cases(data),],
+                calc_se = F, algorithm = "lasso")
+
+      l[[i]]$control <- qs_control(lambda = unlist(fit$quantreg_fit$lambda))
+    }
+  }
+  l
+}
+
+
+#' Imputation function to be used with the mice package
+#' @rdname mice-helpers
 #' @param y vector to be imputed
 #' @param ry indicator for complete cases
 #' @param x independent variables

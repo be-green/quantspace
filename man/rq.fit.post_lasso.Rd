@@ -4,7 +4,17 @@
 \alias{rq.fit.post_lasso}
 \title{Quantile Regression w/ Lasso Penalty}
 \usage{
-rq.fit.post_lasso(X, y, tau, lambda, weights, scale_x = T, method = "br", ...)
+rq.fit.post_lasso(
+  X,
+  y,
+  tau,
+  lambda,
+  weights,
+  scale_x = T,
+  method = "br",
+  nfold = 10,
+  ...
+)
 }
 \arguments{
 \item{X}{Design matrix, X}
@@ -20,6 +30,8 @@ rq.fit.post_lasso(X, y, tau, lambda, weights, scale_x = T, method = "br", ...)
 \item{scale_x}{whether to scale the design matrix before estimation}
 
 \item{method}{method argument to be passed to \link[quantreg:rq]{quantreg::rq}}
+
+\item{nfold}{number of folds to use when cross-validating}
 
 \item{...}{other arguments to pass to \link[rqPen:rq.lasso.fit]{rqPen::rq.lasso.fit}}
 }
