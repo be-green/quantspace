@@ -17,7 +17,7 @@ make_penalized_blots <- function(data, ...) {
 
   names(l) <- colnames(data)
 
-  use_qs <- apply(data,MARGIN = 2, function(x) is.numeric(x) & length(unique(x)) > 2)
+  use_qs <- lapply(data, function(x) is.numeric(x) & length(unique(x)) > 2)
 
   for(i in 1:length(l)) {
     if(use_qs[[i]]) {
