@@ -261,12 +261,16 @@ standard_errors <- function(y,
   # if they set parallel to false, we still
   # want to restore the old plan afterwards
   if(!parallel) {
-    old_plan = future::plan()
     future::plan(future::sequential)
   }
 
   if(is.null(seed)) {
     seed = T
+  }
+
+  if(parallel) {
+    ncores <- getCores()
+    setCores(ncores)
   }
 
   if(is.null(cluster_matrix)) {
@@ -342,11 +346,6 @@ standard_errors <- function(y,
   fit <- purrr::pmap(lapply(fits, function(x) x$result), rbind)
   quant_cov_mat <- stats::cov(fit$coef, use = "pairwise.complete.obs")
   quant_cov_mat <- quant_cov_mat * subsample_percent
-
-  if(!parallel) {
-    future::plan(old_plan)
-  }
-
 
   return(list('quant_cov' = quant_cov_mat,
               'warnings' = fit$warnings,
