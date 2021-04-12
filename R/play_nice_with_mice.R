@@ -24,7 +24,7 @@ make_penalized_blots <- function(data, ...) {
       formula <- as.formula(paste0(colnames(data)[i], "~ ."))
 
       fit <- qs(formula, data = data[stats::complete.cases(data),],
-                calc_se = F, algorithm = "lasso")
+                calc_se = F, algorithm = "lasso", ...)
 
       l[[i]]$control <- qs_control(lambda = unlist(fit$quantreg_fit$lambda))
     }
