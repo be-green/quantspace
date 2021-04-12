@@ -324,21 +324,10 @@ map_parallel <- function(l, f, ..., parallel = T,
     ncores <- getCores()
     setCores(ncores)
 
-    interp <- future.apply::future_lapply(l, f, ...)
-
-  } else {
-
-    old_plan <- future::plan()
-    future::plan(future::sequential)
-
-    interp <- list()
-    for(i in 1:length(l)) {
-      interp[[i]] <- f(l[[i]], ...)
-    }
-
-    future::plan(old_plan)
-
   }
+
+  interp <- future.apply::future_lapply(l, f, ...)
+
   do.call(collapse,interp)
 }
 
