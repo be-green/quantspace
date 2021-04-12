@@ -11,8 +11,9 @@ seq_quant <- function(from, to, by) {
 #' @param y passed to splint_R
 #' @param ... other things passed to splint_R
 #' @details This is an internal helper function
+#' @importFrom future.apply future_sapply
 vec_splint_R <- function(y, ...) {
-  sapply(y, splint_R, ...)
+  future.apply::future_sapply(y, splint_R, ...)
 }
 
 #' Interpolate a single set of quantiles
@@ -320,25 +321,13 @@ map_parallel <- function(l, f, ..., parallel = T,
                          collapse = "list") {
   if(parallel & (length(l) > thresh)) {
 
-    if(ncores != length(future::plan()()$workers)) {
-      makePlan(ncores)
-    }
-
-    interp <- future.apply::future_lapply(l, f, ...)
-
-  } else {
-
-    old_plan <- future::plan()
-    future::plan(future::sequential)
-
-    interp <- list()
-    for(i in 1:length(l)) {
-      interp[[i]] <- f(l[[i]], ...)
-    }
-
-    future::plan(old_plan)
+    ncores <- getCores()
+    setCores(ncores)
 
   }
+
+  interp <- future.apply::future_lapply(l, f, ...)
+
   do.call(collapse,interp)
 }
 
