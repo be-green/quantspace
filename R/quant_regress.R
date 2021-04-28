@@ -454,14 +454,15 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
 #' @param ... other arguments to be passed to the algorithm
 #' @importFrom stats coefficients
 #' @importFrom stats resid
+#' @import utils getFromNamespace
+#' @importFrom methods existsFunction
 fitQuantileRegression <- function(X, y, tau, algorithm = "rq.fit.sfn_start_val", ...) {
   qr_ns <- asNamespace("quantreg")
   qs_ns <- asNamespace("quantspace")
 
   if(algorithm %in% ls(qs_ns)) {
-    do.call(algorithm, args = list(
-      X = X, y = y, tau = tau, ...
-    ))
+    f <- utils::getFromNamespace(algorithm, "quantspace")
+    do_matched_call(f, X = X, y = y, tau = tau, ...)
   } else if(algorithm %in% ls(qr_ns)) {
 
     # generically fit any of the quantreg algorithms
@@ -487,7 +488,7 @@ fitQuantileRegression <- function(X, y, tau, algorithm = "rq.fit.sfn_start_val",
 
 
     # wild hackery
-    f <- getFromNamespace(algorithm, "quantreg")
+    f <- utils::getFromNamespace(algorithm, "quantreg")
 
     fit <- do_matched_call(f, x = X, y = y, tau = tau, ...)
 

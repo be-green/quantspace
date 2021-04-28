@@ -45,6 +45,8 @@ if you want the folds to satisfy underlying data groupings)}
 
 \item{init.lambda}{initial lambda for search}
 
+\item{parallel}{whether to run cv scoring in parallel or not}
+
 \item{...}{other parameters to pass on to fitting method}
 }
 \description{

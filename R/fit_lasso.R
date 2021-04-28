@@ -3,9 +3,19 @@ check <- function (x, tau = 0.5)
   x * (tau - (x < 0))
 }
 
+#' Fit a quantile regression w/ a lasso penalty
+#' @param x design matrix
+#' @param y outcome variable
+#' @param tau target quantile
+#' @param lambda weight for penalization factor
+#' @param weights optional observation weights
+#' @param intercept whether or not to model the intercept
+#' @param coef.cutoff what value for a coefficient is considered 0
+#' @param method what underlying regression method to use for fitting
+#' @param ... other arguments to pass to method
 #' @importFrom SparseM as.matrix.csr
 fit_lasso <- function (x, y, tau = 0.5, lambda = NULL, weights = NULL, intercept = TRUE,
-          coef.cutoff = 1e-08, method = "sfn", penVars = NULL,
+          coef.cutoff = 1e-08, method = "sfn",
           ...)
 {
   if (is.null(dim(x))) {
@@ -55,10 +65,9 @@ fit_lasso <- function (x, y, tau = 0.5, lambda = NULL, weights = NULL, intercept
     aug_x <- SparseM::as.matrix.csr(aug_x)
   }
 
-  model = do.call(check_algorithm(method), args = list(X = aug_x,
-                                                y = aug_y,
-                                                tau = tau,
-                                                weights = weights))
+  model = fitQuantileRegression(X = aug_x, y = aug_y,tau = tau,
+                                algorithm = check_algorithm(method),
+                                weights = weights, ...)
 
   p_star <- p + intercept
   coefs <- coefficients(model)[1:p_star]
@@ -125,6 +134,7 @@ randomly_assign <- function(n, nfolds) {
 #' if you want the folds to satisfy underlying data groupings)
 #' @param init.lambda initial lambda for search
 #' @param ... other parameters to pass on to fitting method
+#' @param parallel whether to run cv scoring in parallel or not
 #' @importFrom future.apply future_sapply
 #' @importFrom future sequential
 #' @importFrom future plan
