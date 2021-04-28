@@ -14,7 +14,8 @@ de <- distributional_effects(fit)
 de_mat <- distributional_effects(fit, newdata = tail(test_data, 5))
 
 fit_no_se <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F)
-fit_with_me <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F, control = qs_control(calc_avg_me = T))
+fit_with_me <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F,
+                  control = qs_control(calc_avg_me = T))
 
 testthat::test_that("S3 Classes inherit properly", {
   testthat::expect_s3_class(fit, "qs")
