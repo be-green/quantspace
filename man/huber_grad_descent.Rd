@@ -34,6 +34,8 @@ huber_grad_descent(
 for early stopping}
 
 \item{check_tol}{loss function change tolerance for early stopping}
+
+\item{intercept}{what column contains the intercept}
 }
 \description{
 Compute quantile regression via accelerated gradient descent using

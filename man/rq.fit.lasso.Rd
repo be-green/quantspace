@@ -13,7 +13,7 @@ rq.fit.lasso(
   scale_x = T,
   method = "agd",
   nfold = 10,
-  nlambda = 100,
+  nlambda = 50,
   parallel = F,
   ...
 )
@@ -34,6 +34,10 @@ rq.fit.lasso(
 \item{method}{method to use when fitting underlying quantile regression algorithm}
 
 \item{nfold}{number of folds to use when cross-validating}
+
+\item{nlambda}{number of lambdas to search over.}
+
+\item{parallel}{whether to run cv search in parallel, if applicable}
 
 \item{...}{other arguments to pass to underlying fitting algorithm}
 }

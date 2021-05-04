@@ -135,6 +135,7 @@ randomly_assign <- function(n, nfolds) {
 #' @param init.lambda initial lambda for search
 #' @param ... other parameters to pass on to fitting method
 #' @param parallel whether to run cv scoring in parallel or not
+#' @param coef.cutoff what cutoff to use for "0" coefficients
 #' @importFrom future.apply future_sapply
 #' @importFrom future sequential
 #' @importFrom future plan

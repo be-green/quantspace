@@ -20,6 +20,7 @@ z_score <- function(X, mx, sx, p) {
 #' @param check_tol loss function change tolerance for early stopping
 #' @param beta_tol tolerance for largest element of gradient, used
 #' for early stopping
+#' @param intercept what column contains the intercept
 #' @export
 huber_grad_descent <- function(X, y, tau, init_beta, mu = 1e-4, maxiter = 10000L, beta_tol = 1e-4, check_tol = 1e-6, intercept = 1L) {
     .Call(`_quantspace_huber_grad_descent`, X, y, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept)

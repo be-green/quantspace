@@ -69,6 +69,7 @@ void reorder_columns(arma::mat& X, int intercept) {
 //' @param check_tol loss function change tolerance for early stopping
 //' @param beta_tol tolerance for largest element of gradient, used
 //' for early stopping
+//' @param intercept what column contains the intercept
 //' @export
 // [[Rcpp::export]]
 arma::vec huber_grad_descent(arma::mat& X,

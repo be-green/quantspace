@@ -249,6 +249,7 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @param maxiter largest number of iterations allowed
 #' @param n_samples number of observations to use in "warmup" regression
 #' that identifies initial values
+#' @param ... other arguments, ignored for now
 #' @export
 #' @importFrom stats rnorm
 rq.fit.agd <- function(X, y, tau = 0.5,
@@ -311,13 +312,15 @@ rq.fit.agd <- function(X, y, tau = 0.5,
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method to use when fitting underlying quantile regression algorithm
 #' @param nfold number of folds to use when cross-validating
+#' @param parallel whether to run cv search in parallel, if applicable
 #' @param ... other arguments to pass to underlying fitting algorithm
+#' @param nlambda number of lambdas to search over.
 #' @importFrom rqPen rq.lasso.fit
 #' @importFrom rqPen cv.rq.pen
 #' @export
 rq.fit.lasso <- function(X, y, tau, lambda, weights,
                          scale_x = T, method = "agd", nfold = 10,
-                         nlambda = 100, parallel = F, ...) {
+                         nlambda = 50, parallel = F, ...) {
 
   if(!is.matrix(X)) {
     X <- as.matrix(X)

@@ -44,6 +44,8 @@ tilted least squares loss function}
 
 \item{n_samples}{number of observations to use in "warmup" regression
 that identifies initial values}
+
+\item{...}{other arguments, ignored for now}
 }
 \description{
 Quantile Regression approximated w/ huber loss

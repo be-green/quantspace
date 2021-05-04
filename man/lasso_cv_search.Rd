@@ -48,6 +48,8 @@ if you want the folds to satisfy underlying data groupings)}
 
 \item{parallel}{whether to run cv scoring in parallel or not}
 
+\item{coef.cutoff}{what cutoff to use for "0" coefficients}
+
 \item{...}{other parameters to pass on to fitting method}
 }
 \description{
