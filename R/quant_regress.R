@@ -10,7 +10,7 @@
 #' @param rhs the right-hand-side of the dual problem; regular users shouldn't need to specify this,
 #' but in special cases can be quite usefully altered to meet special needs.
 #' See e.g. Section 6.8 of Koenker (2005).
-#' @param sv startin value for optimization, useful when bootstrapping
+#' @param sv starting value for optimization, useful when bootstrapping
 #' @param control control parameters for fitting routines: see [quantreg::sfn.control()]
 #' @param weights Optional vector of weights for regression
 #' @param lambda ignored
@@ -23,6 +23,10 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
                                  weights = NULL,
                                  lambda,
                                  ...) {
+  if(inherits(X, "matrix")) {
+    X <- denseMatrixToSparse(X)
+  }
+
   a <- X
   y <- -y
   n <- length(y)
@@ -167,6 +171,10 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
                        lambda,
                        ...) {
 
+  if(inherits(X, "matrix")) {
+    X <- denseMatrixToSparse(X)
+  }
+
   # additional syntax to incorporate weights is included here
   if (!is.null(weights)){
 
@@ -182,7 +190,7 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
     X <- as(as.vector(weights), "matrix.diag.csr") %*% X
 
   }
-  quantreg::rq.fit.sfn(a = X, y, tau, rhs, control)
+  quantreg::rq.fit.sfn(a = X,y, tau, rhs, control)
 }
 
 #' Version that complies with more general requirements
@@ -297,7 +305,7 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
     lambda = cv_fit$lambda.min
   }
 
-  est <- rqPen::rq.lasso.fit(x = X[,-intercept],
+  est <- fit_lasso(x = X[,-intercept],
                              y = y,
                              tau = tau,
                              lambda = lambda,
@@ -396,7 +404,7 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
     lambda = cv_fit$lambda.min
   }
 
-  est <- rqPen::rq.lasso.fit(x = X[,-intercept],
+  est <- fit_lasso(x = X[,-intercept],
                              y = y,
                              tau = tau,
                              lambda = lambda,
@@ -416,7 +424,11 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
   not_zero = which(coefficients != 0)
   new_X = X[,not_zero]
 
-  est <- quantreg::rq.fit(x = new_X, y = y, tau = tau, method = method)
+  if(is.vector(new_X)) {
+    new_X = matrix(new_X, ncol = 1)
+  }
+
+  est <- do.call(check_algorithm(method), args = list(X = new_X, y = y, tau = tau, method = method))
   coefficients[not_zero] <- est$coefficients
 
   residuals = y - X %*% coefficients
@@ -434,19 +446,64 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
        lambda = lambda)
 }
 
-
-
-
 #' Estimate a single quantile regression
 #' @param X specification matrix for X variables
 #' @param y outcome variable
 #' @param tau quantile to regress
 #' @param algorithm which algorithm to use
 #' @param ... other arguments to be passed to the algorithm
+#' @importFrom stats coefficients
+#' @importFrom stats resid
+#' @importFrom utils getFromNamespace
+#' @importFrom methods existsFunction
 fitQuantileRegression <- function(X, y, tau, algorithm = "rq.fit.sfn_start_val", ...) {
-  do.call(algorithm, args = list(
-    X = X, y = y, tau = tau, ...
-  ))
+  qr_ns <- asNamespace("quantreg")
+  qs_ns <- asNamespace("quantspace")
+
+  if(algorithm %in% ls(qs_ns)) {
+    f <- utils::getFromNamespace(algorithm, ns = "quantspace")
+    do_matched_call(f, X = X, y = y, tau = tau, ...)
+  } else if(algorithm %in% ls(qr_ns)) {
+
+    # generically fit any of the quantreg algorithms
+    args <- list(...)
+    weights = args$weights
+
+    if (!is.null(weights)){
+      n = nrow(X)
+      if(n != dim(as.matrix(weights))[1]){
+        stop("Dimensions of design matrix and the weight vector not compatible")
+      }
+
+      # multiplying y by the weights
+      y <- y * weights
+
+      # pre-multiplying the a matrix by a diagonal matrix of weights
+      X <- diag(weights) %*% X
+    }
+
+    if(!is.matrix(X)) {
+      X <- as.matrix(X)
+    }
+
+
+    # wild hackery
+    f <- utils::getFromNamespace(algorithm, "quantreg")
+
+    fit <- do_matched_call(f, x = X, y = y, tau = tau, ...)
+
+    list(coefficients = stats::coefficients(fit),
+         residuals = stats::resid(fit),
+         control = NA,
+         ierr = 0,
+         it = 0,
+         weights = weights,
+         lambda = list(...)$lambda)
+  } else {
+    do.call(algorithm, args = list(
+      X = X, y = y, tau = tau, ...
+    ))
+  }
 }
 
 #' Runs quantile regression on residuals of the model (calculates spaces around jstar quantile)
@@ -928,14 +985,14 @@ quantreg_spacing = function(
 
   # calculate average marginal effects if user-specified
   if(calc_avg_me){
+    qreg_coef = matrix(unlist(rv$coef), ncol = length(alpha))
     # calculate the average spacing (column-wise average)
-    averageSpacing = calcAvgSpacing(X, rv$coef, alpha,
+    average_spacing = avg_spacing(X, qreg_coef, alpha,
                                     jstar, trim=.01)
-    qreg_coef = matrix(as.numeric(rv$coef), ncol = p)
-    me = getMarginalEffects(qreg_coeffs = qreg_coef,
-                              avg_spacings = as.numeric(averageSpacing[2,]),
+    me = get_marginal_effects(qreg_coeffs = qreg_coef,
+                              avg_spacings = average_spacing,
                               j_star = jstar,
-                              calcSE = FALSE)
+                              calc_se = FALSE)
     rv$me = t(as.data.frame(as.vector(me$avgME)))
     colnames(rv$me) <- colnames(rv$coef)
     rownames(rv$me) <- NULL
@@ -996,90 +1053,15 @@ spacings_to_quantiles <- function(spacingCoef, data, jstar) {
   return(quantiles)
 }
 
-#' Computes means for various slices of a regression_spec by betas product.
-#' @param x Regression specification.
-#' @param betas Fitted quantile coefficients for specification.
-#' @param alpha Quantiles targeted.
-#' @param jstar First quantile to be estimated (usually the center one)
-#' @param trim Fraction (0 to 0.5) of observations to be trimmed from each end of
-#' a given column in the regression_spec by betas product before the mean is computed.
-#' @return Matrix with rows containing means for each quantile for various slices
-#'  of the specification.
-#' @export
-calcAvgSpacing = function(x, betas, alpha, jstar, trim=.01){
-
-  num_quantiles <- length(alpha)
-  num_betas <- length(betas) / num_quantiles
-  betas_wide <- matrix(as.numeric(betas), num_betas, num_quantiles)
-
-  x_beta_prod <- as.matrix(x %*% betas_wide)
-
-  colnames(x_beta_prod) <- as.character(alpha)
-  x_beta_prod[,-jstar] <- exp(x_beta_prod[,-jstar])
-
-  beta_means <- apply(x_beta_prod, 2, mean)
-  beta_trimmed_means <- apply(x_beta_prod, 2, FUN = function(k) {
-    mean(k, trim = trim)
-    })
-
-  means_out <- rbind(beta_means, beta_trimmed_means)
-  rownames(means_out) <- c("FitQ_or_S_mean_full_spec",
-                           "FitQ_or_S_mean_full_spec_trimmed")
-  return(means_out)
+#' run function only with arguments
+#' that match the arguments for f
+#' @param f function
+#' @param ... arguments to match
+do_matched_call <- function(f, ...) {
+  all_args = list(...)
+  matched_args = subset(all_args,
+                        names(all_args) %in%
+                          names(formals(f)))
+  do.call("f", args = matched_args)
 }
 
-#' Calculates the marginal effects  of an N x p matrix (wide-format) of qreg coefficients
-#' @param qreg_coeffs wide-format of calculated spacings point estimates
-#' @param avg_spacings average spacings matrix, which can be calculated from setting calculateAvgME = TRUE or using
-#'                 the calcAvgSpacing function directly
-#' @param j_star the first quantile the user wishes to predict (usually the middle one)
-#' @param calcSE boolean value, indicating whether the user wishes to calculate the marginal effect standard errors
-#' @param qreg_vcv_vec variance-covariance matrix from point estimates, only necessary if calculating standard errors
-#
-#' @return list of values: avgME: calculated average marginal effects
-#' avgME_se (user-specified): standard errors on the calculated marginal effects
-#' @export
-getMarginalEffects = function(qreg_coeffs,
-                              avg_spacings,
-                              j_star,
-                              calcSE = TRUE,
-                              qreg_vcv_vec = NULL){
-
-  N = dim(qreg_coeffs)[1]
-  p = dim(qreg_coeffs)[2]
-  avgME = matrix(NA, N, p)
-
-  if(!missing(qreg_vcv_vec)) {
-    avgME_se = avg_spacings*0
-  } else {
-    avgME_se = c()
-  }
-
-  # matrix with transformations of data that give marginal effects;
-  # ME = R_matrix * qreg_coeffs
-  R_matrix = array(0, dim = c(p,p,N))
-
-  # calculating marginal effects here
-  R_matrix[,j_star,] = 1
-
-  for(jj in 1:N) {
-    for(kk in 1:(j_star-1)) R_matrix[1:(j_star-kk),j_star-kk,jj] = -avg_spacings[j_star-kk]
-
-    for(kk in 1:(p-j_star)) R_matrix[(j_star+kk):p,(j_star+kk),jj] = avg_spacings[j_star+kk]
-
-    avgME[jj,] = R_matrix[,,jj] %*% qreg_coeffs[jj,]
-
-    # calculating standard errors here.
-    # Can't see an easy way to avoid a double loop here
-    if(calcSE && !missing(qreg_vcv_vec)){
-      for(kk in 1:p){
-        avgME_se[kk,jj] = sqrt(R_matrix[kk,,jj] %*%
-                                 matrix(qreg_vcv_vec[,jj],p,p) %*%
-                                 t(matrix(R_matrix[kk,,jj,drop=FALSE], 1, p)))
-      }
-    }
-  }
-
-  if(calcSE) return(list('avgME' = avgME, 'avgME_se' = avgME_se))
-  else return(list('avgME' = avgME))
-}

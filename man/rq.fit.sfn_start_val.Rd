@@ -29,7 +29,7 @@ See e.g. Section 6.8 of Koenker (2005).}
 
 \item{control}{control parameters for fitting routines: see \code{\link[quantreg:sfn.control]{quantreg::sfn.control()}}}
 
-\item{sv}{startin value for optimization, useful when bootstrapping}
+\item{sv}{starting value for optimization, useful when bootstrapping}
 
 \item{weights}{Optional vector of weights for regression}
 

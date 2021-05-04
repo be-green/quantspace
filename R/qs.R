@@ -10,7 +10,11 @@ check_algorithm <- function(algorithm) {
   } else if(algorithm == "br") {
     algorithm = "rq.fit.br"
   } else {
-    if(!exists(algorithm)) {
+    if(!grepl("rq.fit", algorithm)) {
+      algorithm = paste0("rq.fit.", algorithm)
+    }
+
+    if(!exists(algorithm) & !existsFunction(algorithm, where = asNamespace("quantreg"))) {
       stop(paste0("Algorithm not implemented in quantspace, and not a function" ,
                   " available in the current environment."))
     }
