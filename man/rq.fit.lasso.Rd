@@ -11,8 +11,10 @@ rq.fit.lasso(
   lambda,
   weights,
   scale_x = T,
-  method = "br",
+  method = "agd",
   nfold = 10,
+  nlambda = 100,
+  parallel = F,
   ...
 )
 }
@@ -29,11 +31,11 @@ rq.fit.lasso(
 
 \item{scale_x}{whether to scale the design matrix before estimation}
 
-\item{method}{method argument to be passed to \link[quantreg:rq]{quantreg::rq}}
+\item{method}{method to use when fitting underlying quantile regression algorithm}
 
 \item{nfold}{number of folds to use when cross-validating}
 
-\item{...}{other arguments to pass to \link[rqPen:rq.lasso.fit]{rqPen::rq.lasso.fit}}
+\item{...}{other arguments to pass to underlying fitting algorithm}
 }
 \description{
 Quantile Regression w/ Lasso Penalty

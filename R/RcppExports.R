@@ -2,11 +2,11 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 update_huber_grad <- function(X_t, res, derivs, grad, tau, mu, n, one_over_n) {
-    invisible(.Call('_quantspace_update_huber_grad', PACKAGE = 'quantspace', X_t, res, derivs, grad, tau, mu, n, one_over_n))
+    invisible(.Call(`_quantspace_update_huber_grad`, X_t, res, derivs, grad, tau, mu, n, one_over_n))
 }
 
 z_score <- function(X, mx, sx, p) {
-    invisible(.Call('_quantspace_z_score', PACKAGE = 'quantspace', X, mx, sx, p))
+    invisible(.Call(`_quantspace_z_score`, X, mx, sx, p))
 }
 
 #' Compute quantile regression via accelerated gradient descent using
@@ -15,7 +15,6 @@ z_score <- function(X, mx, sx, p) {
 #' @param X design matrix
 #' @param tau target quantile
 #' @param init_beta initial guess at beta
-#' @param delta step size for gradient descent
 #' @param mu neighborhood over which to smooth
 #' @param maxiter maximum number of iterations to run
 #' @param check_tol loss function change tolerance for early stopping
@@ -23,20 +22,23 @@ z_score <- function(X, mx, sx, p) {
 #' for early stopping
 #' @export
 huber_grad_descent <- function(X, y, tau, init_beta, mu = 1e-4, maxiter = 10000L, beta_tol = 1e-4, check_tol = 1e-6, intercept = 1L) {
-    .Call('_quantspace_huber_grad_descent', PACKAGE = 'quantspace', X, y, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept)
+    .Call(`_quantspace_huber_grad_descent`, X, y, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept)
 }
 
 just_grad_descent <- function(y, X, X_t, beta, tau, n, one_over_n, p, maxiter, mu, beta_tol, check_tol) {
-    .Call('_quantspace_just_grad_descent', PACKAGE = 'quantspace', y, X, X_t, beta, tau, n, one_over_n, p, maxiter, mu, beta_tol, check_tol)
+    .Call(`_quantspace_just_grad_descent`, y, X, X_t, beta, tau, n, one_over_n, p, maxiter, mu, beta_tol, check_tol)
 }
 
 #' Compute quantile regression via accelerated gradient descent using
 #' Huber approximation, warm start based on data subset
 #' @param y outcome vector
 #' @param X design matrix
+#' @param X_sub subset of X matrix to use for "warm start" regression
+#' @param y_sub subset of y to use for "warm start" regression
 #' @param tau target quantile
 #' @param init_beta initial guess at beta
-#' @param delta step size for gradient descent
+#' @param intercept location of the intercept column, using R's indexing
+#' @param num_samples number of samples used for subset of matrix used for warm start
 #' @param mu neighborhood over which to smooth
 #' @param maxiter maximum number of iterations to run
 #' @param check_tol loss function change tolerance for early stopping
@@ -44,6 +46,6 @@ just_grad_descent <- function(y, X, X_t, beta, tau, n, one_over_n, p, maxiter, m
 #' for early stopping
 #' @export
 warm_huber_grad_descent <- function(X, y, X_sub, y_sub, tau, init_beta, mu = 1e-4, maxiter = 10000L, beta_tol = 1e-4, check_tol = 1e-6, intercept = 1L, num_samples = 1000) {
-    .Call('_quantspace_warm_huber_grad_descent', PACKAGE = 'quantspace', X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples)
+    .Call(`_quantspace_warm_huber_grad_descent`, X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples)
 }
 

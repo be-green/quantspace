@@ -250,6 +250,7 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @param n_samples number of observations to use in "warmup" regression
 #' that identifies initial values
 #' @export
+#' @importFrom stats rnorm
 rq.fit.agd <- function(X, y, tau = 0.5,
                        weights = NULL, control,
                        lambda, smoothing_window = 1e-15,
@@ -279,11 +280,13 @@ rq.fit.agd <- function(X, y, tau = 0.5,
     X <- weights %*% X
   }
   intercept <- get_intercept(X)
-  inits = rnorm(ncol(X))
+  inits = stats::rnorm(ncol(X))
+
+  samples = sample(1:length(y), n_samples)
 
   fit = warm_huber_grad_descent(X = X, y = y,
-                          X_sub = head(X, n_samples),
-                          y_sub = head(y, n_samples),
+                          X_sub = X[samples,],
+                          y_sub = y[samples],
                           tau = tau,
                           mu = smoothing_window, init_beta = inits,
                           maxiter = maxiter,
@@ -404,90 +407,6 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
        lambda = lambda)
 }
 
-#' Run hqreg from the hqreg package, with the quantile loss method
-#' @importFrom hqreg hqreg
-#' @importFrom hqreg cv.hqreg
-#' @param X design matrix
-#' @param y outcome variable
-#' @param tau target quantile
-#' @param optional weights for observations
-#' @param alpha elasticnet mixing parameter, 0 for ridge and 1 for lasso. Defaults to 1
-#' @param nlambda size of lambda grid to search over
-#' @param lambda.min smallest lambda to search for
-#' @param lambda pre-specified value of lambda to use when fitting
-#' @param preprocess type of preprocessing for x matrix
-rq.fit.hqreg <- function(X, y,
-                         tau,
-                         weights = NULL,
-                         alpha = 1,
-                         nlambda = 100,
-                         nfolds = 10,
-                         lambda.min = 0.01,
-                         lambda, preprocess = "standardize",
-                         screen = "ASR", max.iter = 10000,
-                         eps = 1e-7, dfmax = ncol(X) + 1,
-                         penalty.factor = rep(1, ncol(X)),
-                         message = FALSE, ...) {
-  if(!is.matrix(X)) {
-    X = as.matrix(X)
-  }
-  intercept <- get_intercept(X)
-  if(intercept == 0) {
-    stop("hqreg only works when design matrix has intercept term.")
-  } else {
-    X = X[,-intercept]
-  }
-
-  if (!is.null(weights)){
-
-    n = nrow(X)
-
-    if(n != dim(as.matrix(weights))[1]){
-      stop("Dimensions of design matrix and the weight vector not compatible")
-    }
-
-    # multiplying y by the weights
-    y <- y * weights
-
-    # pre-multiplying the a matrix by a diagonal matrix of weights
-    X <- diag(weights) %*% X
-  }
-
-  if(is.null(lambda)) {
-    message("Lambda is not pre-specified, finding lambda via ", nfolds,"-fold crossvalidation.")
-    find_lambda <- hush(hqreg::cv.hqreg(X, y, method = "quantile", tau = tau, FUN = "hqreg",
-                 alpha = alpha, nlambda = nlambda, lambda.min = lambda.min,
-                 preprocess = "standardize",
-                 screen = screen, max.iter = max.iter,
-                 eps = eps, message = FALSE,
-                 penalty.factor = penalty.factor,
-                 ncores = 1))
-
-    fit <- hqreg::hqreg(X, y, method = "quantile", tau = tau,
-                           alpha = alpha, nlambda = nlambda, lambda.min = lambda.min,
-                           preprocess = "standardize",
-                           lambda = find_lambda$lambda.min,
-                           screen = screen, max.iter = max.iter,
-                           eps = eps, message = message,
-                           penalty.factor = penalty.factor)
-  } else {
-    fit <- hqreg::hqreg(X, y, method = "quantile", tau = tau,
-                 alpha = alpha, nlambda = nlambda, lambda.min = lambda.min,
-                 lambda = lambda, preprocess = "standardize",
-                 screen = screen, max.iter = max.iter,
-                 eps = eps, message = message,
-                 penalty.factor = penalty.factor)
-  }
-
-  list(coefficients = coefficients,
-       residuals = residuals,
-       control = NA,
-       ierr = 0,
-       it = est$it,
-       weights = weights,
-       lambda = lambda)
-}
-
 #' Quantile Regression w/ Lasso Penalty
 #' @param X Design matrix, X
 #' @param y outcome variable, y
@@ -497,16 +416,18 @@ rq.fit.hqreg <- function(X, y,
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method argument to be passed to [quantreg::rq]
 #' @param nfold number of folds to use when cross-validating
+#' @param nlambda number of lambdas to search over when cross-validating
 #' @param ... other arguments to pass to underlying fitting algorithm
 #' @importFrom rqPen rq.lasso.fit
 rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
-                         scale_x = T, method = "agd", nfold = 10, ...) {
+                         scale_x = T, method = "agd", nfold = 5,
+                         nlambda = 10, ...) {
 
   if(!is.matrix(X)) {
     X <- as.matrix(X)
   }
 
-  if(nrow(X) < nfold) {
+  if(row(X) < nfold) {
     nfold = nrow(X)
   }
 

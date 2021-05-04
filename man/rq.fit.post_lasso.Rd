@@ -11,8 +11,9 @@ rq.fit.post_lasso(
   lambda,
   weights,
   scale_x = T,
-  method = "br",
-  nfold = 10,
+  method = "agd",
+  nfold = 5,
+  nlambda = 10,
   ...
 )
 }
@@ -33,7 +34,9 @@ rq.fit.post_lasso(
 
 \item{nfold}{number of folds to use when cross-validating}
 
-\item{...}{other arguments to pass to \link[rqPen:rq.lasso.fit]{rqPen::rq.lasso.fit}}
+\item{nlambda}{number of lambdas to search over when cross-validating}
+
+\item{...}{other arguments to pass to underlying fitting algorithm}
 }
 \description{
 Quantile Regression w/ Lasso Penalty

@@ -3,6 +3,7 @@
 # include <cmath>
 // [[Rcpp::plugins(cpp11)]]
 
+
 double checkfun (double x, double tau) {
   return x * (tau - (x < 0));
 }
@@ -63,7 +64,6 @@ void reorder_columns(arma::mat& X, int intercept) {
 //' @param X design matrix
 //' @param tau target quantile
 //' @param init_beta initial guess at beta
-//' @param delta step size for gradient descent
 //' @param mu neighborhood over which to smooth
 //' @param maxiter maximum number of iterations to run
 //' @param check_tol loss function change tolerance for early stopping
@@ -302,9 +302,12 @@ arma::vec just_grad_descent(const arma::colvec& y, const arma::mat& X,
 //' Huber approximation, warm start based on data subset
 //' @param y outcome vector
 //' @param X design matrix
+//' @param X_sub subset of X matrix to use for "warm start" regression
+//' @param y_sub subset of y to use for "warm start" regression
 //' @param tau target quantile
 //' @param init_beta initial guess at beta
-//' @param delta step size for gradient descent
+//' @param intercept location of the intercept column, using R's indexing
+//' @param num_samples number of samples used for subset of matrix used for warm start
 //' @param mu neighborhood over which to smooth
 //' @param maxiter maximum number of iterations to run
 //' @param check_tol loss function change tolerance for early stopping

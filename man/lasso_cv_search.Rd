@@ -17,6 +17,7 @@ lasso_cv_search(
   eps = 1e-04,
   init.lambda = 1,
   parallel = T,
+  coef.cutoff = 1e-05,
   ...
 )
 }
