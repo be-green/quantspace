@@ -15,7 +15,7 @@ check <- function (x, tau = 0.5)
 #' @param ... other arguments to pass to method
 #' @importFrom SparseM as.matrix.csr
 fit_lasso <- function (x, y, tau = 0.5, lambda = NULL, weights = NULL, intercept = TRUE,
-          coef.cutoff = 1e-08, method = "sfn",
+          coef.cutoff = 1e-06, method = "sfn",
           ...)
 {
   if (is.null(dim(x))) {
@@ -149,7 +149,7 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                              intercept = TRUE, nfolds = 10,
                              foldid = NULL, nlambda = 100,
                              eps = 1e-04, init.lambda = 1,
-                             parallel = T,
+                             parallel = T, coef.cutoff = 1e-5,
                              ...) {
   p <- dim(x)[2]
 
@@ -170,7 +170,7 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                           weights = weights,
                           intercept = intercept, ...)
 
-    if (sum(init_fit$coefficients[p_range]) == 0) {
+    if (sum((init_fit$coefficients[p_range] > coef.cutoff)) == 0) {
       searching <- FALSE
     } else {
       lambda_star <- inter_only_rho/sum(sapply(init_fit$coefficients[p_range],
@@ -262,7 +262,15 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                        intercept = intercept,
                        method = method, lambda = lambda)
 
-    y_hat <- cbind(1, test_x) %*% model$coefficients
+    model_coef <- model$coefficients
+
+    # if test_x matrix doesn't have intercept, add it
+    if(ncol(test_x) == (length(model_coef) - 1)) {
+      test_x = cbind(1, test_x)
+    }
+
+    y_hat <- test_x %*% model_coef
+
     model_fit <- check(test_y - y_hat)
 
     if(is.null(test_weights)) {

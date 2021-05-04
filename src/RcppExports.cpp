@@ -7,12 +7,12 @@
 using namespace Rcpp;
 
 // update_huber_grad
-void update_huber_grad(arma::mat& X_t, arma::vec& res, arma::vec& derivs, arma::vec& grad, double tau, double mu, int n, double one_over_n);
+void update_huber_grad(const arma::mat& X_t, const arma::vec& res, arma::vec& derivs, arma::vec& grad, double tau, double mu, int n, double one_over_n);
 RcppExport SEXP _quantspace_update_huber_grad(SEXP X_tSEXP, SEXP resSEXP, SEXP derivsSEXP, SEXP gradSEXP, SEXP tauSEXP, SEXP muSEXP, SEXP nSEXP, SEXP one_over_nSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X_t(X_tSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type res(resSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X_t(X_tSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type res(resSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type derivs(derivsSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type grad(gradSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
@@ -55,11 +55,57 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// just_grad_descent
+arma::vec just_grad_descent(const arma::colvec& y, const arma::mat& X, const arma::mat& X_t, arma::vec& beta, double tau, double n, double one_over_n, int p, int maxiter, double mu, double beta_tol, double check_tol);
+RcppExport SEXP _quantspace_just_grad_descent(SEXP ySEXP, SEXP XSEXP, SEXP X_tSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP nSEXP, SEXP one_over_nSEXP, SEXP pSEXP, SEXP maxiterSEXP, SEXP muSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::colvec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X_t(X_tSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type one_over_n(one_over_nSEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
+    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< double >::type beta_tol(beta_tolSEXP);
+    Rcpp::traits::input_parameter< double >::type check_tol(check_tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(just_grad_descent(y, X, X_t, beta, tau, n, one_over_n, p, maxiter, mu, beta_tol, check_tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// warm_huber_grad_descent
+arma::vec warm_huber_grad_descent(arma::mat& X, arma::vec& y, arma::mat& X_sub, arma::vec& y_sub, double tau, arma::colvec& init_beta, double mu, int maxiter, double beta_tol, double check_tol, int intercept, double num_samples);
+RcppExport SEXP _quantspace_warm_huber_grad_descent(SEXP XSEXP, SEXP ySEXP, SEXP X_subSEXP, SEXP y_subSEXP, SEXP tauSEXP, SEXP init_betaSEXP, SEXP muSEXP, SEXP maxiterSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP, SEXP interceptSEXP, SEXP num_samplesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X_sub(X_subSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type y_sub(y_subSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< arma::colvec& >::type init_beta(init_betaSEXP);
+    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
+    Rcpp::traits::input_parameter< double >::type beta_tol(beta_tolSEXP);
+    Rcpp::traits::input_parameter< double >::type check_tol(check_tolSEXP);
+    Rcpp::traits::input_parameter< int >::type intercept(interceptSEXP);
+    Rcpp::traits::input_parameter< double >::type num_samples(num_samplesSEXP);
+    rcpp_result_gen = Rcpp::wrap(warm_huber_grad_descent(X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_quantspace_update_huber_grad", (DL_FUNC) &_quantspace_update_huber_grad, 8},
     {"_quantspace_z_score", (DL_FUNC) &_quantspace_z_score, 4},
     {"_quantspace_huber_grad_descent", (DL_FUNC) &_quantspace_huber_grad_descent, 9},
+    {"_quantspace_just_grad_descent", (DL_FUNC) &_quantspace_just_grad_descent, 12},
+    {"_quantspace_warm_huber_grad_descent", (DL_FUNC) &_quantspace_warm_huber_grad_descent, 12},
     {NULL, NULL, 0}
 };
 

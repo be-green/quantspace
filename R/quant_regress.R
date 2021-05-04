@@ -234,6 +234,71 @@ rq.fit.br <- function(X, y, tau = 0.5,
        weights = weights)
 }
 
+#' Quantile Regression approximated w/ huber loss
+#' @param X design matrix
+#' @param y outcome vector
+#' @param tau target quantile
+#' @param weights optional weight vector
+#' @param control ignored for now
+#' @param lambda ignored for now
+#' @param smoothing_window neighborhood around 0 which is
+#' smoothed by either typical least squares or appropriately
+#' tilted least squares loss function
+#' @param beta_tol stopping rule based on max value of gradient
+#' @param check_tol stopping rule based on change in the loss function
+#' @param maxiter largest number of iterations allowed
+#' @param n_samples number of observations to use in "warmup" regression
+#' that identifies initial values
+#' @export
+rq.fit.agd <- function(X, y, tau = 0.5,
+                       weights = NULL, control,
+                       lambda, smoothing_window = 1e-15,
+                       beta_tol = 1e-10,
+                       check_tol = 1e-7 * nrow(X),
+                       maxiter = 10000,
+                       n_samples = min(c(ceiling(nrow(X)/10), 10000)),
+                       ...) {
+
+
+  if(!inherits(X, "matrix")) {
+    X <- as.matrix(X)
+  }
+
+  # additional syntax to incorporate weights is included here
+  if (!is.null(weights)){
+
+    n = nrow(X)
+    if(n != dim(as.matrix(weights))[1]){
+      stop("Dimensions of design matrix and the weight vector not compatible")
+    }
+    # multiplying y by the weights
+    y <- y * weights
+
+    # pre-multiplying the a matrix by a diagonal matrix of weights
+    #a <- sweep(a,MARGIN=1,weights,`*`)
+    X <- weights %*% X
+  }
+  intercept <- get_intercept(X)
+  inits = rnorm(ncol(X))
+
+  fit = warm_huber_grad_descent(X = X, y = y,
+                          X_sub = head(X, n_samples),
+                          y_sub = head(y, n_samples),
+                          tau = tau,
+                          mu = smoothing_window, init_beta = inits,
+                          maxiter = maxiter,
+                          beta_tol = beta_tol,check_tol = check_tol,
+                          intercept = intercept, num_samples = n_samples
+                          )
+
+  list(coefficients = fit,
+       residuals = y - X %*% fit,
+       control = list(),
+       ierr = 0,
+       it = 0,
+       weights = weights)
+}
+
 #' Quantile Regression w/ Lasso Penalty
 #' @param X Design matrix, X
 #' @param y outcome variable, y
@@ -241,14 +306,15 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @param lambda penalty parameter
 #' @param weights optional vector of weights
 #' @param scale_x whether to scale the design matrix before estimation
-#' @param method method argument to be passed to [quantreg::rq]
+#' @param method method to use when fitting underlying quantile regression algorithm
 #' @param nfold number of folds to use when cross-validating
-#' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
+#' @param ... other arguments to pass to underlying fitting algorithm
 #' @importFrom rqPen rq.lasso.fit
 #' @importFrom rqPen cv.rq.pen
 #' @export
 rq.fit.lasso <- function(X, y, tau, lambda, weights,
-                         scale_x = T, method = "br", nfold = 10, ...) {
+                         scale_x = T, method = "agd", nfold = 10,
+                         nlambda = 100, parallel = F, ...) {
 
   if(!is.matrix(X)) {
     X <- as.matrix(X)
@@ -294,13 +360,14 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
   if(is.null(lambda)) {
     message("No lambda provided, selecting based on ",nfold,"-fold cross-validation.")
     suppressWarnings({
-      cv_fit <- rqPen::cv.rq.pen(x = X[,-intercept],
-                              y = y, tau = tau,
-                              intercept = T,
-                              penalty = "LASSO",
-                              criteria = "CV",
-                              nfolds = nfold,
-                              method = method)
+      cv_fit <- lasso_cv_search(x = X[,-intercept], y = y , tau = tau,
+                                method = method,
+                                intercept = TRUE, nfolds = nfold,
+                                foldid = NULL, nlambda = nlambda,
+                                eps = 1e-04, init.lambda = 1,
+                                parallel = parallel,
+                                scalex = FALSE,
+                                ...)
     })
     lambda = cv_fit$lambda.min
   }
@@ -309,8 +376,8 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
                              y = y,
                              tau = tau,
                              lambda = lambda,
-                             intercept = T,
-                             scalex = F,
+                             intercept = TRUE,
+                             scalex = FALSE,
                              method = method,
                              ...)
 
@@ -337,6 +404,90 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
        lambda = lambda)
 }
 
+#' Run hqreg from the hqreg package, with the quantile loss method
+#' @importFrom hqreg hqreg
+#' @importFrom hqreg cv.hqreg
+#' @param X design matrix
+#' @param y outcome variable
+#' @param tau target quantile
+#' @param optional weights for observations
+#' @param alpha elasticnet mixing parameter, 0 for ridge and 1 for lasso. Defaults to 1
+#' @param nlambda size of lambda grid to search over
+#' @param lambda.min smallest lambda to search for
+#' @param lambda pre-specified value of lambda to use when fitting
+#' @param preprocess type of preprocessing for x matrix
+rq.fit.hqreg <- function(X, y,
+                         tau,
+                         weights = NULL,
+                         alpha = 1,
+                         nlambda = 100,
+                         nfolds = 10,
+                         lambda.min = 0.01,
+                         lambda, preprocess = "standardize",
+                         screen = "ASR", max.iter = 10000,
+                         eps = 1e-7, dfmax = ncol(X) + 1,
+                         penalty.factor = rep(1, ncol(X)),
+                         message = FALSE, ...) {
+  if(!is.matrix(X)) {
+    X = as.matrix(X)
+  }
+  intercept <- get_intercept(X)
+  if(intercept == 0) {
+    stop("hqreg only works when design matrix has intercept term.")
+  } else {
+    X = X[,-intercept]
+  }
+
+  if (!is.null(weights)){
+
+    n = nrow(X)
+
+    if(n != dim(as.matrix(weights))[1]){
+      stop("Dimensions of design matrix and the weight vector not compatible")
+    }
+
+    # multiplying y by the weights
+    y <- y * weights
+
+    # pre-multiplying the a matrix by a diagonal matrix of weights
+    X <- diag(weights) %*% X
+  }
+
+  if(is.null(lambda)) {
+    message("Lambda is not pre-specified, finding lambda via ", nfolds,"-fold crossvalidation.")
+    find_lambda <- hush(hqreg::cv.hqreg(X, y, method = "quantile", tau = tau, FUN = "hqreg",
+                 alpha = alpha, nlambda = nlambda, lambda.min = lambda.min,
+                 preprocess = "standardize",
+                 screen = screen, max.iter = max.iter,
+                 eps = eps, message = FALSE,
+                 penalty.factor = penalty.factor,
+                 ncores = 1))
+
+    fit <- hqreg::hqreg(X, y, method = "quantile", tau = tau,
+                           alpha = alpha, nlambda = nlambda, lambda.min = lambda.min,
+                           preprocess = "standardize",
+                           lambda = find_lambda$lambda.min,
+                           screen = screen, max.iter = max.iter,
+                           eps = eps, message = message,
+                           penalty.factor = penalty.factor)
+  } else {
+    fit <- hqreg::hqreg(X, y, method = "quantile", tau = tau,
+                 alpha = alpha, nlambda = nlambda, lambda.min = lambda.min,
+                 lambda = lambda, preprocess = "standardize",
+                 screen = screen, max.iter = max.iter,
+                 eps = eps, message = message,
+                 penalty.factor = penalty.factor)
+  }
+
+  list(coefficients = coefficients,
+       residuals = residuals,
+       control = NA,
+       ierr = 0,
+       it = est$it,
+       weights = weights,
+       lambda = lambda)
+}
+
 #' Quantile Regression w/ Lasso Penalty
 #' @param X Design matrix, X
 #' @param y outcome variable, y
@@ -346,10 +497,10 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
 #' @param scale_x whether to scale the design matrix before estimation
 #' @param method method argument to be passed to [quantreg::rq]
 #' @param nfold number of folds to use when cross-validating
-#' @param ... other arguments to pass to [rqPen::rq.lasso.fit]
+#' @param ... other arguments to pass to underlying fitting algorithm
 #' @importFrom rqPen rq.lasso.fit
 rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
-                         scale_x = T, method = "br", nfold = 10, ...) {
+                         scale_x = T, method = "agd", nfold = 10, ...) {
 
   if(!is.matrix(X)) {
     X <- as.matrix(X)
@@ -394,12 +545,13 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
   if(is.null(lambda)) {
     message("No lambda provided, selecting based on ",nfold,"-fold cross-validation.")
     suppressWarnings({
-      cv_fit <- rqPen::cv.rq.pen(x = X[,-intercept],
-                                 y = y, tau = tau,
-                                 intercept = T,nfolds = nfold,
-                                 penalty = "LASSO",
-                                 criteria = "CV",
-                                 method = method)
+      cv_fit <- lasso_cv_search(x = X[,-intercept], y = y , tau = tau,
+                                method = method,
+                                intercept = FALSE, nfolds = nfold,
+                                foldid = NULL, nlambda = nlambda,
+                                eps = 1e-04, init.lambda = 1,
+                                parallel = T,
+                                ...)
     })
     lambda = cv_fit$lambda.min
   }
@@ -428,7 +580,9 @@ rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
     new_X = matrix(new_X, ncol = 1)
   }
 
-  est <- do.call(check_algorithm(method), args = list(X = new_X, y = y, tau = tau, method = method))
+  est <- do.call(check_algorithm(method), args = list(X = new_X, y = y,
+                                                      tau = tau,
+                                                      method = method))
   coefficients[not_zero] <- est$coefficients
 
   residuals = y - X %*% coefficients
@@ -500,9 +654,10 @@ fitQuantileRegression <- function(X, y, tau, algorithm = "rq.fit.sfn_start_val",
          weights = weights,
          lambda = list(...)$lambda)
   } else {
-    do.call(algorithm, args = list(
-      X = X, y = y, tau = tau, ...
-    ))
+    f <- get(algorithm)
+    X = as.matrix(X)
+
+    do_matched_call(f, X = X, y = y, tau = tau, ...)
   }
 }
 
@@ -666,7 +821,7 @@ quantreg_spacing = function(
   out_lambda = as.list(rep(NA, length(alpha)))
 
   # check to see if regression matrix is sparse. If not, then turn into CSR matrix
-  if(!is(X, 'matrix.csr')) {
+  if(!is(X, 'matrix.csr') & grepl("sfn", algorithm)) {
     X = denseMatrixToSparse(X)
   }
 
@@ -674,10 +829,9 @@ quantreg_spacing = function(
     var_names <- paste0("v", 1:ncol(X))
   }
 
-  tmpmax <- floor(1e5 + exp(-12.1)*(pmin(X@ia[width+1], max(X@ia), na.rm = T)-1)^2.35)
 
   # Ensure matrix is not rank deficient
-  reg_spec_starting_data <- ensureSpecFullRank(spec_mat = X, col_names = var_names)
+  reg_spec_starting_data <- list(spec_matrix = X, col_names = var_names)
 
   if(!is.null(lambda)) {
     if(length(lambda) > 1) {
@@ -695,7 +849,7 @@ quantreg_spacing = function(
       X = reg_spec_starting_data$spec_matrix,
       y = y,
       tau = tau,
-      control = list(tmpmax = tmpmax),
+      control = list( ),
       weights = weights,
       algorithm = algorithm,
       lambda = star_lambda,
@@ -707,7 +861,7 @@ quantreg_spacing = function(
        X = reg_spec_starting_data$spec_matrix,
        y = y,
        tau = tau,
-       control = list(tmpmax = tmpmax),
+       control = list( ),
        sv = as.numeric(start_list[col_nums]),
        weights = weights,
        algorithm = algorithm,
@@ -726,15 +880,15 @@ quantreg_spacing = function(
                              y = y,
                              tau = tau,
                              weights = weights,
-                             algorithm = 'rq.fit.sfn_start_val')$residuals
+                             algorithm = 'rq.fit.sfn')$residuals
   V0 <- sum(rho(u = V0, tau = tau,weights = weights))
 
   #set column names
   coef_df <- as.data.frame(t(star_model$coefficients))
   colnames(coef_df) <- reg_spec_starting_data$var_names
-  coef_df <- addMissingSpecColumns(
-    coef_df,
-    var_names)
+  # coef_df <- addMissingSpecColumns(
+  #   coef_df,
+  #   var_names)
   colnames(coef_df) <- paste(alpha[jstar], colnames(coef_df), sep="_")
 
   #log output for return
@@ -792,11 +946,11 @@ quantreg_spacing = function(
       # Ensure the cut of the starting data that we take for
       # current spacing is not rank-deficient
       if(!trunc){
-        reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[which(ehat > small),],
+        reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[which(ehat > small),],
                                             col_names = reg_spec_starting_data$var_names)
       } else {
         # else, handle rank specification for typically-sized matrix
-        reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[ind_hat,],
+        reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,],
                                             col_names = reg_spec_starting_data$var_names)
       }
 
@@ -807,14 +961,16 @@ quantreg_spacing = function(
         sv = as.numeric(start_list[col_nums])
         j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
                                     sv = sv, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                                    small = small, control = list(tmpmax = tmpmax),
+                                    small = small,
+                                    control = list( ),
                                     weights = weights[ind_hat],
                                     algorithm = algorithm, lambda = j_lambda,
                                     ...)
       } else{
         j_model <- regressResiduals(reg_spec_data = reg_spec_data, ehat = ehat,
                                     ind_hat = ind_hat, tau = tau.t, trunc =  trunc,
-                                    small = small, control = list(tmpmax = tmpmax),
+                                    small = small,
+                                    control = list( ),
                                     weights = weights[ind_hat],
                                     algorithm = algorithm, lambda = j_lambda,
                                     ...)
@@ -915,7 +1071,7 @@ quantreg_spacing = function(
       # Determine quantile to estimate
       tau.t = (alpha[j + 1] - alpha[j])/(alpha[j + 1])
 
-      reg_spec_data <- ensureSpecFullRank(spec_mat = reg_spec_starting_data$spec_matrix[ind_hat,],
+      reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,],
                                           col_names = reg_spec_starting_data$var_names)
 
 
@@ -928,7 +1084,7 @@ quantreg_spacing = function(
                                     sv = sv,
                                     ind_hat = ind_hat,
                                     tau = tau.t, trunc = trunc, small = small,
-                                    control = list(tmpmax = tmpmax),
+                                    control = list( ),
                                     algorithm = algorithm, lambda = j_lambda,
                                     weights = weights[ind_hat], ...)
       } else {
@@ -936,7 +1092,7 @@ quantreg_spacing = function(
                                     ehat = -ehat,
                                     ind_hat = ind_hat,
                                     tau = tau.t, trunc = trunc, small = small,
-                                    control = list(tmpmax = tmpmax),
+                                    control = list( ),
                                     algorithm = algorithm,
                                     weights = weights[ind_hat],
                                     lambda = j_lambda,
