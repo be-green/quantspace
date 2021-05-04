@@ -24,7 +24,8 @@ Imports:
     purrr,
     future,
     future.apply,
-    MASS
+    MASS,
+    Rcpp
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
 Suggests: 
@@ -33,3 +34,6 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+LinkingTo: 
+    RcppArmadillo,
+    Rcpp

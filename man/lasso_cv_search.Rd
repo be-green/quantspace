@@ -17,6 +17,7 @@ lasso_cv_search(
   eps = 1e-04,
   init.lambda = 1,
   parallel = T,
+  coef.cutoff = 1e-05,
   ...
 )
 }
@@ -46,6 +47,8 @@ if you want the folds to satisfy underlying data groupings)}
 \item{init.lambda}{initial lambda for search}
 
 \item{parallel}{whether to run cv scoring in parallel or not}
+
+\item{coef.cutoff}{what cutoff to use for "0" coefficients}
 
 \item{...}{other parameters to pass on to fitting method}
 }

@@ -9,8 +9,10 @@ check_algorithm <- function(algorithm) {
     algorithm = "rq.fit.post_lasso"
   } else if(algorithm == "br") {
     algorithm = "rq.fit.br"
+  } else if(algorithm == "hqreg") {
+    algorithm = "rq.fit.hqreg"
   } else {
-    if(!grepl("rq.fit", algorithm)) {
+    if(!grepl("rq.fit", algorithm) & !exists(algorithm)) {
       algorithm = paste0("rq.fit.", algorithm)
     }
 
@@ -155,8 +157,8 @@ qs <- function(formula, data = NULL,
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 
-  m <- SparseM::model.matrix(formula, data)
-  y <- SparseM::model.response(stats::model.frame(formula, data,
+  m <- model.matrix(formula, data)
+  y <- model.response(stats::model.frame(formula, data,
                                                   na.action = "na.pass"),
                                type = "numeric")
 
@@ -169,8 +171,11 @@ qs <- function(formula, data = NULL,
   if(!baseline_quantile %in% quantiles){
     quantiles <- c(quantiles, baseline_quantile)
   }
-
-  reg_spec <- denseMatrixToSparse(m)
+  if(grepl("sfn", algorithm)) {
+    reg_spec <- denseMatrixToSparse(m)
+  } else {
+    reg_spec <- m
+  }
   reg_spec_var_names <- colnames(m)
 
   alpha <- sort(quantiles)
@@ -180,7 +185,11 @@ qs <- function(formula, data = NULL,
   if(is.null(cluster_formula)) {
     cluster_matrix = NULL
   } else {
-    cluster_matrix = SparseM::model.matrix(cluster_formula, data)
+    if(grepl("sfn", algorithm)) {
+      cluster_matrix = SparseM::model.matrix(cluster_formula, data)
+    } else {
+      cluster_matrix = stats::model.matrix(cluster_formula, data)
+    }
   }
 
   quantreg_fit <- quantreg_spacing(
