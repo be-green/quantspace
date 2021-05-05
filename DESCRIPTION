@@ -18,7 +18,6 @@ Imports:
     RConics,
     Matrix.utils,
     ggplot2,
-    rqPen,
     Matrix,
     data.table,
     purrr,
