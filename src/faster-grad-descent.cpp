@@ -549,6 +549,7 @@ arma::vec huber_grad_descent_sp(const arma::colvec& y,
 //' @param check_tol loss function change tolerance for early stopping
 //' @param beta_tol tolerance for largest element of gradient, used
 //' for early stopping
+//' @param warm_start whether to start with subsamples for fitting gradient descent
 //' @export
 // [[Rcpp::export]]
 arma::vec fit_approx_quantile_model_sp(arma::sp_mat& X,
