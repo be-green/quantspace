@@ -5,3 +5,7 @@
 
 inst/doc
 .DS_Store
+
+*.o
+*.so
+*.dll

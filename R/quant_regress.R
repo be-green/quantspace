@@ -315,8 +315,6 @@ rq.fit.agd <- function(X, y, tau = 0.5,
 #' @param parallel whether to run cv search in parallel, if applicable
 #' @param ... other arguments to pass to underlying fitting algorithm
 #' @param nlambda number of lambdas to search over.
-#' @importFrom rqPen rq.lasso.fit
-#' @importFrom rqPen cv.rq.pen
 #' @export
 rq.fit.lasso <- function(X, y, tau, lambda, weights,
                          scale_x = T, method = "agd", nfold = 10,
@@ -421,7 +419,6 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
 #' @param nfold number of folds to use when cross-validating
 #' @param nlambda number of lambdas to search over when cross-validating
 #' @param ... other arguments to pass to underlying fitting algorithm
-#' @importFrom rqPen rq.lasso.fit
 rq.fit.post_lasso <- function(X, y, tau, lambda, weights,
                          scale_x = T, method = "agd", nfold = 5,
                          nlambda = 10, ...) {
