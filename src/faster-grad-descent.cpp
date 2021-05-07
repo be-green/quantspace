@@ -332,6 +332,7 @@ arma::vec warm_huber_grad_descent(arma::mat& X,
   // p is dim, n is obs, one_over_n to avoid repeated calcs
   int p = X.n_cols;
   double n = X.n_rows;
+  arma::vec q = {tau};
 
   // calc'd here because we use it a bunch
   double one_over_n = 1/n;
@@ -386,7 +387,8 @@ arma::vec warm_huber_grad_descent(arma::mat& X,
                                           one_over_num_samples, p,
                                           maxiter = 100, mu,
                                           beta_tol, check_tol);
-
+  init_beta(0) = arma::as_scalar(arma::quantile(y - X.cols(1, p - 1) * init_beta.rows(1, p - 1),
+                                 q));
   // full data
   arma::vec beta = just_grad_descent(y, X, X_t, warm_beta,
                                      tau, n, one_over_n, p,
@@ -427,6 +429,173 @@ arma::vec warm_huber_grad_descent(arma::mat& X,
     beta.insert_rows(intercept - 1, beta(0));
     beta.shed_row(0);
   }
+
+  return(beta);
+}
+
+
+void update_huber_grad_sp(const arma::sp_mat& X_t,
+                          const arma::vec& res,
+                          arma::vec& derivs,
+                          arma::vec& grad,
+                          double tau,
+                          double mu,
+                          int n,
+                          double one_over_n) {
+  for(int i = 0; i < n; i = i + 1) {
+    if (res(i) > mu) {
+      derivs(i) = tau;
+    } else if(res(i) < -mu) {
+      derivs(i) = tau - 1;
+    } else if(res(i) >= 0) {
+      derivs(i) = res(i) * tau / mu;
+    } else {
+      derivs(i) = res(i) * (tau - 1) / mu;
+    }
+  }
+  grad = X_t * derivs * one_over_n;
+}
+
+arma::vec huber_grad_descent_sp(const arma::colvec& y,
+                                const arma::sp_mat& X,
+                                const arma::sp_mat& X_t,
+                                arma::vec& beta,
+                                double tau, double n,
+                                double one_over_n,
+                                int p, int maxiter,
+                                double mu,
+                                double beta_tol,
+                                double check_tol) {
+
+
+  // gradient vector
+  arma::vec grad(p);
+  arma::vec last_beta = beta;
+  arma::vec last_grad = grad;
+  arma::vec derivs(n);
+
+  // vector of residuals
+  arma::colvec resid = y - X * beta;
+
+  // differences from previous gradients
+  // and betas
+  arma::sp_vec beta_diff(p);
+  arma::sp_vec grad_diff(p);
+
+  double checkfun_diff = checkfun(resid, tau, n);
+  double last_checkfun = checkfun_diff;
+  double this_checkfun;
+
+  int i = 1;
+  double cross = 0;
+  double delta = 1;
+  // inf is the "max" norm over the vector
+  while((i < maxiter) && ((arma::norm(grad, "inf") > beta_tol) || (i == 1)) &&
+        (checkfun_diff * delta > check_tol || delta < 0.01)) {
+
+    // picking step size
+    delta = 1;
+    if (cross > 0) {
+      double a1 = cross / arma::as_scalar(grad_diff.t() * grad_diff);
+      double a2 = arma::as_scalar(beta_diff.t() * beta_diff) / cross;
+
+      // pick the smaller and don't go _really_ off the rails
+      delta = std::min(std::min(a1, a2), 100.0);
+    }
+
+    if(i % 100 == 0) {
+      Rcpp::checkUserInterrupt();
+    }
+
+    // store last gradient for step size selection
+    last_grad = grad;
+    update_huber_grad_sp(X_t, resid, derivs, grad, tau, mu, n, one_over_n);
+
+    beta_diff = beta - last_beta;
+    grad_diff = grad - last_grad;
+
+    beta += (i - 1)/(i + 2) * beta_diff;
+    beta += delta * grad;
+
+    // update the beta movement for step size later
+    beta_diff += delta * grad;
+
+    // update residual vector
+    resid -= X * beta_diff;
+    last_beta = beta;
+
+    this_checkfun = checkfun(resid, tau, n);
+    checkfun_diff = abs((last_checkfun - this_checkfun));
+    last_checkfun = this_checkfun;
+    i++;
+    cross = arma::as_scalar(beta_diff.t() * grad_diff);
+  }
+  return beta;
+}
+
+
+//' Compute quantile regression via accelerated gradient descent using
+//' Huber approximation, warm start based on data subset
+//' @param y outcome vector
+//' @param X design matrix
+//' @param X_sub subset of X matrix to use for "warm start" regression
+//' @param y_sub subset of y to use for "warm start" regression
+//' @param tau target quantile
+//' @param init_beta initial guess at beta
+//' @param intercept location of the intercept column, using R's indexing
+//' @param num_samples number of samples used for subset of matrix used for warm start
+//' @param mu neighborhood over which to smooth
+//' @param maxiter maximum number of iterations to run
+//' @param check_tol loss function change tolerance for early stopping
+//' @param beta_tol tolerance for largest element of gradient, used
+//' for early stopping
+//' @export
+// [[Rcpp::export]]
+arma::vec fit_approx_quantile_model_sp(arma::sp_mat& X,
+                                       arma::colvec& y,
+                                       arma::sp_mat& X_sub,
+                                       arma::colvec& y_sub,
+                                       double tau,
+                                       arma::vec& init_beta,
+                                       double mu = 1e-4,
+                                       int maxiter = 10000,
+                                       double beta_tol = 1e-4,
+                                       double check_tol = 1e-6,
+                                       int intercept = 1,
+                                       double num_samples = 1000,
+                                       int warm_start = 1) {
+
+  // p is dim, n is obs, one_over_n to avoid repeated calcs
+  int p = X.n_cols;
+  double n = X.n_rows;
+
+  // calc'd here because we use it a bunch
+  double one_over_n = 1/n;
+  // pre-transposed X
+  arma::sp_mat X_t = arma::trans(X);
+
+  // warm start
+  arma::sp_mat X_t_sub = arma::trans(X_sub);
+
+  double one_over_num_samples = 1/num_samples;
+
+  if(warm_start == 1) {
+    init_beta = huber_grad_descent_sp(y_sub,
+                                      X_sub,
+                                      X_t_sub,
+                                      init_beta,
+                                      tau, num_samples,
+                                      one_over_num_samples, p,
+                                      maxiter = 100, mu,
+                                      beta_tol, check_tol);
+  }
+
+  // full data
+  arma::vec beta = huber_grad_descent_sp(y, X, X_t, init_beta,
+                                         tau, n, one_over_n, p,
+                                         maxiter, mu,
+                                         beta_tol, check_tol);
+
 
   return(beta);
 }

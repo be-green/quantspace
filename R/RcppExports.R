@@ -50,3 +50,23 @@ warm_huber_grad_descent <- function(X, y, X_sub, y_sub, tau, init_beta, mu = 1e-
     .Call(`_quantspace_warm_huber_grad_descent`, X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples)
 }
 
+#' Compute quantile regression via accelerated gradient descent using
+#' Huber approximation, warm start based on data subset
+#' @param y outcome vector
+#' @param X design matrix
+#' @param X_sub subset of X matrix to use for "warm start" regression
+#' @param y_sub subset of y to use for "warm start" regression
+#' @param tau target quantile
+#' @param init_beta initial guess at beta
+#' @param intercept location of the intercept column, using R's indexing
+#' @param num_samples number of samples used for subset of matrix used for warm start
+#' @param mu neighborhood over which to smooth
+#' @param maxiter maximum number of iterations to run
+#' @param check_tol loss function change tolerance for early stopping
+#' @param beta_tol tolerance for largest element of gradient, used
+#' for early stopping
+#' @export
+fit_approx_quantile_model_sp <- function(X, y, X_sub, y_sub, tau, init_beta, mu = 1e-4, maxiter = 10000L, beta_tol = 1e-4, check_tol = 1e-6, intercept = 1L, num_samples = 1000, warm_start = 1L) {
+    .Call(`_quantspace_fit_approx_quantile_model_sp`, X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples, warm_start)
+}
+
