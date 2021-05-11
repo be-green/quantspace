@@ -65,6 +65,7 @@ warm_huber_grad_descent <- function(X, y, X_sub, y_sub, tau, init_beta, mu = 1e-
 #' @param check_tol loss function change tolerance for early stopping
 #' @param beta_tol tolerance for largest element of gradient, used
 #' for early stopping
+#' @param warm_start whether to start with subsamples for fitting gradient descent
 #' @export
 fit_approx_quantile_model_sp <- function(X, y, X_sub, y_sub, tau, init_beta, mu = 1e-4, maxiter = 10000L, beta_tol = 1e-4, check_tol = 1e-6, intercept = 1L, num_samples = 1000, warm_start = 1L) {
     .Call(`_quantspace_fit_approx_quantile_model_sp`, X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples, warm_start)

@@ -46,6 +46,8 @@ for early stopping}
 \item{intercept}{location of the intercept column, using R's indexing}
 
 \item{num_samples}{number of samples used for subset of matrix used for warm start}
+
+\item{warm_start}{whether to start with subsamples for fitting gradient descent}
 }
 \description{
 Compute quantile regression via accelerated gradient descent using

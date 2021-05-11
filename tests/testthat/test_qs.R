@@ -8,7 +8,7 @@ y = 1 + 2 * x[,1] - 0.4 * x[,2] + rnorm(nrow(x)) * ( x[,1]) * 4 + rnorm(nrow(x))
 
 test_data = data.frame(y = y, x)
 
-fit <- qs(y ~ X1 + X2, data = head(test_data, 900), parallel = F)
+fit <- qs(y ~ X1 + X2, data = head(test_data, 900), algorithm = "agd", parallel = F)
 
 de <- distributional_effects(fit)
 de_mat <- distributional_effects(fit, newdata = tail(test_data, 5))
