@@ -483,7 +483,7 @@ predict.qs <- function(object, newdata = NULL, ...) {
     }
   } else {
     ff <- stats::as.formula(object$specs$formula)
-    tt <- stats::terms(ff)
+    tt <- stats::terms(ff, data = newdata)
     tt <- stats::delete.response(tt)
     X <- stats::model.matrix(tt,
                               data = newdata)

@@ -415,6 +415,9 @@ eval_CDF <- function(y, quantiles, alphas, distn = "c", tails = "gaussian") {
 #' and "q" to evaluate a quantile distribution.
 eval_Quantiles <- function(y,quantiles,alphas,distn = "q", tails = "gaussian") {
   spline_params <- q_spline_R(quantiles,alphas,tails)
-  y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]], spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],  spline_params[["q_shift"]], spline_params[["q_stretch"]],tails = tails, distn = distn)
+  y_hat <- splint_R(y, quantiles, alphas, spline_params[["y2"]],
+                    spline_params[["tail_param_u"]], spline_params[["tail_param_l"]],
+                    spline_params[["q_shift"]], spline_params[["q_stretch"]],
+                    tails = tails, distn = distn)
   return(y_hat)
 }

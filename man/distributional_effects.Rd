@@ -3,7 +3,6 @@
 \name{distributional_effects}
 \alias{distributional_effects}
 \alias{distributional_effects.qs}
-\alias{distributional_effects.numeric}
 \alias{distributional_effects.matrix}
 \title{Calculate distributional effects}
 \usage{
@@ -11,9 +10,7 @@ distributional_effects(object, tails = "gaussian", ...)
 
 \method{distributional_effects}{qs}(object, tails = "gaussian", newdata = NULL, ...)
 
-\method{distributional_effects}{numeric}(object, tails, alphas, ...)
-
-\method{distributional_effects}{matrix}(object, tails = "gaussian", alphas, ...)
+\method{distributional_effects}{matrix}(object, tails, alphas, ...)
 }
 \arguments{
 \item{object}{fit of class qs or matrix of fitted quantiles}
