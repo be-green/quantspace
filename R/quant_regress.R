@@ -278,7 +278,7 @@ rq.fit.agd <- function(X, y, tau = 0.5,
 
     # pre-multiplying the a matrix by a diagonal matrix of weights
     #a <- sweep(a,MARGIN=1,weights,`*`)
-    X <- weights %*% X
+    X <- weights * X
   }
   intercept <- get_intercept(X)
   inits = stats::rnorm(ncol(X))
