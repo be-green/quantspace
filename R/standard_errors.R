@@ -423,7 +423,7 @@ resample_qs <- function(X,
   }
 
   rows <- getRows(1:nrow(X), sampling_method = sampling_method, subsample_percent = subsample_percent)
-  weights <- getWeights(weights, draw_weights, length(rows))
+  weights <- getWeights(weights, draw_weights, nrow(X))
 
   quantreg_spacing(
     y = y[rows],
@@ -432,7 +432,7 @@ resample_qs <- function(X,
     alpha = alpha,
     jstar = jstar,
     control = control,
-    weights = weights,
+    weights = weights[rows],
     algorithm = algorithm,
     ...)
 }
