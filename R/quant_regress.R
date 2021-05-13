@@ -258,7 +258,9 @@ rq.fit.agd <- function(X, y, tau = 0.5,
                        beta_tol = 1e-10,
                        check_tol = 1e-7 * nrow(X),
                        maxiter = 10000,
-                       n_samples = min(c(ceiling(nrow(X)/10), 10000)),
+                       n_samples = min(c(ceiling(nrow(X)/10),
+                                         10000)),
+                       init_beta = NULL,
                        ...) {
 
 
@@ -281,7 +283,9 @@ rq.fit.agd <- function(X, y, tau = 0.5,
     X <- weights * X
   }
   intercept <- get_intercept(X)
-  inits = stats::rnorm(ncol(X))
+  if(is.null(init_beta)) {
+    init_beta = stats::rnorm(ncol(X))
+  }
 
   samples = sample(1:length(y), n_samples)
 
