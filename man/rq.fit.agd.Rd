@@ -11,11 +11,14 @@ rq.fit.agd(
   weights = NULL,
   control,
   lambda,
-  smoothing_window = 1e-15,
-  beta_tol = 1e-10,
-  check_tol = 1e-07 * nrow(X),
+  smoothing_window = 0,
+  beta_tol = 0,
+  check_tol = 0,
   maxiter = 10000,
   n_samples = min(c(ceiling(nrow(X)/10), 10000)),
+  init_beta = NULL,
+  scale = 1,
+  intercept = NULL,
   ...
 )
 }

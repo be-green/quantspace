@@ -254,13 +254,15 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' @importFrom stats rnorm
 rq.fit.agd <- function(X, y, tau = 0.5,
                        weights = NULL, control,
-                       lambda, smoothing_window = 1e-15,
-                       beta_tol = 1e-10,
-                       check_tol = 1e-7 * nrow(X),
+                       lambda, smoothing_window = 1e-16,
+                       beta_tol = 1e-16,
+                       check_tol = 1e-16,
                        maxiter = 10000,
                        n_samples = min(c(ceiling(nrow(X)/10),
                                          10000)),
                        init_beta = NULL,
+                       scale = 1,
+                       intercept = NULL,
                        ...) {
 
 
@@ -282,21 +284,24 @@ rq.fit.agd <- function(X, y, tau = 0.5,
     #a <- sweep(a,MARGIN=1,weights,`*`)
     X <- weights * X
   }
-  intercept <- get_intercept(X)
+  if(is.null(intercept)) {
+    intercept <- get_intercept(X)
+  }
   if(is.null(init_beta)) {
     init_beta = stats::rnorm(ncol(X))
   }
 
   samples = sample(1:length(y), n_samples)
 
-  fit = warm_huber_grad_descent(X = X, y = y,
+  fit = fit_approx_quantile_model(X = X, y = y,
                           X_sub = X[samples,],
                           y_sub = y[samples],
                           tau = tau,
-                          mu = smoothing_window, init_beta = inits,
+                          mu = smoothing_window, init_beta = init_beta,
                           maxiter = maxiter,
                           beta_tol = beta_tol,check_tol = check_tol,
-                          intercept = intercept, num_samples = n_samples
+                          intercept = intercept, num_samples = n_samples,
+                          scale = scale,
                           )
 
   list(coefficients = fit,
