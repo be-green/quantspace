@@ -67,7 +67,8 @@ fit_lasso <- function (x, y, tau = 0.5, lambda = NULL, weights = NULL, intercept
 
   model = fitQuantileRegression(X = aug_x, y = aug_y,tau = tau,
                                 algorithm = check_algorithm(method),
-                                weights = weights, ...)
+                                weights = weights, scale = 0,
+                                ...)
 
   p_star <- p + intercept
   coefs <- coefficients(model)[1:p_star]

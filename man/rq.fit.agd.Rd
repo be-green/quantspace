@@ -11,11 +11,14 @@ rq.fit.agd(
   weights = NULL,
   control,
   lambda,
-  smoothing_window = 1e-15,
-  beta_tol = 1e-10,
-  check_tol = 1e-07 * nrow(X),
+  smoothing_window = 1e-16,
+  beta_tol = 1e-16,
+  check_tol = 1e-16,
   maxiter = 10000,
   n_samples = min(c(ceiling(nrow(X)/10), 10000)),
+  init_beta = NULL,
+  scale = 1,
+  intercept = NULL,
   ...
 )
 }
@@ -42,7 +45,13 @@ tilted least squares loss function}
 
 \item{maxiter}{largest number of iterations allowed}
 
-\item{n_samples}{number of observations to use in "warmup" regression
+\item{n_samples}{number of observations to use in "warmup" regression}
+
+\item{init_beta}{initial guess at betas}
+
+\item{scale}{whether to scale x and y variables in regression}
+
+\item{intercept}{optional integer indicating intercept column
 that identifies initial values}
 
 \item{...}{other arguments, ignored for now}

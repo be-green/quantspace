@@ -3,12 +3,13 @@ context("Tests that qs & distributional_effects work.")
 set.seed(100)
 setCores(1)
 
-x = matrix(rnorm(1000), ncol = 2)
+x = matrix(rnorm(10000), ncol = 2)
 y = 1 + 2 * x[,1] - 0.4 * x[,2] + rnorm(nrow(x)) * ( x[,1]) * 4 + rnorm(nrow(x)) * ( x[,2]) *3
 
 test_data = data.frame(y = y, x)
 
-fit <- qs(y ~ X1 + X2, data = head(test_data, 900), algorithm = "agd", parallel = F)
+fit <- qs(y ~ X1 + X2, data = test_data,
+          algorithm = "agd", parallel = F)
 
 de <- distributional_effects(fit)
 de_mat <- distributional_effects(fit, newdata = tail(test_data, 5))

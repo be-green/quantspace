@@ -9,7 +9,7 @@
 
   ncores = getOption('mc.cores')
   if(is.null(ncores)) {
-    ncores = pmax(round(future::availableCores()/2), 1)
+    ncores = pmax(future::availableCores(), 1)
     options(mc.cores = ncores)
   }
 

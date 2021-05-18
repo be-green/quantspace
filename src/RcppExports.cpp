@@ -6,6 +6,17 @@
 
 using namespace Rcpp;
 
+// fast_rexp
+arma::vec fast_rexp(int n);
+RcppExport SEXP _quantspace_fast_rexp(SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(fast_rexp(n));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_huber_grad
 void update_huber_grad(const arma::mat& X_t, const arma::vec& res, arma::vec& derivs, arma::vec& grad, double tau, double mu, int n, double one_over_n);
 RcppExport SEXP _quantspace_update_huber_grad(SEXP X_tSEXP, SEXP resSEXP, SEXP derivsSEXP, SEXP gradSEXP, SEXP tauSEXP, SEXP muSEXP, SEXP nSEXP, SEXP one_over_nSEXP) {
@@ -37,27 +48,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // huber_grad_descent
-arma::vec huber_grad_descent(arma::mat& X, arma::vec& y, double tau, arma::colvec& init_beta, double mu, int maxiter, double beta_tol, double check_tol, int intercept);
-RcppExport SEXP _quantspace_huber_grad_descent(SEXP XSEXP, SEXP ySEXP, SEXP tauSEXP, SEXP init_betaSEXP, SEXP muSEXP, SEXP maxiterSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP, SEXP interceptSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< arma::colvec& >::type init_beta(init_betaSEXP);
-    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
-    Rcpp::traits::input_parameter< double >::type beta_tol(beta_tolSEXP);
-    Rcpp::traits::input_parameter< double >::type check_tol(check_tolSEXP);
-    Rcpp::traits::input_parameter< int >::type intercept(interceptSEXP);
-    rcpp_result_gen = Rcpp::wrap(huber_grad_descent(X, y, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept));
-    return rcpp_result_gen;
-END_RCPP
-}
-// just_grad_descent
-arma::vec just_grad_descent(const arma::colvec& y, const arma::mat& X, const arma::mat& X_t, arma::vec& beta, double tau, double n, double one_over_n, int p, int maxiter, double mu, double beta_tol, double check_tol);
-RcppExport SEXP _quantspace_just_grad_descent(SEXP ySEXP, SEXP XSEXP, SEXP X_tSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP nSEXP, SEXP one_over_nSEXP, SEXP pSEXP, SEXP maxiterSEXP, SEXP muSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP) {
+arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X, const arma::mat& X_t, arma::vec& beta, double tau, double n, double one_over_n, int p, int maxiter, double mu, double beta_tol, double check_tol);
+RcppExport SEXP _quantspace_huber_grad_descent(SEXP ySEXP, SEXP XSEXP, SEXP X_tSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP nSEXP, SEXP one_over_nSEXP, SEXP pSEXP, SEXP maxiterSEXP, SEXP muSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -73,13 +65,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type mu(muSEXP);
     Rcpp::traits::input_parameter< double >::type beta_tol(beta_tolSEXP);
     Rcpp::traits::input_parameter< double >::type check_tol(check_tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(just_grad_descent(y, X, X_t, beta, tau, n, one_over_n, p, maxiter, mu, beta_tol, check_tol));
+    rcpp_result_gen = Rcpp::wrap(huber_grad_descent(y, X, X_t, beta, tau, n, one_over_n, p, maxiter, mu, beta_tol, check_tol));
     return rcpp_result_gen;
 END_RCPP
 }
-// warm_huber_grad_descent
-arma::vec warm_huber_grad_descent(arma::mat& X, arma::vec& y, arma::mat& X_sub, arma::vec& y_sub, double tau, arma::colvec& init_beta, double mu, int maxiter, double beta_tol, double check_tol, int intercept, double num_samples);
-RcppExport SEXP _quantspace_warm_huber_grad_descent(SEXP XSEXP, SEXP ySEXP, SEXP X_subSEXP, SEXP y_subSEXP, SEXP tauSEXP, SEXP init_betaSEXP, SEXP muSEXP, SEXP maxiterSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP, SEXP interceptSEXP, SEXP num_samplesSEXP) {
+// fit_approx_quantile_model
+arma::vec fit_approx_quantile_model(arma::mat& X, arma::vec& y, arma::mat& X_sub, arma::vec& y_sub, double tau, arma::colvec init_beta, double mu, int maxiter, double beta_tol, double check_tol, int intercept, double num_samples, int warm_start, int scale);
+RcppExport SEXP _quantspace_fit_approx_quantile_model(SEXP XSEXP, SEXP ySEXP, SEXP X_subSEXP, SEXP y_subSEXP, SEXP tauSEXP, SEXP init_betaSEXP, SEXP muSEXP, SEXP maxiterSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP, SEXP interceptSEXP, SEXP num_samplesSEXP, SEXP warm_startSEXP, SEXP scaleSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,29 +80,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat& >::type X_sub(X_subSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type y_sub(y_subSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< arma::colvec& >::type init_beta(init_betaSEXP);
-    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
-    Rcpp::traits::input_parameter< double >::type beta_tol(beta_tolSEXP);
-    Rcpp::traits::input_parameter< double >::type check_tol(check_tolSEXP);
-    Rcpp::traits::input_parameter< int >::type intercept(interceptSEXP);
-    Rcpp::traits::input_parameter< double >::type num_samples(num_samplesSEXP);
-    rcpp_result_gen = Rcpp::wrap(warm_huber_grad_descent(X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples));
-    return rcpp_result_gen;
-END_RCPP
-}
-// fit_approx_quantile_model_sp
-arma::vec fit_approx_quantile_model_sp(arma::sp_mat& X, arma::colvec& y, arma::sp_mat& X_sub, arma::colvec& y_sub, double tau, arma::vec& init_beta, double mu, int maxiter, double beta_tol, double check_tol, int intercept, double num_samples, int warm_start);
-RcppExport SEXP _quantspace_fit_approx_quantile_model_sp(SEXP XSEXP, SEXP ySEXP, SEXP X_subSEXP, SEXP y_subSEXP, SEXP tauSEXP, SEXP init_betaSEXP, SEXP muSEXP, SEXP maxiterSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP, SEXP interceptSEXP, SEXP num_samplesSEXP, SEXP warm_startSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::sp_mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::colvec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::sp_mat& >::type X_sub(X_subSEXP);
-    Rcpp::traits::input_parameter< arma::colvec& >::type y_sub(y_subSEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type init_beta(init_betaSEXP);
+    Rcpp::traits::input_parameter< arma::colvec >::type init_beta(init_betaSEXP);
     Rcpp::traits::input_parameter< double >::type mu(muSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type beta_tol(beta_tolSEXP);
@@ -118,18 +88,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type intercept(interceptSEXP);
     Rcpp::traits::input_parameter< double >::type num_samples(num_samplesSEXP);
     Rcpp::traits::input_parameter< int >::type warm_start(warm_startSEXP);
-    rcpp_result_gen = Rcpp::wrap(fit_approx_quantile_model_sp(X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples, warm_start));
+    Rcpp::traits::input_parameter< int >::type scale(scaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(fit_approx_quantile_model(X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples, warm_start, scale));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_quantspace_fast_rexp", (DL_FUNC) &_quantspace_fast_rexp, 1},
     {"_quantspace_update_huber_grad", (DL_FUNC) &_quantspace_update_huber_grad, 8},
     {"_quantspace_z_score", (DL_FUNC) &_quantspace_z_score, 4},
-    {"_quantspace_huber_grad_descent", (DL_FUNC) &_quantspace_huber_grad_descent, 9},
-    {"_quantspace_just_grad_descent", (DL_FUNC) &_quantspace_just_grad_descent, 12},
-    {"_quantspace_warm_huber_grad_descent", (DL_FUNC) &_quantspace_warm_huber_grad_descent, 12},
-    {"_quantspace_fit_approx_quantile_model_sp", (DL_FUNC) &_quantspace_fit_approx_quantile_model_sp, 13},
+    {"_quantspace_huber_grad_descent", (DL_FUNC) &_quantspace_huber_grad_descent, 12},
+    {"_quantspace_fit_approx_quantile_model", (DL_FUNC) &_quantspace_fit_approx_quantile_model, 14},
     {NULL, NULL, 0}
 };
 
