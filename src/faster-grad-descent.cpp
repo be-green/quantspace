@@ -156,6 +156,7 @@ arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X,
 //' for early stopping
 //' @param warm_start integer indicating whether to "warm up" on a subsample
 //' of the data
+//' @param scale whether to scale x & y variables
 //' @export
 // [[Rcpp::export]]
 arma::vec fit_approx_quantile_model(arma::mat& X,

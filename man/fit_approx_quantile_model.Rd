@@ -50,6 +50,8 @@ for early stopping}
 
 \item{warm_start}{integer indicating whether to "warm up" on a subsample
 of the data}
+
+\item{scale}{whether to scale x & y variables}
 }
 \description{
 Compute quantile regression via accelerated gradient descent using
