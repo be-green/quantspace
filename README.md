@@ -23,8 +23,26 @@ You'll need R installed on your computer run the package. To install, the easies
 remotes::install_github("be-green/quantspace")
 ```
 
-which requires the `remotes` package.
+which requires the `remotes` package. `quantspace` also has some code which must be compiled.
 
+## Compiling on Windows
+
+On windows that requires the installation of [Rtools](https://cran.r-project.org/bin/windows/Rtools/). For versions of R >= 4.0, you must use `rtools40`, and [the older rtools](https://cran.r-project.org/bin/windows/Rtools/history.html) for versions before 4.0. 
+
+## Compiling on Mac
+On a mac, you will require a C++ compiler, a `gfortran` binary and the like. While you can install these things via terminal + homebrew, the easiest way is to use the [toolchain installer](https://github.com/rmacoslib/r-macos-rtools#how-do-i-use-the-installer). 
+
+## Compiling on Linux
+
+On most linux distributions, you shouldn't have to do anything special. You will still need a `C++` compiler installed, but usually something like `g++` is already available. On some Redhat linux server systems you will need to enable developer tools for your session before building. You can do this like so:
+
+1. Open a terminal window
+2. `scl enable devtoolset-x bash` where `x` is replaced with the version of devtools available to your redhat system
+3. Boot up R and install the package
+
+## Performance benefits for `agd`
+
+One of the algorithms (agd) available for fitting quantile regressions in the `quantspace` package uses the `Armadillo` C++ library for linear algebra. This library is able to leverage high-speed linear algebra packages such as [openblas](https://www.openblas.net/) or the [Intel MKL libraries](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html).
 
 # Basic Usage
 
