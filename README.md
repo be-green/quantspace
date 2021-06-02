@@ -5,7 +5,6 @@
 
 [![R build
 status](https://github.com/be-green/quantspace/workflows/R-CMD-check/badge.svg)](https://github.com/be-green/quantspace/actions)
-
 [![Codecov test
 coverage](https://codecov.io/gh/be-green/quantspace/branch/master/graph/badge.svg)](https://codecov.io/gh/be-green/quantspace?branch=master)
 <!-- badges: end -->
@@ -104,12 +103,8 @@ to use the `qs` function.
 
 ``` r
 library(quantspace)
-```
-
-    ## Loaded quantspace v0.1, using 6 cores for bootstrap sampling (see ?getCores).
-    ## Bug reports: github.com/be-green/quantspace/issues
-
-``` r
+#> Loaded quantspace v0.1, using 6 cores for bootstrap sampling (see ?getCores).
+#> Bug reports: github.com/be-green/quantspace/issues
 library(ggplot2)
 data(mpg)
 
@@ -123,23 +118,22 @@ spacings coefficients.
 
 ``` r
 est
+#> Baseline Coefficients:
+#>       Variable Quantile Coefficient        SE
+#> 1 (Intercept)      0.5    0.019890 0.0013340
+#> 2       displ      0.5    0.007298 0.0004935 
+#> 
+#> Spacings Coefficients:
+#>       Variable Quantile Coefficient Standard.Error
+#> 1 (Intercept)     0.10     -6.8980         0.9711
+#> 2       displ     0.10      0.3881         0.2463
+#> 3 (Intercept)     0.25     -6.8500         0.4917
+#> 4       displ     0.25      0.3711         0.1228
+#> 5 (Intercept)     0.75     -6.6770         0.4730
+#> 6       displ     0.75      0.3151         0.1240
+#> 7 (Intercept)     0.90     -6.1480         1.0420
+#> 8       displ     0.90      0.2271         0.2829
 ```
-
-    ## Baseline Coefficients:
-    ##       Variable Quantile Coefficient        SE
-    ## 1 (Intercept)      0.5    0.019890 0.0011040
-    ## 2       displ      0.5    0.007298 0.0004063 
-    ## 
-    ## Spacings Coefficients:
-    ##       Variable Quantile Coefficient Standard.Error
-    ## 1 (Intercept)     0.10     -6.8980         0.9312
-    ## 2       displ     0.10      0.3881         0.2521
-    ## 3 (Intercept)     0.25     -6.8500         0.4499
-    ## 4       displ     0.25      0.3711         0.1117
-    ## 5 (Intercept)     0.75     -6.6770         0.5753
-    ## 6       displ     0.75      0.3151         0.1629
-    ## 7 (Intercept)     0.90     -6.1480         1.3190
-    ## 8       displ     0.90      0.2271         0.3671
 
 Suppose we want to see how good our fit is? We might want out of sample
 predictive tests. To do this, we simply run
@@ -167,7 +161,7 @@ ggplot(plot_data,
           subtitle = "Out of Sample Predictions")
 ```
 
-![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 Let’s try a multivariate model, with multiple X variables. To make the
 predictions easier to see, I’m going to sort the true values, and plot
@@ -200,7 +194,7 @@ ggplot(plot_data,
           subtitle = "Out of Sample Predictions, Multivariate Model")
 ```
 
-![](man/figures/README-unnamed-chunk-5-1.png)<!-- -->
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
 
 Looks like we are missing some aspect of the problem for the lowest
 gallons-per-mile of car–perhaps we need to include an additional
@@ -242,10 +236,9 @@ fitted density.
 
 ``` r
 de$r(10)
+#>  [1] 0.05397541 0.04655421 0.04505485 0.04704032 0.05438701 0.04198281
+#>  [7] 0.04158249 0.04753504 0.04674888 0.04402587
 ```
-
-    ##  [1] 0.04903262 0.04799795 0.04664082 0.04214902 0.04391048 0.04415034
-    ##  [7] 0.04771616 0.04333392 0.03692872 0.05452899
 
 # Marginal Effects
 
