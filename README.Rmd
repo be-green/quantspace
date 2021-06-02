@@ -3,6 +3,10 @@ output: github_document
 ---
 # quantspace
 
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(fig.path="man/figures/README-")
+```
+
 <!-- badges: start -->
 [![R build status](https://github.com/be-green/quantspace/workflows/R-CMD-check/badge.svg)](https://github.com/be-green/quantspace/actions)
 
