@@ -65,7 +65,6 @@
 <a href="#quantspace" class="anchor"></a>quantspace</h1></div>
 <!-- badges: start -->
 
-<p><a href="https://codecov.io/gh/be-green/quantspace?branch=master"><img src="https://codecov.io/gh/be-green/quantspace/branch/master/graph/badge.svg" alt="Codecov test coverage"></a> <!-- badges: end --></p>
 <p>This is an R package for estimating quantile regression coefficients via the quantile spacing method, as described in the paper <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2220901">Quantile Spacings: A Simple Method for the Joint Estimation of Multiple Quantiles Without Crossing, Schmidt &amp; Zhu</a>.</p>
 <p>The package contains utilities for estimating quantiles via the difference from a central estimated quantile. Fitted quantiles are guaranteed to be positive, because instead of directly estimating each quantile, the package will estimate the quantile effect on the log of the residuals with the correct corresponding sign.</p>
 <p>In other words, imagine we estimate the median quantile for the data. Now we are interested in the 75th percentile. But we don’t want our quantiles to cross, which they are guaranteed to do in a non-trivial linear model (just expand the line far enough–if the lines aren’t parallel, they will cross). What do we do? We take the log of the residuals relative to the median, and estimate a quantile regression on that quantity. The exponential model guarantees that the fitted quantile will have a positive difference vs. the median. You can translate the spacing back to a fitted quantile by taking the implied <code>predicted_spacing = log(75% - median)</code> by running <code>median + exp(predicted_spacing)</code>. The effects on each quantile are non-linear, but it avoids the crossing problem.</p>
@@ -111,38 +110,37 @@
 <a href="#basic-usage" class="anchor"></a>Basic Usage</h1>
 <p>Say we want to run a quantile regression. The easiest way to do this is to use the <code>qs</code> function.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://brice.green/quantspace">quantspace</a></span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">## Loaded quantspace v0.1, using 6 cores for bootstrap sampling (see ?getCores).</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="co">## Bug reports: github.com/be-green/quantspace/issues</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://brice.green/quantspace">quantspace</a></span><span class="op">)</span>
+<span class="co">#&gt; Loaded quantspace v0.1, using 6 cores for bootstrap sampling (see ?getCores).</span>
+<span class="co">#&gt; Bug reports: github.com/be-green/quantspace/issues</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">mpg</span><span class="op">)</span>
 
 <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/qs.html">qs</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">hwy</span> <span class="op">~</span> <span class="va">displ</span>, 
           data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>If we print our estimate, we’ll see the baseline coefficients (in this case the median is chosen as the central quantile), and then the spacings coefficients.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">est</span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co">## Baseline Coefficients:</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a><span class="co">##       Variable Quantile Coefficient        SE</span></span>
-<span id="cb6-3"><a href="#cb6-3"></a><span class="co">## 1 (Intercept)      0.5    0.019890 0.0011040</span></span>
-<span id="cb6-4"><a href="#cb6-4"></a><span class="co">## 2       displ      0.5    0.007298 0.0004063 </span></span>
-<span id="cb6-5"><a href="#cb6-5"></a><span class="co">## </span></span>
-<span id="cb6-6"><a href="#cb6-6"></a><span class="co">## Spacings Coefficients:</span></span>
-<span id="cb6-7"><a href="#cb6-7"></a><span class="co">##       Variable Quantile Coefficient Standard.Error</span></span>
-<span id="cb6-8"><a href="#cb6-8"></a><span class="co">## 1 (Intercept)     0.10     -6.8980         0.9312</span></span>
-<span id="cb6-9"><a href="#cb6-9"></a><span class="co">## 2       displ     0.10      0.3881         0.2521</span></span>
-<span id="cb6-10"><a href="#cb6-10"></a><span class="co">## 3 (Intercept)     0.25     -6.8500         0.4499</span></span>
-<span id="cb6-11"><a href="#cb6-11"></a><span class="co">## 4       displ     0.25      0.3711         0.1117</span></span>
-<span id="cb6-12"><a href="#cb6-12"></a><span class="co">## 5 (Intercept)     0.75     -6.6770         0.5753</span></span>
-<span id="cb6-13"><a href="#cb6-13"></a><span class="co">## 6       displ     0.75      0.3151         0.1629</span></span>
-<span id="cb6-14"><a href="#cb6-14"></a><span class="co">## 7 (Intercept)     0.90     -6.1480         1.3190</span></span>
-<span id="cb6-15"><a href="#cb6-15"></a><span class="co">## 8       displ     0.90      0.2271         0.3671</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">est</span>
+<span class="co">#&gt; Baseline Coefficients:</span>
+<span class="co">#&gt;       Variable Quantile Coefficient        SE</span>
+<span class="co">#&gt; 1 (Intercept)      0.5    0.019890 0.0013340</span>
+<span class="co">#&gt; 2       displ      0.5    0.007298 0.0004935 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Spacings Coefficients:</span>
+<span class="co">#&gt;       Variable Quantile Coefficient Standard.Error</span>
+<span class="co">#&gt; 1 (Intercept)     0.10     -6.8980         0.9711</span>
+<span class="co">#&gt; 2       displ     0.10      0.3881         0.2463</span>
+<span class="co">#&gt; 3 (Intercept)     0.25     -6.8500         0.4917</span>
+<span class="co">#&gt; 4       displ     0.25      0.3711         0.1228</span>
+<span class="co">#&gt; 5 (Intercept)     0.75     -6.6770         0.4730</span>
+<span class="co">#&gt; 6       displ     0.75      0.3151         0.1240</span>
+<span class="co">#&gt; 7 (Intercept)     0.90     -6.1480         1.0420</span>
+<span class="co">#&gt; 8       displ     0.90      0.2271         0.2829</span></code></pre></div>
 <p>Suppose we want to see how good our fit is? We might want out of sample predictive tests. To do this, we simply run</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">oos_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">est</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>Let’s plot some of this stuff to see how it looks!</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
 <span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span>,
                         <span class="va">oos_pred</span><span class="op">)</span>
@@ -157,9 +155,9 @@
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
           subtitle <span class="op">=</span> <span class="st">"Out of Sample Predictions"</span><span class="op">)</span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-4-1.png"><!-- --></p>
+<p><img src="reference/figures/README-unnamed-chunk-5-1.png" width="100%"></p>
 <p>Let’s try a multivariate model, with multiple X variables. To make the predictions easier to see, I’m going to sort the true values, and plot our predicted quantiles as point-ranges, with the fatter range representing the 50% interval, and the thin one representing the 80% interval.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/qs.html">qs</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">hwy</span> <span class="op">~</span> <span class="va">displ</span> <span class="op">+</span> <span class="va">cty</span>, 
           data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span>
 
@@ -182,7 +180,7 @@
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
           subtitle <span class="op">=</span> <span class="st">"Out of Sample Predictions, Multivariate Model"</span><span class="op">)</span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-5-1.png"><!-- --></p>
+<p><img src="reference/figures/README-unnamed-chunk-6-1.png" width="100%"></p>
 <p>Looks like we are missing some aspect of the problem for the lowest gallons-per-mile of car–perhaps we need to include an additional covariate. This type of model diagnostic is helpful, since the 80% interval for the fitted quantile should contain the observed value 80% of the time. If that’s happening not-at-random, or not happening it might be time to check your model.</p>
 </div>
 <div id="distributional-effects" class="section level1">
@@ -190,15 +188,15 @@
 <a href="#distributional-effects" class="anchor"></a>Distributional Effects</h1>
 <p>What if we want to interpolate the fitted quantiles? For example, a full changes-in-changes difference in difference model involves the cumulative distribution function of the treated vs. the counterfactual predicted by the control group. We can do that by interpolating the fitted distributions for each group. Or maybe you just want a full predictive density to predict with/evaluate/sample from.</p>
 <p>Let’s start with the fitted model above. To interpolate the fitted quantiles, all you need to do is run the following.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">de</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></code></pre></div>
 <p>By default this estimates the conditional distribution at the average level of the covariates, but you can specify the <code>newdata</code> argument, which will compute the density functions for the levels of the data you provide.</p>
 <p>Now <code>de</code> is an object of class “distributional_effects” which has associated plotting methods. I think that a <code>predict</code> interface is going to be on the roadmap for future releases since it will be relatively easy to program.</p>
 <p>The object itself is a list of 4 functions corresponding to the pdf, the cdf, the quantile function, and a random number generator which simulates from the fitted density. Let’s draw 10 random numbers from our fitted density.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">de</span><span class="op">$</span><span class="fu">r</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">##  [1] 0.04903262 0.04799795 0.04664082 0.04214902 0.04391048 0.04415034</span></span>
-<span id="cb12-2"><a href="#cb12-2"></a><span class="co">##  [7] 0.04771616 0.04333392 0.03692872 0.05452899</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">de</span><span class="op">$</span><span class="fu">r</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span>
+<span class="co">#&gt;  [1] 0.05397541 0.04655421 0.04505485 0.04704032 0.05438701 0.04198281</span>
+<span class="co">#&gt;  [7] 0.04158249 0.04753504 0.04674888 0.04402587</span></code></pre></div>
 </div>
 <div id="marginal-effects" class="section level1">
 <h1 class="hasAnchor">
@@ -227,6 +225,7 @@
 <h2>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/be-green/quantspace/actions"><img src="https://github.com/be-green/quantspace/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
+<li><a href="https://codecov.io/gh/be-green/quantspace?branch=master"><img src="https://codecov.io/gh/be-green/quantspace/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
 </ul>
 </div>
 </div>
