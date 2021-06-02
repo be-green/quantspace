@@ -36,3 +36,4 @@ VignetteBuilder: knitr
 LinkingTo: 
     RcppArmadillo,
     Rcpp
+URL: https://brice.green/quantspace
