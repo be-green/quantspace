@@ -127,19 +127,19 @@ est
 
     ## Baseline Coefficients:
     ##       Variable Quantile Coefficient        SE
-    ## 1 (Intercept)      0.5    0.019890 0.0013780
-    ## 2       displ      0.5    0.007298 0.0005057 
+    ## 1 (Intercept)      0.5    0.019890 0.0011040
+    ## 2       displ      0.5    0.007298 0.0004063 
     ## 
     ## Spacings Coefficients:
     ##       Variable Quantile Coefficient Standard.Error
-    ## 1 (Intercept)     0.10     -6.8980         0.9038
-    ## 2       displ     0.10      0.3881         0.2198
-    ## 3 (Intercept)     0.25     -6.8500         0.4039
-    ## 4       displ     0.25      0.3711         0.1026
-    ## 5 (Intercept)     0.75     -6.6770         0.4104
-    ## 6       displ     0.75      0.3151         0.1123
-    ## 7 (Intercept)     0.90     -6.1480         1.0840
-    ## 8       displ     0.90      0.2271         0.2759
+    ## 1 (Intercept)     0.10     -6.8980         0.9312
+    ## 2       displ     0.10      0.3881         0.2521
+    ## 3 (Intercept)     0.25     -6.8500         0.4499
+    ## 4       displ     0.25      0.3711         0.1117
+    ## 5 (Intercept)     0.75     -6.6770         0.5753
+    ## 6       displ     0.75      0.3151         0.1629
+    ## 7 (Intercept)     0.90     -6.1480         1.3190
+    ## 8       displ     0.90      0.2271         0.3671
 
 Suppose we want to see how good our fit is? We might want out of sample
 predictive tests. To do this, we simply run
@@ -167,7 +167,7 @@ ggplot(plot_data,
           subtitle = "Out of Sample Predictions")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
 
 Let’s try a multivariate model, with multiple X variables. To make the
 predictions easier to see, I’m going to sort the true values, and plot
@@ -200,7 +200,7 @@ ggplot(plot_data,
           subtitle = "Out of Sample Predictions, Multivariate Model")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-5-1.png)<!-- -->
 
 Looks like we are missing some aspect of the problem for the lowest
 gallons-per-mile of car–perhaps we need to include an additional
@@ -244,8 +244,8 @@ fitted density.
 de$r(10)
 ```
 
-    ##  [1] 0.03971075 0.04620651 0.04465294 0.04118761 0.03825759 0.04680350
-    ##  [7] 0.04678181 0.05110353 0.04883905 0.05054502
+    ##  [1] 0.04903262 0.04799795 0.04664082 0.04214902 0.04391048 0.04415034
+    ##  [7] 0.04771616 0.04333392 0.03692872 0.05452899
 
 # Marginal Effects
 
