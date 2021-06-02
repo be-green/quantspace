@@ -125,19 +125,19 @@
 <code class="sourceCode R"><span class="va">est</span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Baseline Coefficients:</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="do">##       Variable Quantile Coefficient        SE</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="do">## 1 (Intercept)      0.5    0.019890 0.0013780</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="do">## 2       displ      0.5    0.007298 0.0005057 </span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="do">## 1 (Intercept)      0.5    0.019890 0.0011040</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="do">## 2       displ      0.5    0.007298 0.0004063 </span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="do">## </span></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="do">## Spacings Coefficients:</span></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="do">##       Variable Quantile Coefficient Standard.Error</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="do">## 1 (Intercept)     0.10     -6.8980         0.9038</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="do">## 2       displ     0.10      0.3881         0.2198</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="do">## 3 (Intercept)     0.25     -6.8500         0.4039</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="do">## 4       displ     0.25      0.3711         0.1026</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="do">## 5 (Intercept)     0.75     -6.6770         0.4104</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="do">## 6       displ     0.75      0.3151         0.1123</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="do">## 7 (Intercept)     0.90     -6.1480         1.0840</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="do">## 8       displ     0.90      0.2271         0.2759</span></span></code></pre></div>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="do">## 1 (Intercept)     0.10     -6.8980         0.9312</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="do">## 2       displ     0.10      0.3881         0.2521</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="do">## 3 (Intercept)     0.25     -6.8500         0.4499</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="do">## 4       displ     0.25      0.3711         0.1117</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="do">## 5 (Intercept)     0.75     -6.6770         0.5753</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="do">## 6       displ     0.75      0.3151         0.1629</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="do">## 7 (Intercept)     0.90     -6.1480         1.3190</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="do">## 8       displ     0.90      0.2271         0.3671</span></span></code></pre></div>
 <p>Suppose we want to see how good our fit is? We might want out of sample predictive tests. To do this, we simply run</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">oos_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">est</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span><span class="op">)</span></code></pre></div>
@@ -157,7 +157,7 @@
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
           subtitle <span class="op">=</span> <span class="st">"Out of Sample Predictions"</span><span class="op">)</span></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-4-1.png"><!-- --></p>
+<p><img src="reference/figures/README-unnamed-chunk-4-1.png"><!-- --></p>
 <p>Let’s try a multivariate model, with multiple X variables. To make the predictions easier to see, I’m going to sort the true values, and plot our predicted quantiles as point-ranges, with the fatter range representing the 50% interval, and the thin one representing the 80% interval.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/qs.html">qs</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">hwy</span> <span class="op">~</span> <span class="va">displ</span> <span class="op">+</span> <span class="va">cty</span>, 
@@ -182,7 +182,7 @@
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
           subtitle <span class="op">=</span> <span class="st">"Out of Sample Predictions, Multivariate Model"</span><span class="op">)</span></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-5-1.png"><!-- --></p>
+<p><img src="reference/figures/README-unnamed-chunk-5-1.png"><!-- --></p>
 <p>Looks like we are missing some aspect of the problem for the lowest gallons-per-mile of car–perhaps we need to include an additional covariate. This type of model diagnostic is helpful, since the 80% interval for the fitted quantile should contain the observed value 80% of the time. If that’s happening not-at-random, or not happening it might be time to check your model.</p>
 </div>
 <div id="distributional-effects" class="section level1">
@@ -197,8 +197,8 @@
 <p>The object itself is a list of 4 functions corresponding to the pdf, the cdf, the quantile function, and a random number generator which simulates from the fitted density. Let’s draw 10 random numbers from our fitted density.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">de</span><span class="op">$</span><span class="fu">r</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="do">##  [1] 0.03971075 0.04620651 0.04465294 0.04118761 0.03825759 0.04680350</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="do">##  [7] 0.04678181 0.05110353 0.04883905 0.05054502</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="do">##  [1] 0.04903262 0.04799795 0.04664082 0.04214902 0.04391048 0.04415034</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="do">##  [7] 0.04771616 0.04333392 0.03692872 0.05452899</span></span></code></pre></div>
 </div>
 <div id="marginal-effects" class="section level1">
 <h1 class="hasAnchor">
