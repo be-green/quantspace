@@ -39,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -63,6 +63,7 @@
 <div id="quantspace" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#quantspace" class="anchor"></a>quantspace</h1></div>
+<!-- badges: start -->
 
 <p><a href="https://codecov.io/gh/be-green/quantspace?branch=master"><img src="https://codecov.io/gh/be-green/quantspace/branch/master/graph/badge.svg" alt="Codecov test coverage"></a> <!-- badges: end --></p>
 <p>This is an R package for estimating quantile regression coefficients via the quantile spacing method, as described in the paper <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2220901">Quantile Spacings: A Simple Method for the Joint Estimation of Multiple Quantiles Without Crossing, Schmidt &amp; Zhu</a>.</p>
@@ -75,62 +76,113 @@
 <h1 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h1>
 <p>You’ll need R installed on your computer run the package. To install, the easiest method is to run</p>
-<pre><code><a href="https://remotes.r-lib.org/reference/install_github.html">remotes::install_github("be-green/quantspace")</a></code></pre>
-<p>which requires the <code>remotes</code> package.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"be-green/quantspace"</span>)</span></code></pre></div>
+<p>which requires the <code>remotes</code> package. <code>quantspace</code> also has some code which must be compiled.</p>
+<div id="compiling-on-windows" class="section level2">
+<h2 class="hasAnchor">
+<a href="#compiling-on-windows" class="anchor"></a>Compiling on Windows</h2>
+<p>On windows that requires the installation of <a href="https://cran.r-project.org/bin/windows/Rtools/">Rtools</a>. For versions of R &gt;= 4.0, you must use <code>rtools40</code>, and <a href="https://cran.r-project.org/bin/windows/Rtools/history.html">the older rtools</a> for versions before 4.0.</p>
+</div>
+<div id="compiling-on-mac" class="section level2">
+<h2 class="hasAnchor">
+<a href="#compiling-on-mac" class="anchor"></a>Compiling on Mac</h2>
+<p>On a mac, you will require a C++ compiler, a <code>gfortran</code> binary and the like. While you can install these things via terminal + homebrew, the easiest way is to use the <a href="https://github.com/rmacoslib/r-macos-rtools#how-do-i-use-the-installer">toolchain installer</a>.</p>
+</div>
+<div id="compiling-on-linux" class="section level2">
+<h2 class="hasAnchor">
+<a href="#compiling-on-linux" class="anchor"></a>Compiling on Linux</h2>
+<p>On most linux distributions, you shouldn’t have to do anything special. You will still need a <code>C++</code> compiler installed, but usually something like <code>g++</code> is already available. On some Redhat linux server systems you will need to enable developer tools for your session before building. You can do this like so:</p>
+<ol>
+<li>Open a terminal window</li>
+<li>
+<code>scl enable devtoolset-x bash</code> where <code>x</code> is replaced with the version of devtools available to your redhat system</li>
+<li>Boot up R and install the package</li>
+</ol>
+</div>
+<div id="performance-benefits-for-agd" class="section level2">
+<h2 class="hasAnchor">
+<a href="#performance-benefits-for-agd" class="anchor"></a>Performance benefits for <code>agd</code>
+</h2>
+<p>One of the algorithms (agd) available for fitting quantile regressions in the <code>quantspace</code> package uses the <code>Armadillo</code> C++ library for linear algebra. This library is able to leverage high-speed linear algebra packages such as <a href="https://www.openblas.net/">openblas</a> or the <a href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html">Intel MKL libraries</a>.</p>
+</div>
 </div>
 <div id="basic-usage" class="section level1">
 <h1 class="hasAnchor">
 <a href="#basic-usage" class="anchor"></a>Basic Usage</h1>
 <p>Say we want to run a quantile regression. The easiest way to do this is to use the <code>qs</code> function.</p>
-<pre><code><a href="https://rdrr.io/r/base/library.html">library(quantspace)
-data(mpg)
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">quantspace</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Loaded quantspace v0.1, using 6 cores for bootstrap sampling (see ?getCores).</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Bug reports: github.com/be-green/quantspace/issues</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">mpg</span><span class="op">)</span>
 
-est &lt;- qs(1/hwy ~ displ, 
-          data = head(mpg, 190))</a></code></pre>
+<span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/qs.html">qs</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">hwy</span> <span class="op">~</span> <span class="va">displ</span>, 
+          data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>If we print our estimate, we’ll see the baseline coefficients (in this case the median is chosen as the central quantile), and then the spacings coefficients.</p>
-<p><img src="inst/img/reg_output.png" alt="regression output"></p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">est</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Baseline Coefficients:</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="do">##       Variable Quantile Coefficient        SE</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="do">## 1 (Intercept)      0.5    0.019890 0.0013780</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="do">## 2       displ      0.5    0.007298 0.0005057 </span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="do">## Spacings Coefficients:</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="do">##       Variable Quantile Coefficient Standard.Error</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="do">## 1 (Intercept)     0.10     -6.8980         0.9038</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="do">## 2       displ     0.10      0.3881         0.2198</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="do">## 3 (Intercept)     0.25     -6.8500         0.4039</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="do">## 4       displ     0.25      0.3711         0.1026</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="do">## 5 (Intercept)     0.75     -6.6770         0.4104</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="do">## 6       displ     0.75      0.3151         0.1123</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="do">## 7 (Intercept)     0.90     -6.1480         1.0840</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="do">## 8       displ     0.90      0.2271         0.2759</span></span></code></pre></div>
 <p>Suppose we want to see how good our fit is? We might want out of sample predictive tests. To do this, we simply run</p>
-<pre><code>oos_pred &lt;- predict(est, newdata = tail(mpg, 70))</code></pre>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">oos_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">est</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>Let’s plot some of this stuff to see how it looks!</p>
-<pre><code><a href="http://ggplot2.tidyverse.org">library(ggplot2)
-plot_data &lt;- data.frame(tail(mpg, 70),
-                        oos_pred)
-                        
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span>,
+                        <span class="va">oos_pred</span><span class="op">)</span>
 
-ggplot(plot_data, 
-       aes(x = displ, y = 1/hwy, ymin = `0.25`, ymax = `0.75`)) +
-  geom_ribbon(fill = "lightblue", alpha = 0.5, color = "black") +
-  geom_ribbon(aes(ymin = `0.1`, ymax = `0.9`),
-              fill = "lightblue", alpha = 0.3, color = "black") +
-  geom_point() +
-  geom_line(aes(y = `0.5`), color = "black") +
-  theme_minimal() +
-  ggtitle("Predicted Gallons per Mile",
-          subtitle = "Out of Sample Predictions")</a></code></pre>
-<p><img src="inst/img/predicted-gpm.png" alt="plot output"></p>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, 
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">displ</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="va">hwy</span>, ymin <span class="op">=</span> <span class="va">`X0.25`</span>, ymax <span class="op">=</span> <span class="va">`X0.75`</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"lightblue"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">`X0.1`</span>, ymax <span class="op">=</span> <span class="va">`X0.9`</span><span class="op">)</span>,
+              fill <span class="op">=</span> <span class="st">"lightblue"</span>, alpha <span class="op">=</span> <span class="fl">0.3</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
+          subtitle <span class="op">=</span> <span class="st">"Out of Sample Predictions"</span><span class="op">)</span></code></pre></div>
+<p><img src="README_files/figure-gfm/unnamed-chunk-4-1.png"><!-- --></p>
 <p>Let’s try a multivariate model, with multiple X variables. To make the predictions easier to see, I’m going to sort the true values, and plot our predicted quantiles as point-ranges, with the fatter range representing the 50% interval, and the thin one representing the 80% interval.</p>
-<pre><code>
-est &lt;- qs(1/hwy ~ displ + cty, 
-          data = head(mpg, 190))
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/qs.html">qs</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">hwy</span> <span class="op">~</span> <span class="va">displ</span> <span class="op">+</span> <span class="va">cty</span>, 
+          data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span>
 
-oos_pred &lt;- predict(est, newdata = tail(mpg, 70))
+<span class="va">oos_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">est</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span><span class="op">)</span>
 
-plot_data &lt;- data.table(tail(mpg, 70),
-                        oos_pred)
-setorder(plot_data, -hwy)
-plot_data[,Index := .I]
+<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span>,
+                        <span class="va">oos_pred</span><span class="op">)</span>
 
-ggplot(plot_data, 
-       aes(x = Index, y = 1/hwy, ymin = `0.25`, ymax = `0.75`)) +
-  geom_pointrange(aes(y = `0.5`), color = "lightblue", size = 1.1,
-                  fatten = 1) +
-  geom_pointrange(aes(y = `0.5`, ymin = `0.1`, ymax = `0.9`),
-                  color = "lightblue") +
-  geom_point() +
-  theme_minimal() +
-  ggtitle("Predicted Gallons per Mile",
-          subtitle = "Out of Sample Predictions, Multivariate Model")</code></pre>
-<p><img src="inst/img/predicted-gpm-multivariate.png" alt="plot output"></p>
+<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="va">plot_data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">plot_data</span><span class="op">$</span><span class="va">hwy</span><span class="op">)</span>,<span class="op">]</span>
+
+<span class="va">plot_data</span><span class="op">$</span><span class="va">Index</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span>
+
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, 
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Index</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="va">hwy</span>, ymin <span class="op">=</span> <span class="va">`X0.25`</span>, ymax <span class="op">=</span> <span class="va">`X0.75`</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html">geom_pointrange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"lightblue"</span>, size <span class="op">=</span> <span class="fl">1.1</span>,
+                  fatten <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html">geom_pointrange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span>, ymin <span class="op">=</span> <span class="va">`X0.1`</span>, ymax <span class="op">=</span> <span class="va">`X0.9`</span><span class="op">)</span>,
+                  color <span class="op">=</span> <span class="st">"lightblue"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
+          subtitle <span class="op">=</span> <span class="st">"Out of Sample Predictions, Multivariate Model"</span><span class="op">)</span></code></pre></div>
+<p><img src="README_files/figure-gfm/unnamed-chunk-5-1.png"><!-- --></p>
 <p>Looks like we are missing some aspect of the problem for the lowest gallons-per-mile of car–perhaps we need to include an additional covariate. This type of model diagnostic is helpful, since the 80% interval for the fitted quantile should contain the observed value 80% of the time. If that’s happening not-at-random, or not happening it might be time to check your model.</p>
 </div>
 <div id="distributional-effects" class="section level1">
@@ -138,14 +190,15 @@ ggplot(plot_data,
 <a href="#distributional-effects" class="anchor"></a>Distributional Effects</h1>
 <p>What if we want to interpolate the fitted quantiles? For example, a full changes-in-changes difference in difference model involves the cumulative distribution function of the treated vs. the counterfactual predicted by the control group. We can do that by interpolating the fitted distributions for each group. Or maybe you just want a full predictive density to predict with/evaluate/sample from.</p>
 <p>Let’s start with the fitted model above. To interpolate the fitted quantiles, all you need to do is run the following.</p>
-<pre><code>de &lt;- distributional_effects(est)</code></pre>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">de</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></code></pre></div>
 <p>By default this estimates the conditional distribution at the average level of the covariates, but you can specify the <code>newdata</code> argument, which will compute the density functions for the levels of the data you provide.</p>
 <p>Now <code>de</code> is an object of class “distributional_effects” which has associated plotting methods. I think that a <code>predict</code> interface is going to be on the roadmap for future releases since it will be relatively easy to program.</p>
-<p>The object itself is a list of 4 functions corresponding to the pdf, the cdf, the quantile function, and a random number generator which simulates from the fitted density. Let’s draw 100 random numbers from our fitted density.</p>
-<pre><code>de$r(100)</code></pre>
-<p>That was pretty easy! We can also plot the pdf, cdf, or quantile function.</p>
-<pre><code><a href="https://rdrr.io/r/graphics/plot.default.html">plot(de, what = "cdf")</a></code></pre>
-<p><img src="inst/img/cdf-plot.png" alt="cdf-plot"></p>
+<p>The object itself is a list of 4 functions corresponding to the pdf, the cdf, the quantile function, and a random number generator which simulates from the fitted density. Let’s draw 10 random numbers from our fitted density.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">de</span><span class="op">$</span><span class="fu">r</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="do">##  [1] 0.03971075 0.04620651 0.04465294 0.04118761 0.03825759 0.04680350</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="do">##  [7] 0.04678181 0.05110353 0.04883905 0.05054502</span></span></code></pre></div>
 </div>
 <div id="marginal-effects" class="section level1">
 <h1 class="hasAnchor">

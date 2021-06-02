@@ -294,7 +294,13 @@ rq.fit.agd <- function(X, y, tau = 0.5,
     init_beta = stats::rnorm(ncol(X))
   }
 
+  if(n_samples < 10) {
+    n_samples = min(10, length(y))
+  }
+
   samples = sample(1:length(y), n_samples)
+
+
 
   fit = fit_approx_quantile_model(X = X, y = y,
                           X_sub = X[samples,],

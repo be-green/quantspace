@@ -80,7 +80,7 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -130,7 +130,7 @@
     <p><code>getCores()</code> and <code>setCores()</code> determine the number of cores
 used in the boostrap procedure used to generate standard errors for the
 quantile spacings estimator. By default, this is set to half of available
-cores, or whatever is found in <code><a href='https://rdrr.io/r/base/options.html'>getOption('qs.cores')</a></code>. This package uses
+cores, or whatever is found in <code><a href='https://rdrr.io/r/base/options.html'>getOption('mc.cores')</a></code>. This package uses
 the <code>future</code> backend for parallelization, so if you would like to specify
 a custom plan for futures use <code><a href='https://rdrr.io/pkg/future/man/plan.html'>future::plan()</a></code> after loading the package.
 A better interface for custom plans is on the roadmap for the package but
