@@ -51,9 +51,6 @@ getWeights <- function(weights, draw_weights, n) {
 #' @param draw_weights Whether to use random exponential weights for bootstrap, either TRUE or FALSE
 #' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
 #' @param ... Other arguments, ignored for now
-#' leaveRows doesn't resample rows at all. subsampleRows samples without replacement
-#' given some percentage of the data (specified via subsample_percent), and bootstrapRows
-#' samples with replacement.
 #' @export
 resample_qs <- function(X,
                         y,

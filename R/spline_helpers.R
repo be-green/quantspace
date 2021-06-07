@@ -108,6 +108,17 @@ q_spline_R <- function(quantiles, alphas, tails = "gaussian") {
     # calculating derivatives of the pdf -- boundary conditions for the spline
     yp1 <- stats::dnorm(quantiles[, 2  ], mean = tail_param_l[,1], sd = tail_param_l[,2])
     ypp <- stats::dnorm(quantiles[, p-1], mean = tail_param_u[,1], sd = tail_param_u[,2])
+  } else if (tails == "pareto") {
+    tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, stats::qnorm(alphas[1  ]),
+                                                            stats::qnorm(alphas[2])),
+                                                          nrow = 2, ncol = 2)))
+    tail_param_u <- quantiles[, (p-1):p] %*% t(inv(matrix(c(1, 1, stats::qnorm(alphas[p-1]),
+                                                            stats::qnorm(alphas[p])),
+                                                          nrow = 2, ncol = 2)))
+
+    # calculating derivatives of the pdf -- boundary conditions for the spline
+    yp1 <- stats::dnorm(quantiles[, 2  ], mean = tail_param_l[,1], sd = tail_param_l[,2])
+    ypp <- stats::dnorm(quantiles[, p-1], mean = tail_param_u[,1], sd = tail_param_u[,2])
   } else if (tails == "exponential") {
     tail_param_l <- quantiles[, 1:2    ] %*% t(inv(matrix(c(1, 1, log(alphas[1]),
                                                             log(alphas[2])),
