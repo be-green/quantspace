@@ -40,10 +40,11 @@ check_algorithm <- function(algorithm) {
 #' @param subsample_percent A number between 0 and one, specifying the percent of the data to subsample for standard error calculations
 #' @param draw_weights Whether to use random exponential weights for bootstrap, either TRUE or FALSE
 #' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
-#' @param ... Other arguments, ignored for now
 #' leaveRows doesn't resample rows at all. subsampleRows samples without replacement
 #' given some percentage of the data (specified via subsample_percent), and bootstrapRows
 #' samples with replacement.
+#' @param ... Other arguments, ignored for now
+
 #' @param parallel_thresh threshold for when to use parallel, based on `nrow(X) * num_bs`. To always
 #' use parallel, set to 0. Designed to avoid slow overhead when problem is relatively small.
 #' @export
@@ -506,4 +507,14 @@ coef.qs <- function(object, ...) {
   rownames(m) <- object$specs$alpha
   colnames(m) <- object$specs$coef_names
   m
+}
+
+#' Method for getting residuals from fitted qs model
+#' @param object fitted `qs` model
+#' @param ... additional arguments, ignored for now
+#' @export
+residuals.qs <- function(object, ...) {
+  pred <- predict(object)
+
+  object$specs$Y - pred
 }

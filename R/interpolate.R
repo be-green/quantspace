@@ -150,7 +150,6 @@ distributional_effects.matrix <- function(object, tails, alphas, ...) {
   ), class = "distributional_effects")
 }
 
-
 #' Visualize distributional effects
 #' @param x estimate of distributional effects
 #' @param what what to plot, one of "pdf", "cdf", "quantiles"
