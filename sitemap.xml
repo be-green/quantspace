@@ -85,6 +85,9 @@
     <loc>https://brice.green/quantspace/reference/fit_approx_quantile_model.html</loc>
   </url>
   <url>
+    <loc>https://brice.green/quantspace/reference/fit_approx_quantile_model_sp.html</loc>
+  </url>
+  <url>
     <loc>https://brice.green/quantspace/reference/fit_lasso.html</loc>
   </url>
   <url>
@@ -212,6 +215,9 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/rq.fit.agd.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/rq.fit.agd_sparse.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/rq.fit.br.html</loc>

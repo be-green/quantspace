@@ -6,8 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Computes the tail parameters and the second derivatives
-given quantiles — q_spline_R • quantspace</title>
+<title>Quantile Regression approximated w/ huber loss and sparse matrices — rq.fit.agd_sparse • quantspace</title>
 
 
 <!-- jquery -->
@@ -40,10 +39,8 @@ given quantiles — q_spline_R • quantspace</title>
 
 
 
-<meta property="og:title" content="Computes the tail parameters and the second derivatives
-given quantiles — q_spline_R" />
-<meta property="og:description" content="Computes the tail parameters and the second derivatives
-given quantiles" />
+<meta property="og:title" content="Quantile Regression approximated w/ huber loss and sparse matrices — rq.fit.agd_sparse" />
+<meta property="og:description" content="Quantile Regression approximated w/ huber loss and sparse matrices" />
 
 
 
@@ -118,41 +115,96 @@ given quantiles" />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Computes the tail parameters and the second derivatives
-given quantiles</h1>
+    <h1>Quantile Regression approximated w/ huber loss and sparse matrices</h1>
     
-    <div class="hidden name"><code>q_spline_R.Rd</code></div>
+    <div class="hidden name"><code>rq.fit.agd_sparse.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Computes the tail parameters and the second derivatives
-given quantiles</p>
+    <p>Quantile Regression approximated w/ huber loss and sparse matrices</p>
     </div>
 
-    <pre class="usage"><span class='fu'>q_spline_R</span><span class='op'>(</span><span class='va'>quantiles</span>, <span class='va'>alphas</span>, tails <span class='op'>=</span> <span class='st'>"gaussian"</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>rq.fit.agd_sparse</span><span class='op'>(</span>
+  <span class='va'>X</span>,
+  <span class='va'>y</span>,
+  tau <span class='op'>=</span> <span class='fl'>0.5</span>,
+  weights <span class='op'>=</span> <span class='cn'>NULL</span>,
+  <span class='va'>control</span>,
+  <span class='va'>lambda</span>,
+  smoothing_window <span class='op'>=</span> <span class='fl'>1e-16</span>,
+  beta_tol <span class='op'>=</span> <span class='fl'>1e-16</span>,
+  check_tol <span class='op'>=</span> <span class='fl'>1e-16</span>,
+  maxiter <span class='op'>=</span> <span class='fl'>10000</span>,
+  n_samples <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>min</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/Round.html'>ceiling</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/nrow.html'>nrow</a></span><span class='op'>(</span><span class='va'>X</span><span class='op'>)</span><span class='op'>/</span><span class='fl'>10</span><span class='op'>)</span>, <span class='fl'>10000</span><span class='op'>)</span><span class='op'>)</span>,
+  init_beta <span class='op'>=</span> <span class='cn'>NULL</span>,
+  intercept <span class='op'>=</span> <span class='cn'>NULL</span>,
+  <span class='va'>...</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>quantiles</th>
-      <td><p>a matrix of size N by p containing the
-fitted quantiles</p></td>
+      <th>X</th>
+      <td><p>design matrix</p></td>
     </tr>
     <tr>
-      <th>alphas</th>
-      <td><p>quantiles that were computed</p></td>
+      <th>y</th>
+      <td><p>outcome vector</p></td>
     </tr>
     <tr>
-      <th>tails</th>
-      <td><p>what distribution to use for the tails</p></td>
+      <th>tau</th>
+      <td><p>target quantile</p></td>
+    </tr>
+    <tr>
+      <th>weights</th>
+      <td><p>optional weight vector</p></td>
+    </tr>
+    <tr>
+      <th>control</th>
+      <td><p>ignored for now</p></td>
+    </tr>
+    <tr>
+      <th>lambda</th>
+      <td><p>ignored for now</p></td>
+    </tr>
+    <tr>
+      <th>smoothing_window</th>
+      <td><p>neighborhood around 0 which is
+smoothed by either typical least squares or appropriately
+tilted least squares loss function</p></td>
+    </tr>
+    <tr>
+      <th>beta_tol</th>
+      <td><p>stopping rule based on max value of gradient</p></td>
+    </tr>
+    <tr>
+      <th>check_tol</th>
+      <td><p>stopping rule based on change in the loss function</p></td>
+    </tr>
+    <tr>
+      <th>maxiter</th>
+      <td><p>largest number of iterations allowed</p></td>
+    </tr>
+    <tr>
+      <th>n_samples</th>
+      <td><p>number of observations to use in "warmup" regression</p></td>
+    </tr>
+    <tr>
+      <th>init_beta</th>
+      <td><p>initial guess at betas</p></td>
+    </tr>
+    <tr>
+      <th>intercept</th>
+      <td><p>optional integer indicating intercept column
+that identifies initial values</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>other arguments, ignored for now</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>A list containing the tail parameters and the second
-derivatives</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
