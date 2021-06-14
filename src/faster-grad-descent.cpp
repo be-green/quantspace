@@ -3,7 +3,6 @@
 # include <cmath>
 // [[Rcpp::plugins(cpp11)]]
 
-
 double checkfun (double x, double tau) {
   return x * (tau - (x < 0));
 }
