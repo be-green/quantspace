@@ -98,17 +98,6 @@ get_marginal_effects = function(qreg_coeffs,
   else return(list('avgME' = avgME))
 }
 
-marginal_effects <- function(object, ...) {
-  UseMethod("marginal_effects")
-}
-
-marginal_effects.qs <- function(fit, data, ...) {
-  X <- stats::model.matrix(stats::as.formula(fit$specs$formula),
-                           data = data)
-
-
-}
-
 
 
 #' Get marginal effects at a set of levels for the covariates
@@ -119,8 +108,11 @@ marginal_effects.qs <- function(fit, data, ...) {
 #' @details A simple function which returns
 #' marginal effects for a given level of the dataset.
 me <- function(fit, data) {
-  X <- stats::model.matrix(stats::as.formula(fit$specs$formula),
-                             data = data)
+  ff = stats::as.formula(fit$specs$formula)
+  tt <- stats::terms(ff, data = data)
+  tt <- stats::delete.response(tt)
+  X <- stats::model.matrix(tt,
+                           data = data)
 
   jstar <- fit$specs$jstar
 
@@ -138,6 +130,9 @@ me <- function(fit, data) {
 
 #' Get marginal effects at a set of levels for the covariates
 #' @param fit A fitted model from the `qs` function
+#' @param type one of "ame" (average marginal effects),
+#' "mea" (marginal effects at the average), or "varying" (varying marginal
+#' effects over different levels of the data)
 #' @param variable variable to calculate marginal effects over
 #' @param data optional data.frame that specifies level of data to calculate
 #' marginal effects
@@ -151,39 +146,73 @@ me <- function(fit, data) {
 #' of the variable, and the trim defaults to using the 95th percentile
 #' instead of the max because there may be large outliers. You can over-ride
 #' by setting trim to 0, which will use the min and max.
-#' @importFrom SparseM model.matrix
+#' @importFrom stats model.matrix
 #' @importFrom stats as.formula
-#' @export
-me_by_variable <- function(fit, variable, data = NA, size = NA, trim = 0.05) {
-  if(is.na(data)) {
-    X = SparseM::model.matrix(stats::as.formula(fit$specs$formula),
+me_by_variable <- function(fit, type, variable,
+                           data = NA, size = NA, trim = 0.05) {
+
+
+  if(length(data) == 1 & anyNA(data)) {
+    X = stats::model.matrix(stats::as.formula(fit$specs$formula),
                               data = fit$specs$X)
-    data <- data.frame(t(colMeans(X)))
+
   }
 
-  vardata <- bin_along_range(fit$specs$X[[variable]])
+  if (type == "mea") {
+    data <- data.frame(t(colMeans(X)))
+    vardata <- mean(fit$specs$X[[variable]])
+  } else if (type == "varying") {
+    data <- data.frame(t(colMeans(X)))
 
-  data <- as.data.frame(do.call("rbind", lapply(rep(list(data[,-which(colnames(data) == variable)]),
-                    length(vardata)), unlist)))
+    var <- fit$specs$X[[variable]]
+    if(is.numeric(var)) {
+      vardata <- bin_along_range(var)
+    } else {
+      vardata <- unique(var)
+    }
 
-  data[[variable]] <- vardata
+    data <- as.data.frame(do.call("rbind", lapply(rep(list(data[,-which(colnames(data) == variable)]),
+                                                      length(vardata)), unlist)))
+
+    data[[variable]] <- vardata
+    data[[variable]] <- vardata
+
+  } else if (type == "ame") {
+    vardata <- mean(fit$specs$X[[variable]])
+    data <- as.data.frame(X)
+  } else {
+    stop("Type must be one of:\n",
+         "\t \"ame\": average marginal effect\n",
+         "\t \"mea\": marginal effects at the average\n",
+         "\t \"varying\": marginal effects across different levels of variable")
+  }
 
   var_me <- matrix(NA, nrow = length(vardata), ncol = length(fit$specs$alpha))
-  for(i in 1:length(data[[variable]])) {
-    this_level_me <- me(fit, data = data[i,])
+  if(type != "ame") {
 
-    var_me[i,] <- this_level_me[which(rownames(this_level_me) == variable),]
+    for(i in 1:length(data[[variable]])) {
+      this_level_me <- me(fit, data = data[i,])
+      var_me[i,] <- this_level_me[which(rownames(this_level_me) == variable),]
+    }
+
+  } else {
+    var_me <- me(fit, data = data)
+    var_me <- var_me[which(rownames(var_me) == variable),]
+    var_me <- matrix(var_me, ncol = length(var_me))
   }
 
   var_me <- as.data.frame(cbind(vardata, var_me))
-
   colnames(var_me) <- c(variable, fit$specs$alpha)
+  rownames(var_me) <- NULL
 
   var_me
 }
 
 #' Get all marginal effects of variables in the fit
 #' @param fit model fitted by `qs()`
+#' @param type one of "ame" (average marginal effects),
+#' "mea" (marginal effects at the average), or "varying" (varying marginal
+#' effects over different levels of the data)
 #' @param variable which variable to calculate marginal effects on
 #' @param data optional data.frame that specifies level of data to calculate
 #' marginal effects
@@ -199,23 +228,59 @@ me_by_variable <- function(fit, variable, data = NA, size = NA, trim = 0.05) {
 #' by setting trim to 0, which will use the min and max.
 #' By default, marginal effects will calculate marginal effects for
 #' all variables.
-marginal_effects <- function(fit, variable = "all",
-                             data = NA, size = NA,
+#' @importFrom stats terms
+marginal_effects <- function(fit,
+                             type = "ame",
+                             variable = "all",
+                             data = NA,
+                             size = NA,
                              trim = 0.05) {
 
   if(variable == "all") {
 
-    d = SparseM::model.matrix(head(fit$specs$X, 100))
-
-    variable <- colnames(d)
+    d = stats::model.matrix(fit$specs$formula, data = fit$specs$X)
+    variable <- setdiff(colnames(d), "(Intercept)")
   }
 
   all_me <- lapply(variable,
-                   function(v) {
-                     data.frame(v, me_by_variable(fit, v, data, size, trim))
+                   function(v, d) {
+                     me_by_variable(fit, type,
+                                    v, data,
+                                    size, trim)
                    })
 
-  do.call("rbind", all_me)
+  names(all_me) <- variable
+  attr(all_me, "jstar") <- fit$specs$jstar
+
+  ff = stats::as.formula(fit$specs$formula)
+  attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff),
+                                                      "response")]
+
+  attr(all_me, "type") <- type
+
+  structure(all_me,
+            class = "qs_me")
 
 }
 
+#' Print method for quantspace marginal effects
+#' @param x marginal effects to print
+#' @param ... other arguments for s3 consistency, ignored for now
+#' @export
+print.qs_me <- function(x, ...) {
+  type = attr(x, "type")
+  out_type <- switch(type,
+                     ame = "Average Marginal Effects \n",
+                     mea = "Marginal Effects at the Average \n",
+                     varying = "Varying Over Levels \n")
+  cat(out_type)
+  for (i in 1:length(x)) {
+    cat(paste0(names(x)[i],": \n"))
+    if(type != "varying") {
+      print(x[[i]][,-1], row.names = F, ...)
+    } else {
+      print(x[[i]], row.names = F, ...)
+    }
+  }
+
+}

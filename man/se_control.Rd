@@ -28,15 +28,15 @@ changed.}
 
 \item{draw_weights}{Whether to use random exponential weights for bootstrap, either TRUE or FALSE}
 
-\item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".}
+\item{sampling_method}{One of "leaveRows", "subsampleRows", or "bootstrapRows".
+leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+given some percentage of the data (specified via subsample_percent), and bootstrapRows
+samples with replacement.}
 
 \item{parallel_thresh}{threshold for when to use parallel, based on \code{nrow(X) * num_bs}. To always
 use parallel, set to 0. Designed to avoid slow overhead when problem is relatively small.}
 
-\item{...}{Other arguments, ignored for now
-leaveRows doesn't resample rows at all. subsampleRows samples without replacement
-given some percentage of the data (specified via subsample_percent), and bootstrapRows
-samples with replacement.}
+\item{...}{Other arguments, ignored for now}
 }
 \description{
 Control standard_errors parameters

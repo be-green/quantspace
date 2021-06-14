@@ -4,10 +4,14 @@
 \alias{me_by_variable}
 \title{Get marginal effects at a set of levels for the covariates}
 \usage{
-me_by_variable(fit, variable, data = NA, size = NA, trim = 0.05)
+me_by_variable(fit, type, variable, data = NA, size = NA, trim = 0.05)
 }
 \arguments{
 \item{fit}{A fitted model from the \code{qs} function}
+
+\item{type}{one of "ame" (average marginal effects),
+"mea" (marginal effects at the average), or "varying" (varying marginal
+effects over different levels of the data)}
 
 \item{variable}{variable to calculate marginal effects over}
 
