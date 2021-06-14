@@ -93,6 +93,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fit_approx_quantile_model_sp
+arma::vec fit_approx_quantile_model_sp(arma::sp_mat& X, arma::colvec& y, arma::sp_mat& X_sub, arma::colvec& y_sub, double tau, arma::vec& init_beta, double mu, int maxiter, double beta_tol, double check_tol, int intercept, double num_samples, int warm_start);
+RcppExport SEXP _quantspace_fit_approx_quantile_model_sp(SEXP XSEXP, SEXP ySEXP, SEXP X_subSEXP, SEXP y_subSEXP, SEXP tauSEXP, SEXP init_betaSEXP, SEXP muSEXP, SEXP maxiterSEXP, SEXP beta_tolSEXP, SEXP check_tolSEXP, SEXP interceptSEXP, SEXP num_samplesSEXP, SEXP warm_startSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::colvec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat& >::type X_sub(X_subSEXP);
+    Rcpp::traits::input_parameter< arma::colvec& >::type y_sub(y_subSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type init_beta(init_betaSEXP);
+    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
+    Rcpp::traits::input_parameter< double >::type beta_tol(beta_tolSEXP);
+    Rcpp::traits::input_parameter< double >::type check_tol(check_tolSEXP);
+    Rcpp::traits::input_parameter< int >::type intercept(interceptSEXP);
+    Rcpp::traits::input_parameter< double >::type num_samples(num_samplesSEXP);
+    Rcpp::traits::input_parameter< int >::type warm_start(warm_startSEXP);
+    rcpp_result_gen = Rcpp::wrap(fit_approx_quantile_model_sp(X, y, X_sub, y_sub, tau, init_beta, mu, maxiter, beta_tol, check_tol, intercept, num_samples, warm_start));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_quantspace_fast_rexp", (DL_FUNC) &_quantspace_fast_rexp, 1},
@@ -100,6 +123,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_quantspace_z_score", (DL_FUNC) &_quantspace_z_score, 4},
     {"_quantspace_huber_grad_descent", (DL_FUNC) &_quantspace_huber_grad_descent, 12},
     {"_quantspace_fit_approx_quantile_model", (DL_FUNC) &_quantspace_fit_approx_quantile_model, 14},
+    {"_quantspace_fit_approx_quantile_model_sp", (DL_FUNC) &_quantspace_fit_approx_quantile_model_sp, 13},
     {NULL, NULL, 0}
 };
 

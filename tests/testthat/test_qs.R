@@ -11,6 +11,10 @@ test_data = data.frame(y = y, x)
 fit <- qs(y ~ X1 + X2, data = test_data,
           algorithm = "agd", parallel = F)
 
+fit_sparse <- qs(y ~ X1 + X2, data = test_data,
+          algorithm = "agd_sparse", parallel = F)
+
+
 de <- distributional_effects(fit)
 de_mat <- distributional_effects(fit, newdata = tail(test_data, 5))
 
@@ -20,6 +24,7 @@ fit_with_me <- qs(mpg ~ cyl, data = mtcars, parallel = F, calc_se = F,
 
 testthat::test_that("S3 Classes inherit properly", {
   testthat::expect_s3_class(fit, "qs")
+  testthat::expect_s3_class(fit_sparse, "qs")
   testthat::expect_s3_class(summary(fit), "qs_summary")
   testthat::expect_s3_class(plot(de), "ggplot")
 })
