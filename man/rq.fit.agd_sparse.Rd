@@ -52,8 +52,6 @@ tilted least squares loss function}
 that identifies initial values}
 
 \item{...}{other arguments, ignored for now}
-
-\item{scale}{whether to scale x and y variables in regression}
 }
 \description{
 Quantile Regression approximated w/ huber loss and sparse matrices
