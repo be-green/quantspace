@@ -163,6 +163,9 @@
     <loc>https://brice.green/quantspace/reference/print.qs.html</loc>
   </url>
   <url>
+    <loc>https://brice.green/quantspace/reference/print.qs_me.html</loc>
+  </url>
+  <url>
     <loc>https://brice.green/quantspace/reference/print.qs_summary.html</loc>
   </url>
   <url>
@@ -197,6 +200,9 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/rescale_coefficients.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/residuals.qs.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/rho.html</loc>

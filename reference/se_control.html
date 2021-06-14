@@ -160,7 +160,10 @@ changed.</p></td>
     </tr>
     <tr>
       <th>sampling_method</th>
-      <td><p>One of "leaveRows", "subsampleRows", or "bootstrapRows".</p></td>
+      <td><p>One of "leaveRows", "subsampleRows", or "bootstrapRows".
+leaveRows doesn't resample rows at all. subsampleRows samples without replacement
+given some percentage of the data (specified via subsample_percent), and bootstrapRows
+samples with replacement.</p></td>
     </tr>
     <tr>
       <th>parallel_thresh</th>
@@ -169,10 +172,7 @@ use parallel, set to 0. Designed to avoid slow overhead when problem is relative
     </tr>
     <tr>
       <th>...</th>
-      <td><p>Other arguments, ignored for now
-leaveRows doesn't resample rows at all. subsampleRows samples without replacement
-given some percentage of the data (specified via subsample_percent), and bootstrapRows
-samples with replacement.</p></td>
+      <td><p>Other arguments, ignored for now</p></td>
     </tr>
     </table>
 

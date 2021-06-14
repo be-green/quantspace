@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get marginal effects at a set of levels for the covariates — me_by_variable • quantspace</title>
+<title>Method for getting residuals from fitted qs model — residuals.qs • quantspace</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Get marginal effects at a set of levels for the covariates — me_by_variable" />
-<meta property="og:description" content="Get marginal effects at a set of levels for the covariates" />
+<meta property="og:title" content="Method for getting residuals from fitted qs model — residuals.qs" />
+<meta property="og:description" content="Method for getting residuals from fitted qs model" />
 
 
 
@@ -115,59 +115,31 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get marginal effects at a set of levels for the covariates</h1>
+    <h1>Method for getting residuals from fitted qs model</h1>
     
-    <div class="hidden name"><code>me_by_variable.Rd</code></div>
+    <div class="hidden name"><code>residuals.qs.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Get marginal effects at a set of levels for the covariates</p>
+    <p>Method for getting residuals from fitted qs model</p>
     </div>
 
-    <pre class="usage"><span class='fu'>me_by_variable</span><span class='op'>(</span><span class='va'>fit</span>, <span class='va'>type</span>, <span class='va'>variable</span>, data <span class='op'>=</span> <span class='cn'>NA</span>, size <span class='op'>=</span> <span class='cn'>NA</span>, trim <span class='op'>=</span> <span class='fl'>0.05</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='co'># S3 method for qs</span>
+<span class='fu'><a href='https://rdrr.io/r/stats/residuals.html'>residuals</a></span><span class='op'>(</span><span class='va'>object</span>, <span class='va'>...</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>fit</th>
-      <td><p>A fitted model from the <code>qs</code> function</p></td>
+      <th>object</th>
+      <td><p>fitted <code>qs</code> model</p></td>
     </tr>
     <tr>
-      <th>type</th>
-      <td><p>one of "ame" (average marginal effects),
-"mea" (marginal effects at the average), or "varying" (varying marginal
-effects over different levels of the data)</p></td>
-    </tr>
-    <tr>
-      <th>variable</th>
-      <td><p>variable to calculate marginal effects over</p></td>
-    </tr>
-    <tr>
-      <th>data</th>
-      <td><p>optional data.frame that specifies level of data to calculate
-marginal effects</p></td>
-    </tr>
-    <tr>
-      <th>size</th>
-      <td><p>What bin size to use when varying the variable of interest</p></td>
-    </tr>
-    <tr>
-      <th>trim</th>
-      <td><p>What to trim the variable of interest at, 0 &lt; trim &lt; 0.5</p></td>
+      <th>...</th>
+      <td><p>additional arguments, ignored for now</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>This function defaults to using
-the average defaults to average for all coefficients
-except variable chosen. If you want to vary a covariate but keep everything
-else fixed at a certain level, you can specify the data argument.
-The size argument defaults to a bin size of 1/3 of the standard deviation
-of the variable, and the trim defaults to using the 95th percentile
-instead of the max because there may be large outliers. You can over-ride
-by setting trim to 0, which will use the min and max.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

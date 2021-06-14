@@ -238,7 +238,73 @@
 <div id="marginal-effects" class="section level1">
 <h1 class="hasAnchor">
 <a href="#marginal-effects" class="anchor"></a>Marginal Effects</h1>
-<p><strong>Not working in package yet, top priority.</strong></p>
+<p>The marginal effects functionality in the <code>quantspace</code> package is baked into the function <code>marginal_effects</code>. This can be used to compute average marginal effects, marginal effects at the average, or marginal effects across different levels of a variable (holding the other variables constant at the sample average).</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># average marginal effects</span>
+<span class="fu"><a href="../reference/marginal_effects.html">marginal_effects</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"ame"</span><span class="op">)</span>
+<span class="co">#&gt; Average Marginal Effects </span>
+<span class="co">#&gt; X1: </span>
+<span class="co">#&gt;        0.1      0.25        0.5       0.75      0.9</span>
+<span class="co">#&gt;  -1.249838 -1.242354 -0.9927048 -0.2009702 4.652145</span>
+<span class="co">#&gt; X2: </span>
+<span class="co">#&gt;        0.1      0.25      0.5     0.75      0.9</span>
+<span class="co">#&gt;  0.6500988 0.6904133 2.003003 6.991483 36.22921</span></code></pre></div>
+<p>This computes marginal effects at the sample average.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># marginal effects at the average</span>
+<span class="fu"><a href="../reference/marginal_effects.html">marginal_effects</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"mea"</span><span class="op">)</span>
+<span class="co">#&gt; Marginal Effects at the Average </span>
+<span class="co">#&gt; X1: </span>
+<span class="co">#&gt;        0.1      0.25        0.5       0.75        0.9</span>
+<span class="co">#&gt;  -1.333568 -1.172606 -0.9927048 -0.8327413 -0.6774448</span>
+<span class="co">#&gt; X2: </span>
+<span class="co">#&gt;       0.1     0.25      0.5     0.75      0.9</span>
+<span class="co">#&gt;  0.190075 1.057131 2.003003 3.010885 3.946473</span></code></pre></div>
+<p>This computes marginal effects across different levels of each variable, holding all others in the model fixed.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># marginal effects for varying levels of each variable</span>
+<span class="fu"><a href="../reference/marginal_effects.html">marginal_effects</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"varying"</span><span class="op">)</span>
+<span class="co">#&gt; Varying Over Levels </span>
+<span class="co">#&gt; X1: </span>
+<span class="co">#&gt;           X1       0.1      0.25        0.5       0.75        0.9</span>
+<span class="co">#&gt;  -2.26103948 -1.175807 -1.088166 -0.9927048 -0.8997390 -0.8107478</span>
+<span class="co">#&gt;  -1.93044557 -1.193163 -1.097403 -0.9927048 -0.8920869 -0.7955728</span>
+<span class="co">#&gt;  -1.59985165 -1.212165 -1.107533 -0.9927048 -0.8838050 -0.7791321</span>
+<span class="co">#&gt;  -1.26925774 -1.232969 -1.118643 -0.9927048 -0.8748413 -0.7613200</span>
+<span class="co">#&gt;  -0.93866382 -1.255746 -1.130829 -0.9927048 -0.8651399 -0.7420221</span>
+<span class="co">#&gt;  -0.60806990 -1.280684 -1.144193 -0.9927048 -0.8546400 -0.7211144</span>
+<span class="co">#&gt;  -0.27747599 -1.307986 -1.158850 -0.9927048 -0.8432758 -0.6984627</span>
+<span class="co">#&gt;   0.05311793 -1.337879 -1.174926 -0.9927048 -0.8309762 -0.6739214</span>
+<span class="co">#&gt;   0.38371185 -1.370606 -1.192557 -0.9927048 -0.8176642 -0.6473328</span>
+<span class="co">#&gt;   0.71430576 -1.406439 -1.211894 -0.9927048 -0.8032565 -0.6185262</span>
+<span class="co">#&gt;   1.04489968 -1.445670 -1.233102 -0.9927048 -0.7876629 -0.5873164</span>
+<span class="co">#&gt;   1.37549360 -1.488623 -1.256361 -0.9927048 -0.7707858 -0.5535031</span>
+<span class="co">#&gt;   1.70608751 -1.535652 -1.281872 -0.9927048 -0.7525195 -0.5168689</span>
+<span class="co">#&gt;   2.03668143 -1.587142 -1.309850 -0.9927048 -0.7327497 -0.4771784</span>
+<span class="co">#&gt; X2: </span>
+<span class="co">#&gt;           X2         0.1        0.25      0.5      0.75       0.9</span>
+<span class="co">#&gt;  -2.28629570   1.9382666   1.9701582 2.003003  2.035037  2.066789</span>
+<span class="co">#&gt;  -1.95661863   1.8983672   1.9496978 2.003003  2.055660  2.107362</span>
+<span class="co">#&gt;  -1.62694157   1.8338733   1.9164918 2.003003  2.089559  2.173745</span>
+<span class="co">#&gt;  -1.29726450   1.7296228   1.8626004 2.003003  2.145281  2.282363</span>
+<span class="co">#&gt;  -0.96758743   1.5611053   1.7751379 2.003003  2.236874  2.460086</span>
+<span class="co">#&gt;  -0.63791037   1.2886979   1.6331912 2.003003  2.387434  2.750891</span>
+<span class="co">#&gt;  -0.30823330   0.8483451   1.4028201 2.003003  2.634918  3.226738</span>
+<span class="co">#&gt;   0.02144376   0.1364929   1.0289412 2.003003  3.041726  4.005390</span>
+<span class="co">#&gt;   0.35112083  -1.0142714   0.4221575 2.003003  3.710423  5.279565</span>
+<span class="co">#&gt;   0.68079789  -2.8746032  -0.5626169 2.003003  4.809607  7.364653</span>
+<span class="co">#&gt;   1.01047496  -5.8820771  -2.1608484 2.003003  6.616412 10.776812</span>
+<span class="co">#&gt;   1.34015202 -10.7441420  -4.7546848 2.003003  9.586382 16.360791</span>
+<span class="co">#&gt;   1.66982909 -18.6045859  -8.9643299 2.003003 14.468326 25.499146</span>
+<span class="co">#&gt;   1.99950615 -31.3126920 -15.7963382 2.003003 22.493113 40.454678</span></code></pre></div>
+<p>You can also specify a single variable of interest like so.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># marginal effects at the average, just X2</span>
+<span class="fu"><a href="../reference/marginal_effects.html">marginal_effects</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"mea"</span>, variable <span class="op">=</span> <span class="st">"X2"</span><span class="op">)</span>
+<span class="co">#&gt; Marginal Effects at the Average </span>
+<span class="co">#&gt; X2: </span>
+<span class="co">#&gt;       0.1     0.25      0.5     0.75      0.9</span>
+<span class="co">#&gt;  0.190075 1.057131 2.003003 3.010885 3.946473</span></code></pre></div>
 </div>
   </div>
 
