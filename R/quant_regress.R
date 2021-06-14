@@ -4,6 +4,8 @@
 #' @importFrom quantreg  rq.fit.sfn
 #' @importFrom quantreg sfn.control
 #' @importFrom quantreg sfnMessage
+#' @importFrom SparseM as.matrix.csr
+#' @importFrom SparseM as.matrix
 #' @param X structure of the design matrix X stored in csr format
 #' @param y outcome vector
 #' @param tau desired quantile
@@ -45,7 +47,7 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
 
     # pre-multiplying the a matrix by a diagonal matrix of weights
     #a <- sweep(a,MARGIN=1,weights,`*`)
-    a <- as(as.vector(weights), "matrix.diag.csr") %*% a
+    a <- SparseM::as.matrix.csr(diag(as.vector(weights))) %*% a
   }
 
   u <- rep(1,length=n)
@@ -69,14 +71,13 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
   wwm <- vector("numeric",3*m)
   s <- u - x
   if(missing(sv)){
-    b1 <- solve(e, ao %*% y, tmpmax=tmpmax,nnzlmax=nnzlmax,nsubmax=nsubmax)
+    b1 <- solve(SparseM::as.matrix(e), ao %*% y, tmpmax=tmpmax,nnzlmax=nnzlmax,nsubmax=nsubmax)
   }
   else {
     # note: LDWS flipped the sign here, since formula above yields OLS coeff * -1
     b1 = -sv
   }
-
-  r <- y - a %*% b1
+  r <- y - SparseM::as.matrix(a %*% b1)
   z <- ifelse(abs(r)<ctrl$small,(r*(r>0)+ctrl$small),r*(r>0))
   w <- z - r
   wwn <- matrix(0,n,14)
@@ -163,6 +164,7 @@ rq.fit.sfn_start_val <- function(X,y,tau=.5,
 #' @param lambda ignored
 #' @param ... other arguments, ignored
 #' @importFrom quantreg rq.fit.sfn
+#' @importFrom SparseM t
 #' @export
 rq.fit.sfn <- function(X, y, tau = 0.5,
                        weights = NULL,
@@ -187,7 +189,7 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
     y <- y * weights
     # pre-multiplying the a matrix by a diagonal matrix of weights
     #a <- sweep(a,MARGIN=1,weights,`*`)
-    X <- as(as.vector(weights), "matrix.diag.csr") %*% X
+    X <- SparseM::as.matrix.csr(diag(as.vector(weights))) %*% X
 
   }
   quantreg::rq.fit.sfn(a = X,y, tau, rhs, control)
@@ -612,7 +614,6 @@ fitQuantileRegression <- function(X, y, tau, algorithm = "rq.fit.sfn_start_val",
 #' Defaults to rq.fit.sfn_start_val. Must be a string, as it is passed to `do.call`
 #' @param weights vector of optional weights
 #' @param ... other arguments to the function specified by the algorithm argument
-#' @import SparseM
 #' @return List of estimated coefficients, warnings, iterations, and controls as in
 #' standard quantile regression function
 #' @export
@@ -691,7 +692,6 @@ na_if_null <- function(x) {
 #' * `calc_avg_me`: whether to return average marginal effects as part of the fitted object
 #' * `lambda`: the penalization factor to be passed to penalized regression algorithms
 #' @param ... other parameters passed to the algorithm
-#' @import SparseM
 #' @return
 #' Returns a list of coefficients.
 #' num_betas is an x by p matrix of estimated parameters for each supplied quantiles.
@@ -699,6 +699,7 @@ na_if_null <- function(x) {
 #' warnings is a 1 by p matrix of warnings produced by each quantile regression call.
 #' iter: is a 1 by p matrix of iterations ran by each quantile regression call.
 #' @export
+#' @importFrom SparseM as.matrix
 quantreg_spacing = function(
   y,
   X,
@@ -1104,8 +1105,9 @@ quantreg_spacing = function(
 
 #' Get the data inside the s4 slot of this sparse matrix class
 #' @param data some thing that could be a sparse matrix
+#' @importFrom SparseM is.matrix.csr
 get_underlying <- function(data) {
-  if(is.matrix.csr(data)) {
+  if(SparseM::is.matrix.csr(data)) {
     data@ra
   } else {
     data

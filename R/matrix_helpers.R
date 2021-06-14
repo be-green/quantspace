@@ -170,10 +170,11 @@ repMat <- function(X, m, n){
 }
 
 #' Create sparse diagonal matrix with vector x on diagonal
-#' @import SparseM
+#' @importFrom SparseM diag
+#' @importFrom SparseM as.matrix.csr
 #' @param v Vector to use as the diagonal of the matrix
 spDiag <- function(v){
-  return(as(as.vector(v),"matrix.diag.csr"))
+  SparseM::as.matrix.csr(SparseM::diag(v))
 }
 
 #' Return column sums of matrix

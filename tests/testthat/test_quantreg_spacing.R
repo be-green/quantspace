@@ -1,7 +1,7 @@
 context("Test Quantile Regression Algorithm Interface")
 
-X <- SparseM::model.matrix(mpg ~ cyl, data = mtcars)
-y <- SparseM::model.response(stats::model.frame(mpg ~ cyl, data = mtcars),
+X <- stats::model.matrix(mpg ~ cyl, data = mtcars)
+y <- stats::model.response(stats::model.frame(mpg ~ cyl, data = mtcars),
                              type = "numeric")
 
 reg_spec <- denseMatrixToSparse(X)

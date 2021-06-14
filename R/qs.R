@@ -135,10 +135,10 @@ qs_control <- function(trunc = TRUE,
 #' handling both the quantile spacings regression, allowing the user to specify a number
 #' of possible algorithms and methods for standard errors. It also supports
 #' @importFrom assertthat assert_that
-#' @importFrom SparseM model.matrix
+#' @importFrom stats model.matrix
 #' @importFrom stats model.frame
 #' @importFrom future nbrOfWorkers
-#' @importFrom SparseM model.response
+#' @importFrom stats model.response
 #' @export
 qs <- function(formula, data = NULL,
                quantiles = c(0.9, 0.75, 0.5, 0.25, 0.1),
@@ -158,8 +158,8 @@ qs <- function(formula, data = NULL,
 
   assertthat::assert_that(length(baseline_quantile) == 1)
 
-  m <- model.matrix(formula, data)
-  y <- model.response(stats::model.frame(formula, data,
+  m <- stats::model.matrix(formula, data)
+  y <- stats::model.response(stats::model.frame(formula, data,
                                                   na.action = "na.pass"),
                                type = "numeric")
 
@@ -186,11 +186,7 @@ qs <- function(formula, data = NULL,
   if(is.null(cluster_formula)) {
     cluster_matrix = NULL
   } else {
-    if(grepl("sfn", algorithm)) {
-      cluster_matrix = SparseM::model.matrix(cluster_formula, data)
-    } else {
       cluster_matrix = stats::model.matrix(cluster_formula, data)
-    }
   }
 
   quantreg_fit <- quantreg_spacing(
@@ -461,7 +457,7 @@ print.qs_summary <- function(x, digits = 4, ...) {
 #' @return This function returns a set of predictive quantiles
 #' for each data point, at the quantiles where spacings were
 #' estimated.
-#' @importFrom SparseM model.matrix
+#' @importFrom stats model.matrix
 #' @importFrom stats as.formula
 #' @importFrom stats delete.response
 #' @importFrom stats terms

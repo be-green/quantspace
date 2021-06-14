@@ -4,10 +4,21 @@
 \alias{marginal_effects}
 \title{Get all marginal effects of variables in the fit}
 \usage{
-marginal_effects(fit, variable = "all", data = NA, size = NA, trim = 0.05)
+marginal_effects(
+  fit,
+  type = "ame",
+  variable = "all",
+  data = NA,
+  size = NA,
+  trim = 0.05
+)
 }
 \arguments{
 \item{fit}{model fitted by \code{qs()}}
+
+\item{type}{one of "ame" (average marginal effects),
+"mea" (marginal effects at the average), or "varying" (varying marginal
+effects over different levels of the data)}
 
 \item{variable}{which variable to calculate marginal effects on}
 

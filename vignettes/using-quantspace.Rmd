@@ -155,5 +155,32 @@ plot(vary_x2, tail_level = 0.001)
 
 # Marginal Effects
 
-**Not working in package yet, top priority.**
+The marginal effects functionality in the `quantspace` package is baked into the function `marginal_effects`. This can be used to compute average marginal effects, marginal effects at the average, or marginal effects across different levels of a variable (holding the other variables constant at the sample average). 
 
+```{r}
+# average marginal effects
+marginal_effects(fit, type = "ame")
+```
+
+This computes marginal effects at the sample average.
+
+```{r}
+# marginal effects at the average
+marginal_effects(fit, type = "mea")
+```
+
+
+This computes marginal effects across different levels of each variable, holding all others in the model fixed.
+
+```{r}
+# marginal effects for varying levels of each variable
+marginal_effects(fit, type = "varying")
+```
+
+
+You can also specify a single variable of interest like so.
+
+```{r}
+# marginal effects at the average, just X2
+marginal_effects(fit, type = "mea", variable = "X2")
+```
