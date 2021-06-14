@@ -3,6 +3,9 @@
 # include <cmath>
 // [[Rcpp::plugins(cpp11)]]
 
+#if !defined(ARMA_64BIT_WORD)
+ #define ARMA_64BIT_WORD
+#endif
 
 double checkfun (double x, double tau) {
   return x * (tau - (x < 0));
