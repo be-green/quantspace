@@ -189,7 +189,7 @@ rq.fit.sfn <- function(X, y, tau = 0.5,
     y <- y * weights
     # pre-multiplying the a matrix by a diagonal matrix of weights
     #a <- sweep(a,MARGIN=1,weights,`*`)
-    X <- SparseM::as.matrix.csr(diag(weights) %*% X)
+    X <- SparseM::as.matrix.csr(diag(as.vector(weights))) %*% X
 
   }
   quantreg::rq.fit.sfn(a = X,y, tau, rhs, control)
