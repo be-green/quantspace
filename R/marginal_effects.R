@@ -229,6 +229,7 @@ me_by_variable <- function(fit, type, variable,
 #' By default, marginal effects will calculate marginal effects for
 #' all variables.
 #' @importFrom stats terms
+#' @export
 marginal_effects <- function(fit,
                              type = "ame",
                              variable = "all",
