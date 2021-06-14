@@ -340,7 +340,6 @@ rq.fit.agd <- function(X, y, tau = 0.5,
 #' @param maxiter largest number of iterations allowed
 #' @param n_samples number of observations to use in "warmup" regression
 #' @param init_beta initial guess at betas
-#' @param scale whether to scale x and y variables in regression
 #' @param intercept optional integer indicating intercept column
 #' that identifies initial values
 #' @param ... other arguments, ignored for now
