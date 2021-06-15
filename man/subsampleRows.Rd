@@ -5,8 +5,6 @@
 \title{Function that fully bootstraps rows}
 \usage{
 subsampleRows(rows, subsample_percent, ...)
-
-subsampleRows(rows, subsample_percent, ...)
 }
 \arguments{
 \item{rows}{rows to potentially resample}
@@ -16,7 +14,5 @@ subsampleRows(rows, subsample_percent, ...)
 \item{...}{other arguments, ignored}
 }
 \description{
-Function that fully bootstraps rows
-
 Function that fully bootstraps rows
 }

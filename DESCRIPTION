@@ -19,7 +19,6 @@ Imports:
     Matrix.utils,
     ggplot2,
     Matrix,
-    data.table,
     purrr,
     future,
     future.apply,

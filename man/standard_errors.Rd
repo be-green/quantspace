@@ -75,83 +75,7 @@ standard_errors(
   cluster_matrix,
   algorithm,
   control = qs_control(),
-  std_err_control = std_err_control(),
-  var_names,
-  alpha,
-  jstar,
-  parallel = F,
-  weights = NULL,
-  seed = NULL,
-  ...
-)
-
-resample_qs(
-  X,
-  y,
-  weights,
-  sampling_method,
-  alpha,
-  jstar,
-  control,
-  algorithm,
-  draw_weights,
-  var_names,
-  subsample_percent,
-  ...
-)
-
-weighted_bootstrap(
-  X,
-  y,
-  weights,
-  sampling_method,
-  alpha,
-  jstar,
-  control,
-  algorithm,
-  draw_weights,
-  var_names,
-  subsample_percent,
-  ...
-)
-
-bootstrap(
-  X,
-  y,
-  weights,
-  sampling_method,
-  alpha,
-  jstar,
-  control,
-  algorithm,
-  draw_weights,
-  var_names,
-  subsample_percent,
-  ...
-)
-
-subsample(
-  X,
-  y,
-  weights,
-  sampling_method,
-  alpha,
-  jstar,
-  control,
-  algorithm,
-  draw_weights,
-  var_names,
-  subsample_percent,
-  ...
-)
-
-standard_errors(
-  y,
-  X,
-  cluster_matrix,
-  algorithm,
-  control = qs_control(),
-  std_err_control = std_err_control(),
+  std_err_control = se_control(),
   var_names,
   alpha,
   jstar,
@@ -221,9 +145,6 @@ samples with replacement.`
 \item{seed}{Seed to be used when generating RNG}
 }
 \description{
-Computes standard errors for the quantile regression spacing method using
-subsampling.
-
 Computes standard errors for the quantile regression spacing method using
 subsampling.
 }

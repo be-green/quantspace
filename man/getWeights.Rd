@@ -5,8 +5,6 @@
 \title{Function that returns the correct weights for weighted bootstrap}
 \usage{
 getWeights(weights, draw_weights, n)
-
-getWeights(weights, draw_weights, n)
 }
 \arguments{
 \item{weights}{vector of existing regression weights}
@@ -16,7 +14,5 @@ getWeights(weights, draw_weights, n)
 \item{n}{number of weights to draw}
 }
 \description{
-Function that returns the correct weights for weighted bootstrap
-
 Function that returns the correct weights for weighted bootstrap
 }

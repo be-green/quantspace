@@ -5,14 +5,10 @@
 \title{Get clusters for subsampling given a formula}
 \usage{
 get_strata(cluster_matrix)
-
-get_strata(cluster_matrix)
 }
 \arguments{
 \item{cluster_matrix}{matrix of cluster column values}
 }
 \description{
-Get clusters for subsampling given a formula
-
 Get clusters for subsampling given a formula
 }
