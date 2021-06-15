@@ -5,8 +5,6 @@
 \title{Function that fully bootstraps rows}
 \usage{
 bootstrapRows(rows, ...)
-
-bootstrapRows(rows, ...)
 }
 \arguments{
 \item{rows}{rows to potentially resample}
@@ -14,7 +12,5 @@ bootstrapRows(rows, ...)
 \item{...}{other arguments, ignored}
 }
 \description{
-Function that fully bootstraps rows
-
 Function that fully bootstraps rows
 }

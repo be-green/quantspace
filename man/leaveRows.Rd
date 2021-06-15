@@ -5,8 +5,6 @@
 \title{Function that doesn't reorder rows (for weighted bootstrap)}
 \usage{
 leaveRows(rows, ...)
-
-leaveRows(rows, ...)
 }
 \arguments{
 \item{rows}{rows to potentially resample}
@@ -14,7 +12,5 @@ leaveRows(rows, ...)
 \item{...}{other arguments, ignored}
 }
 \description{
-Function that doesn't reorder rows (for weighted bootstrap)
-
 Function that doesn't reorder rows (for weighted bootstrap)
 }

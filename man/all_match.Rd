@@ -5,8 +5,6 @@
 \title{check if all values of two vectors match}
 \usage{
 all_match(x, y)
-
-all_match(x, y)
 }
 \arguments{
 \item{x}{first vector}
@@ -14,7 +12,5 @@ all_match(x, y)
 \item{y}{second vector}
 }
 \description{
-check if all values of two vectors match
-
 check if all values of two vectors match
 }

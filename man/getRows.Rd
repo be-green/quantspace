@@ -5,8 +5,6 @@
 \title{Function which gets resampled rows}
 \usage{
 getRows(rows, sampling_method, ...)
-
-getRows(rows, sampling_method, ...)
 }
 \arguments{
 \item{rows}{rows to resample}
@@ -16,7 +14,5 @@ getRows(rows, sampling_method, ...)
 \item{...}{other arguments passed on to the method}
 }
 \description{
-Function which gets resampled rows
-
 Function which gets resampled rows
 }
