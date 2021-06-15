@@ -43,8 +43,6 @@ subsampling. — resample_qs • quantspace</title>
 <meta property="og:title" content="Computes standard errors for the quantile regression spacing method using
 subsampling. — resample_qs" />
 <meta property="og:description" content="Computes standard errors for the quantile regression spacing method using
-subsampling.
-Computes standard errors for the quantile regression spacing method using
 subsampling." />
 
 
@@ -129,8 +127,6 @@ subsampling.</h1>
     <div class="ref-description">
     <p>Computes standard errors for the quantile regression spacing method using
 subsampling.</p>
-<p>Computes standard errors for the quantile regression spacing method using
-subsampling.</p>
     </div>
 
     <pre class="usage"><span class='fu'>resample_qs</span><span class='op'>(</span>
@@ -199,83 +195,7 @@ subsampling.</p>
   <span class='va'>cluster_matrix</span>,
   <span class='va'>algorithm</span>,
   control <span class='op'>=</span> <span class='fu'><a href='qs_control.html'>qs_control</a></span><span class='op'>(</span><span class='op'>)</span>,
-  std_err_control <span class='op'>=</span> <span class='fu'>std_err_control</span><span class='op'>(</span><span class='op'>)</span>,
-  <span class='va'>var_names</span>,
-  <span class='va'>alpha</span>,
-  <span class='va'>jstar</span>,
-  parallel <span class='op'>=</span> <span class='cn'>F</span>,
-  weights <span class='op'>=</span> <span class='cn'>NULL</span>,
-  seed <span class='op'>=</span> <span class='cn'>NULL</span>,
-  <span class='va'>...</span>
-<span class='op'>)</span>
-
-<span class='fu'>resample_qs</span><span class='op'>(</span>
-  <span class='va'>X</span>,
-  <span class='va'>y</span>,
-  <span class='va'>weights</span>,
-  <span class='va'>sampling_method</span>,
-  <span class='va'>alpha</span>,
-  <span class='va'>jstar</span>,
-  <span class='va'>control</span>,
-  <span class='va'>algorithm</span>,
-  <span class='va'>draw_weights</span>,
-  <span class='va'>var_names</span>,
-  <span class='va'>subsample_percent</span>,
-  <span class='va'>...</span>
-<span class='op'>)</span>
-
-<span class='fu'>weighted_bootstrap</span><span class='op'>(</span>
-  <span class='va'>X</span>,
-  <span class='va'>y</span>,
-  <span class='va'>weights</span>,
-  <span class='va'>sampling_method</span>,
-  <span class='va'>alpha</span>,
-  <span class='va'>jstar</span>,
-  <span class='va'>control</span>,
-  <span class='va'>algorithm</span>,
-  <span class='va'>draw_weights</span>,
-  <span class='va'>var_names</span>,
-  <span class='va'>subsample_percent</span>,
-  <span class='va'>...</span>
-<span class='op'>)</span>
-
-<span class='fu'>bootstrap</span><span class='op'>(</span>
-  <span class='va'>X</span>,
-  <span class='va'>y</span>,
-  <span class='va'>weights</span>,
-  <span class='va'>sampling_method</span>,
-  <span class='va'>alpha</span>,
-  <span class='va'>jstar</span>,
-  <span class='va'>control</span>,
-  <span class='va'>algorithm</span>,
-  <span class='va'>draw_weights</span>,
-  <span class='va'>var_names</span>,
-  <span class='va'>subsample_percent</span>,
-  <span class='va'>...</span>
-<span class='op'>)</span>
-
-<span class='fu'>subsample</span><span class='op'>(</span>
-  <span class='va'>X</span>,
-  <span class='va'>y</span>,
-  <span class='va'>weights</span>,
-  <span class='va'>sampling_method</span>,
-  <span class='va'>alpha</span>,
-  <span class='va'>jstar</span>,
-  <span class='va'>control</span>,
-  <span class='va'>algorithm</span>,
-  <span class='va'>draw_weights</span>,
-  <span class='va'>var_names</span>,
-  <span class='va'>subsample_percent</span>,
-  <span class='va'>...</span>
-<span class='op'>)</span>
-
-<span class='fu'>standard_errors</span><span class='op'>(</span>
-  <span class='va'>y</span>,
-  <span class='va'>X</span>,
-  <span class='va'>cluster_matrix</span>,
-  <span class='va'>algorithm</span>,
-  control <span class='op'>=</span> <span class='fu'><a href='qs_control.html'>qs_control</a></span><span class='op'>(</span><span class='op'>)</span>,
-  std_err_control <span class='op'>=</span> <span class='fu'>std_err_control</span><span class='op'>(</span><span class='op'>)</span>,
+  std_err_control <span class='op'>=</span> <span class='fu'><a href='se_control.html'>se_control</a></span><span class='op'>(</span><span class='op'>)</span>,
   <span class='va'>var_names</span>,
   <span class='va'>alpha</span>,
   <span class='va'>jstar</span>,
