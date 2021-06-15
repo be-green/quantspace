@@ -15,8 +15,8 @@ Spacings: A Simple Method for the Joint Estimation of Multiple Quantiles
 Without Crossing, Schmidt &
 Zhu](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2220901).
 
-The package contains utilities for estimating quantiles via the
-difference from a central estimated quantile. Fitted quantiles are
+The package allows users to fit quantile regressions and predictive distributions 
+in a manner which avoids the quantile crossing problem. Fitted quantiles are
 guaranteed to be positive, because instead of directly estimating each
 quantile, the package will estimate the quantile effect on the log of
 the residuals with the correct corresponding sign.
@@ -24,31 +24,26 @@ the residuals with the correct corresponding sign.
 In other words, imagine we estimate the median quantile for the data.
 Now we are interested in the 75th percentile. But we don’t want our
 quantiles to cross, which they are guaranteed to do in a non-trivial
-linear model (just expand the line far enough–if the lines aren’t
-parallel, they will cross). What do we do? We take the log of the
-residuals relative to the median, and estimate a quantile regression on
+linear model (if the lines aren’t
+parallel, they will cross). To avoid this problem, the package 
+take the log of the
+residuals relative to the median, and estimates a linear quantile regression on
 that quantity. The exponential model guarantees that the fitted quantile
-will have a positive difference vs. the median. You can translate the
-spacing back to a fitted quantile by taking the implied
-`predicted_spacing = log(75% - median)` by running
-`median + exp(predicted_spacing)`. The effects on each quantile are
-non-linear, but it avoids the crossing problem.
+will have a non-negative difference vs. the median. You can translate the
+spacing back to a fitted quantile by taking the spacing predicted by the model,
+exponentiating, and adding back to the median.
 
-Once we have a fitted model, the package also contains utilities for
+The package also contains utilities for
 interpolating the density implied by the fitted quantiles. It does this
-with two steps–first it takes the highest and lowest fitted quantiles
+in two steps–first it takes the highest and lowest fitted quantiles
 (0.95 and 0.05 by default) and uses a parametric assumption to fit the
-tails (gaussian by default). Then it uses cubic splines to interpolate
+tails (gaussian by default), and then uses cubic splines to interpolate
 the fitted quantiles, giving a continuous predictive distribution.
 
-Standard errors are estimated via the weighted bootstrap, where the data
-is randomly re-weighted according to an exponential distribution with
-rate parameter 1. There are also closed-form approximate standard errors
-through the delta method, though this is still on the roadmap and is not
-integrated into the package. There is also support for clustered
-standard errors via clustered subsampling. This is technically available
-through the formula interface, but the interface for this functionality
-is guaranteed to change in the near future.
+The package is flexible, and works with any number of algorithms. It contains
+specialized methods for large-scale data, which use a smoothed approximation 
+of the quantile loss function, combined with accelerated gradient descent, to
+estimate models at scales beyond the scope of traditional methods.
 
 # Installation
 
@@ -242,5 +237,4 @@ de$r(10)
 
 # Marginal Effects
 
-TBD, this interface exists but it would be generous to call it
-experimental.
+You can evaluate marginal effects with the function `marginal_effects`, which contains methods for average marginal effects, marginal effects at the average, and marginal effects as they vary across levels of a variable.
