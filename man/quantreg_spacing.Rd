@@ -2,7 +2,7 @@
 % Please edit documentation in R/quant_regress.R
 \name{quantreg_spacing}
 \alias{quantreg_spacing}
-\title{Computes coefficients for the quantile regression spacing method.}
+\title{Lower level function which calculates the quantile spacing regression coefficients}
 \usage{
 quantreg_spacing(
   y,
@@ -61,5 +61,5 @@ warnings is a 1 by p matrix of warnings produced by each quantile regression cal
 iter: is a 1 by p matrix of iterations ran by each quantile regression call.
 }
 \description{
-Computes coefficients for the quantile regression spacing method.
+Lower level function which calculates the quantile spacing regression coefficients
 }

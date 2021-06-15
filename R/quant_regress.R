@@ -759,7 +759,7 @@ na_if_null <- function(x) {
 }
 
 
-#' Computes coefficients for the quantile regression spacing method.
+#' Lower level function which calculates the quantile spacing regression coefficients
 #' @param y Column of response variable.
 #' @param X Regression specification matrix.
 #' @param var_names RHS regression variable names.
