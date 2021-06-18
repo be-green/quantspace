@@ -260,7 +260,7 @@ arma::vec fit_approx_quantile_model(arma::mat& X,
   // full data
   arma::vec beta = huber_grad_descent(y, X, X_t, init_beta,
                                       tau, n, one_over_n, p,
-                                      maxiter = maxiter, mu,
+                                      maxiter, mu,
                                       beta_tol, check_tol);
 
   if(scale == 1) {
