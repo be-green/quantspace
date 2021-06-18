@@ -15,9 +15,10 @@ lasso_cv_search(
   foldid = NULL,
   nlambda = 100,
   eps = 1e-04,
-  init.lambda = 1,
+  init.lambda = 2,
   parallel = T,
   coef.cutoff = 1e-05,
+  thresh = 0,
   ...
 )
 }
@@ -49,6 +50,9 @@ if you want the folds to satisfy underlying data groupings)}
 \item{parallel}{whether to run cv scoring in parallel or not}
 
 \item{coef.cutoff}{what cutoff to use for "0" coefficients}
+
+\item{thresh}{threshhold for what counts as a "sparse enough"
+solution for the top of the grid}
 
 \item{...}{other parameters to pass on to fitting method}
 }

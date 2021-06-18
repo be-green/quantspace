@@ -11,7 +11,7 @@ fit_lasso(
   lambda = NULL,
   weights = NULL,
   intercept = TRUE,
-  coef.cutoff = 1e-06,
+  coef.cutoff = 1e-04,
   method = "sfn",
   ...
 )

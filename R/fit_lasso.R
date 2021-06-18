@@ -1,5 +1,4 @@
-check <- function (x, tau = 0.5)
-{
+check <- function (x, tau = 0.5) {
   x * (tau - (x < 0))
 }
 
@@ -15,9 +14,8 @@ check <- function (x, tau = 0.5)
 #' @param ... other arguments to pass to method
 #' @importFrom SparseM as.matrix.csr
 fit_lasso <- function (x, y, tau = 0.5, lambda = NULL, weights = NULL, intercept = TRUE,
-          coef.cutoff = 1e-06, method = "sfn",
-          ...)
-{
+          coef.cutoff = 1e-04, method = "sfn",
+          ...) {
   if (is.null(dim(x))) {
     stop("x needs to be a matrix with more than 1 column")
   }
@@ -137,6 +135,8 @@ randomly_assign <- function(n, nfolds) {
 #' @param ... other parameters to pass on to fitting method
 #' @param parallel whether to run cv scoring in parallel or not
 #' @param coef.cutoff what cutoff to use for "0" coefficients
+#' @param thresh threshhold for what counts as a "sparse enough"
+#' solution for the top of the grid
 #' @importFrom future.apply future_sapply
 #' @importFrom future sequential
 #' @importFrom future plan
@@ -150,8 +150,9 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                              weights = NULL, method = "sfn",
                              intercept = TRUE, nfolds = 10,
                              foldid = NULL, nlambda = 100,
-                             eps = 1e-04, init.lambda = 1,
+                             eps = 1e-04, init.lambda = 2,
                              parallel = T, coef.cutoff = 1e-5,
+                             thresh = 0,
                              ...) {
   p <- dim(x)[2]
 
@@ -160,9 +161,6 @@ lasso_cv_search <- function (x, y, tau = 0.5,
   # penalty function is lasso penalty
   pen_func <- function(x, lambda) lambda * abs(x)
 
-
-  sample_q <- stats::quantile(y, tau)
-  inter_only_rho <- sum(check(y - sample_q, tau))
   lambda_star <- init.lambda
   searching <- TRUE
   while (searching) {
@@ -172,11 +170,10 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                           weights = weights,
                           intercept = intercept, ...)
 
-    if (sum((init_fit$coefficients[p_range] > coef.cutoff)) == 0) {
+    if (sum(abs(init_fit$coefficients[p_range])) <= thresh) {
       searching <- FALSE
     } else {
-      lambda_star <- inter_only_rho/sum(sapply(init_fit$coefficients[p_range],
-                                               pen_func, 1))
+      lambda_star <- lambda_star * 1.5
     }
   }
   lambda_min <- eps * lambda_star
@@ -184,7 +181,6 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                     length.out = nlambda))
   models <- list()
   fit_models <- TRUE
-  lam_pos <- length(lambda)
 
   # bracket search until it finds set of lambdas that don't always zero out
   # coefficients
@@ -193,7 +189,7 @@ lasso_cv_search <- function (x, y, tau = 0.5,
   lam_pos = floor(length(lambda)/2)
   max_lambda_pos <- length(lambda)
   min_lambda_pos <- 1
-  while (fit_models) {
+  while (fit_models & lambda[max_lambda_pos] > 2) {
     if (fit_models) {
       models[[lam_pos]] <- fit_lasso(x = x,  y = y, tau = tau,
                                      lambda = lambda[lam_pos],
@@ -203,7 +199,7 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                                      ...
                                      )
     }
-    if (sum(abs(coefficients(models[[lam_pos]])[p_range])) != 0) {
+    if (sum(abs(coefficients(models[[lam_pos]])[p_range])) > thresh) {
       if(lam_pos > min_lambda_pos) {
         min_lambda_pos = lam_pos
       }

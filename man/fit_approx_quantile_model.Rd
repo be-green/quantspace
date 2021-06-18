@@ -13,7 +13,7 @@ fit_approx_quantile_model(
   tau,
   init_beta,
   mu = 1e-15,
-  maxiter = 10000L,
+  maxiter = 100000L,
   beta_tol = 1e-04,
   check_tol = 1e-06,
   intercept = 1L,

@@ -95,7 +95,7 @@ arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X,
   double delta = std::min(1/tau, 1/(1 - tau));
   // inf is the "max" norm over the vector
   while((i < maxiter) && ((arma::norm(grad, "inf") > beta_tol) || (i == 1)) &&
-        (checkfun_diff * delta > check_tol || delta < 0.01)) {
+        (checkfun_diff / delta > check_tol || delta < 0.1)) {
 
     // picking step size
     delta = 1;
@@ -104,7 +104,7 @@ arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X,
       double a2 = arma::as_scalar(beta_diff.t() * beta_diff) / cross;
 
       // pick the smaller and don't go _really_ off the rails
-      delta = std::min(std::min(a1, a2), 2.0);
+      delta = std::min(std::min(a1, a2), 1.0);
     }
 
     if(std::fmod(i, 100) == 0) {
@@ -165,7 +165,7 @@ arma::vec fit_approx_quantile_model(arma::mat& X,
                                     double tau,
                                     arma::colvec init_beta,
                                     double mu = 1e-15,
-                                    int maxiter = 10000,
+                                    int maxiter = 100000,
                                     double beta_tol = 1e-4,
                                     double check_tol = 1e-6,
                                     int intercept = 1,
@@ -248,7 +248,7 @@ arma::vec fit_approx_quantile_model(arma::mat& X,
                                    init_beta,
                                    tau, num_samples,
                                    one_over_num_samples, p,
-                                   maxiter = 100, mu,
+                                   100, mu,
                                    beta_tol, check_tol);
 
   }
@@ -365,7 +365,7 @@ arma::vec huber_grad_descent_sp(const arma::colvec& y,
       double a2 = arma::as_scalar(beta_diff.t() * beta_diff) / cross;
 
       // pick the smaller and don't go _really_ off the rails
-      delta = std::min(std::min(a1, a2), 100.0);
+      delta = std::min(std::min(a1, a2), 1.0);
     }
 
     if(i % 100 == 0) {
@@ -452,7 +452,7 @@ arma::vec fit_approx_quantile_model_sp(arma::sp_mat& X,
                                       init_beta,
                                       tau, num_samples,
                                       one_over_num_samples, p,
-                                      maxiter = 100, mu,
+                                      100, mu,
                                       beta_tol, check_tol);
   }
 
