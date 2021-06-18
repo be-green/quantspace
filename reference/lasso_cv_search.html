@@ -135,9 +135,10 @@
   foldid <span class='op'>=</span> <span class='cn'>NULL</span>,
   nlambda <span class='op'>=</span> <span class='fl'>100</span>,
   eps <span class='op'>=</span> <span class='fl'>1e-04</span>,
-  init.lambda <span class='op'>=</span> <span class='fl'>1</span>,
+  init.lambda <span class='op'>=</span> <span class='fl'>2</span>,
   parallel <span class='op'>=</span> <span class='cn'>T</span>,
   coef.cutoff <span class='op'>=</span> <span class='fl'>1e-05</span>,
+  thresh <span class='op'>=</span> <span class='fl'>0</span>,
   <span class='va'>...</span>
 <span class='op'>)</span></pre>
 
@@ -197,6 +198,11 @@ if you want the folds to satisfy underlying data groupings)</p></td>
     <tr>
       <th>coef.cutoff</th>
       <td><p>what cutoff to use for "0" coefficients</p></td>
+    </tr>
+    <tr>
+      <th>thresh</th>
+      <td><p>threshhold for what counts as a "sparse enough"
+solution for the top of the grid</p></td>
     </tr>
     <tr>
       <th>...</th>
