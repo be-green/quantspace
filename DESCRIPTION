@@ -1,7 +1,7 @@
 Package: quantspace
 Type: Package
 Title: Quantile Regression via Quantile Spacing
-Version: 0.2.0
+Version: 0.2.1
 Author: Lawrence D.W. Schmidt, Yinchu Zhu, Brice Green, Luxi Han 
 Maintainer: Brice Green <bcg@mit.edu>
 Description: Runs quantile regressions by modeling log-differences between quantiles. A fast, robust and asymptotically normal method that prevents quantile crossings.
