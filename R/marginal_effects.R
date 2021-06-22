@@ -114,6 +114,10 @@ me <- function(fit, data) {
   X <- stats::model.matrix(tt,
                            data = data)
 
+  if(get_intercept(data) > 0 | "(Intercept)" %in% colnames(data)) {
+    X <- X[,-1]
+  }
+
   jstar <- fit$specs$jstar
 
   reg_coefs <- t(coef(fit))
@@ -237,9 +241,8 @@ marginal_effects <- function(fit,
                              size = NA,
                              trim = 0.05) {
 
+  d = stats::model.matrix(fit$specs$formula, data = fit$specs$X)
   if(variable == "all") {
-
-    d = stats::model.matrix(fit$specs$formula, data = fit$specs$X)
     variable <- setdiff(colnames(d), "(Intercept)")
   }
 
@@ -254,7 +257,7 @@ marginal_effects <- function(fit,
   attr(all_me, "jstar") <- fit$specs$jstar
 
   ff = stats::as.formula(fit$specs$formula)
-  attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff),
+  attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff, data = d),
                                                       "response")]
 
   attr(all_me, "type") <- type
