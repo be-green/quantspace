@@ -1,4 +1,3 @@
-context("Test standard errors")
 
 # these will all generate warnings, ignore it for now
 suppressWarnings({

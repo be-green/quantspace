@@ -1,5 +1,3 @@
-context("Test Quantile Regression Algorithm Interface")
-
 X <- stats::model.matrix(mpg ~ cyl, data = mtcars)
 y <- stats::model.response(stats::model.frame(mpg ~ cyl, data = mtcars),
                              type = "numeric")

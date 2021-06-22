@@ -4,12 +4,12 @@
 \alias{me}
 \title{Get marginal effects at a set of levels for the covariates}
 \usage{
-me(fit, data)
+me(fit, X)
 }
 \arguments{
 \item{fit}{A fitted model from the \code{qs} function}
 
-\item{data}{optional data.frame that specifies level of data to calculate
+\item{X}{model matrix that specifies level of data to calculate
 marginal effects}
 }
 \description{
