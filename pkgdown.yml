@@ -3,7 +3,7 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   using-quantspace: using-quantspace.html
-last_built: 2021-06-22T14:53Z
+last_built: 2021-06-22T15:35Z
 urls:
   reference: https://brice.green/quantspace/reference
   article: https://brice.green/quantspace/articles
