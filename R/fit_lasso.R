@@ -152,7 +152,7 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                              foldid = NULL, nlambda = 100,
                              eps = 1e-04, init.lambda = 2,
                              parallel = T, coef.cutoff = 1e-5,
-                             thresh = 0,
+                             thresh = 0.01,
                              ...) {
   p <- dim(x)[2]
 
@@ -170,7 +170,7 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                           weights = weights,
                           intercept = intercept, ...)
 
-    if (sum(abs(init_fit$coefficients[p_range])) <= thresh) {
+    if (mean(abs(init_fit$coefficients[p_range])) <= thresh) {
       searching <- FALSE
     } else {
       lambda_star <- lambda_star * 1.5
@@ -199,7 +199,7 @@ lasso_cv_search <- function (x, y, tau = 0.5,
                                      ...
                                      )
     }
-    if (sum(abs(coefficients(models[[lam_pos]])[p_range])) > thresh) {
+    if (mean(abs(coefficients(models[[lam_pos]])[p_range])) > thresh) {
       if(lam_pos > min_lambda_pos) {
         min_lambda_pos = lam_pos
       }
