@@ -6,18 +6,21 @@
 #' @importFrom stats sd
 #' @importFrom stats quantile
 bin_along_range <- function(x, size = NA, trim = 0.01) {
-  assertthat::assert_that(is.numeric(x))
-  assertthat::assert_that(all(!is.na(x)))
+  if(length(setdiff(x, c(0,1))) == 0) {
+    return(c(0, 1))
+  } else {
+    assertthat::assert_that(is.numeric(x))
+    assertthat::assert_that(all(!is.na(x)))
 
-  max_x <- quantile(x, 1 - trim)
-  min_x <- quantile(x, trim)
+    max_x <- quantile(x, 1 - trim)
+    min_x <- quantile(x, trim)
 
-  # slightly arbitrary, but w/e
-  if(is.na(size)) {
-    size = sd(x)/3
+    # slightly arbitrary, but w/e
+    if(is.na(size)) {
+      size = sd(x)/3
+    }
+    seq(min_x, max_x, by = size)
   }
-
-  seq(min_x, max_x, by = size)
 }
 
 #' Computes means for various slices of a regression_spec by betas product.
@@ -102,18 +105,16 @@ get_marginal_effects = function(qreg_coeffs,
 
 #' Get marginal effects at a set of levels for the covariates
 #' @param fit A fitted model from the `qs` function
-#' @param data optional data.frame that specifies level of data to calculate
+#' @param X model matrix that specifies level of data to calculate
 #' marginal effects
 #' @export
 #' @details A simple function which returns
 #' marginal effects for a given level of the dataset.
-me <- function(fit, data) {
-  ff = stats::as.formula(fit$specs$formula)
-  tt <- stats::terms(ff, data = data)
-  tt <- stats::delete.response(tt)
-  X <- stats::model.matrix(tt,
-                           data = data)
+me <- function(fit, X) {
 
+  if(!is.matrix(X)) {
+    X <- as.matrix(X)
+  }
   jstar <- fit$specs$jstar
 
   reg_coefs <- t(coef(fit))
@@ -156,15 +157,17 @@ me_by_variable <- function(fit, type, variable,
     X = stats::model.matrix(stats::as.formula(fit$specs$formula),
                               data = fit$specs$X)
 
+  } else {
+    X <- data
   }
 
   if (type == "mea") {
     data <- data.frame(t(colMeans(X)))
-    vardata <- mean(fit$specs$X[[variable]])
+    vardata <- mean(X[,variable])
   } else if (type == "varying") {
-    data <- data.frame(t(colMeans(X)))
+    data <- t(colMeans(X))
 
-    var <- fit$specs$X[[variable]]
+    var <- X[,variable]
     if(is.numeric(var)) {
       vardata <- bin_along_range(var)
     } else {
@@ -178,7 +181,7 @@ me_by_variable <- function(fit, type, variable,
     data[[variable]] <- vardata
 
   } else if (type == "ame") {
-    vardata <- mean(fit$specs$X[[variable]])
+    vardata <- mean(X[,variable])
     data <- as.data.frame(X)
   } else {
     stop("Type must be one of:\n",
@@ -191,12 +194,12 @@ me_by_variable <- function(fit, type, variable,
   if(type != "ame") {
 
     for(i in 1:length(data[[variable]])) {
-      this_level_me <- me(fit, data = data[i,])
+      this_level_me <- me(fit, X = data[i,])
       var_me[i,] <- this_level_me[which(rownames(this_level_me) == variable),]
     }
 
   } else {
-    var_me <- me(fit, data = data)
+    var_me <- me(fit, X = data)
     var_me <- var_me[which(rownames(var_me) == variable),]
     var_me <- matrix(var_me, ncol = length(var_me))
   }
@@ -237,14 +240,15 @@ marginal_effects <- function(fit,
                              size = NA,
                              trim = 0.05) {
 
+  if(anyNA(data) & length(data) == 1) {
+    data = stats::model.matrix(fit$specs$formula, data = fit$specs$X)
+  }
   if(variable == "all") {
-
-    d = stats::model.matrix(fit$specs$formula, data = fit$specs$X)
-    variable <- setdiff(colnames(d), "(Intercept)")
+    variable <- setdiff(colnames(data), "(Intercept)")
   }
 
   all_me <- lapply(variable,
-                   function(v, d) {
+                   function(v) {
                      me_by_variable(fit, type,
                                     v, data,
                                     size, trim)
@@ -254,7 +258,7 @@ marginal_effects <- function(fit,
   attr(all_me, "jstar") <- fit$specs$jstar
 
   ff = stats::as.formula(fit$specs$formula)
-  attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff),
+  attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff, data = data),
                                                       "response")]
 
   attr(all_me, "type") <- type
