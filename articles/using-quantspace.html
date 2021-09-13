@@ -196,9 +196,7 @@
 <p>Right now this is done with cubic splines, which can (very occasionally) go negative, which would not imply a valid CDF. If that happens, it’s probably a sign that this is a very poor model for your problem or that you have data which is quite small.</p>
 <p>So how do we do this? Let’s take our fit from above and interpolate it. Because our model is non-linear, the distance between quantiles will vary with the data. By default, the <code>distributional_effects</code> function performs this interpolation at the average level of the data, returning the pdf, cdf, quantile function, and a random number generator for the fitted density.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R">
-
-<span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
   <span class="co"># evaluate the density at 0</span>
@@ -224,8 +222,7 @@
 <span class="co">#&gt;  [7] -4.16744913 -5.33487463  1.78081162 -3.02092618</span></code></pre></div>
 <p>We can also do this for various levels of the data. Let’s see how these change as we move up in the first dimension of our X variable.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R">
-<span class="va">X_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1</span><span class="op">)</span>,
+<code class="sourceCode R"><span class="va">X_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1</span><span class="op">)</span>,
                        X1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span>, 
                        X2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span>
 
