@@ -97,6 +97,9 @@ arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X,
   while((i < maxiter) && ((arma::norm(grad, "inf") > beta_tol) || (i == 1)) &&
         (checkfun_diff / delta > check_tol || delta < 0.1)) {
 
+
+    // step size and original gradient descent code from conquer package
+    // https://github.com/XiaoouPan/conquer
     // picking step size
     delta = 1;
     if (cross > 0) {
@@ -357,7 +360,9 @@ arma::vec huber_grad_descent_sp(const arma::colvec& y,
   // inf is the "max" norm over the vector
   while((i < maxiter) && ((arma::norm(grad, "inf") > beta_tol) || (i == 1)) &&
         (checkfun_diff * delta > check_tol || delta < 0.01)) {
-
+    
+    // step-size selection and gradient descent code originally from conquer package
+    // https://github.com/XiaoouPan/conquer
     // picking step size
     delta = 1;
     if (cross > 0) {
