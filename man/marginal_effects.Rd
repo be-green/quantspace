@@ -6,7 +6,7 @@
 \usage{
 marginal_effects(
   fit,
-  type = "ame",
+  type = "mea",
   variable = "all",
   data = NA,
   size = NA,

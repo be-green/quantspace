@@ -19,7 +19,9 @@ fit_approx_quantile_model(
   intercept = 1L,
   num_samples = 1000,
   warm_start = 1L,
-  scale = 1L
+  scale = 1L,
+  lambda = 0,
+  min_delta = 1e-10
 )
 }
 \arguments{
@@ -52,6 +54,10 @@ for early stopping}
 of the data}
 
 \item{scale}{whether to scale x & y variables}
+
+\item{lambda}{optional lasso penalty weight}
+
+\item{min_delta}{smallest allowed step size for gradient descent}
 }
 \description{
 Compute quantile regression via accelerated gradient descent using

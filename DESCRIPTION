@@ -23,7 +23,8 @@ Imports:
     future,
     future.apply,
     MASS,
-    Rcpp
+    Rcpp,
+    RcppParallel
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
 Suggests: 
@@ -34,5 +35,6 @@ Suggests:
 VignetteBuilder: knitr
 LinkingTo: 
     RcppArmadillo,
-    Rcpp
+    Rcpp,
+    RcppParallel
 URL: https://brice.green/quantspace

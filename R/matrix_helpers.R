@@ -21,7 +21,6 @@ rho <- function(u,tau=.5,weights = NULL){
 #' @param TOL tolerance for rank calculation
 #' @return The rank of the matrix m
 getRank = function(m, TOL = 1e-10) {
-
   transp_prod <- as.matrix(t(m) %*% (m))
   return(sum(abs(diag(qr.R(qr(transp_prod)))) > TOL))
 }
@@ -34,17 +33,14 @@ getRank = function(m, TOL = 1e-10) {
 #' returns the indices of columns to remove from the original matrix so that the
 #' resulting matrix is full rank.
 findRedundantCols = function(m, TOL = 0.000000001) {
-
-
   decomp <- qr(m)
   orig_col_names <- colnames(m)
   R <- qr.R(decomp)
   R_col_names <- colnames(R)
-  return(setdiff(
-    1:length(orig_col_names) ,
-    match(
-      R_col_names[which(abs(diag(R)) > TOL)],
-      orig_col_names)))
+  if(is.null(R_col_names)) {
+    R_col_names <- paste0("X", 1:ncol(R))
+  }
+  which(abs(diag(R)) < TOL)
 }
 
 #' Ensure that a regression specification is full rank
@@ -74,20 +70,17 @@ ensureSpecFullRank = function(spec_mat, col_names) {
     col_names <- col_names[-zero_cols]
   }
 
+  r = getRank(spec_mat)
+  p = ncol(spec_mat)
   # Check if updated matrix is full rank
-  if (getRank(spec_mat) == ncol(spec_mat)) {
+  if (r == p) {
     return(list(
       "spec_matrix" = spec_mat,
       "var_names" = col_names))
+  } else {
+    stop("Singular design matrix; has rank ", r,
+         " but ", p, " columns.")
   }
-
-  # Use a generic routine to identify columns to drop
-  dgc_spec_mat <- as(spec_mat, "dgCMatrix")
-  colnames(dgc_spec_mat) <- col_names
-  cols_to_drop = findRedundantCols(dgc_spec_mat)
-  return(list(
-    "spec_matrix" = spec_mat[,-cols_to_drop],
-    "var_names" = col_names[-cols_to_drop]))
 }
 
 #' Convert matrix to a SparseM csr matrix
