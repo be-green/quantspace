@@ -162,6 +162,7 @@ arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X,
   while((i < maxiter) && ((arma::norm(grad, "inf") > beta_tol) || (i == 1)) &&
         abs(loss_diff / delta) > check_tol && exitflag == 0) {
 
+
     if(std::fmod(i, 100) == 0) {
       Rcpp::checkUserInterrupt();
     }
