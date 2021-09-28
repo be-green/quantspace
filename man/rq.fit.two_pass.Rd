@@ -11,6 +11,8 @@ rq.fit.two_pass(
   weights = NULL,
   control,
   lambda,
+  intercept = NULL,
+  init_beta = NULL,
   n_samples = min(c(ceiling(nrow(X)/10), 10000)),
   ...
 )
@@ -28,6 +30,11 @@ rq.fit.two_pass(
 
 \item{lambda}{ignored for now}
 
+\item{intercept}{optional integer indicating intercept column
+that identifies initial values}
+
+\item{init_beta}{initial guess at betas}
+
 \item{n_samples}{number of observations to use in "warmup" regression}
 
 \item{...}{other arguments, ignored for now}
@@ -42,12 +49,7 @@ tilted least squares loss function}
 
 \item{maxiter}{largest number of iterations allowed}
 
-\item{init_beta}{initial guess at betas}
-
 \item{scale}{whether to scale x and y variables in regression}
-
-\item{intercept}{optional integer indicating intercept column
-that identifies initial values}
 }
 \description{
 Quantile regression approximated w/ huber loss followed by post-processing

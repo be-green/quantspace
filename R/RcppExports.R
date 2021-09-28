@@ -94,11 +94,3 @@ glob_obs_vec <- function(y, r, thresh) {
     .Call(`_quantspace_glob_obs_vec`, y, r, thresh)
 }
 
-get_Q <- function(X) {
-    .Call(`_quantspace_get_Q`, X)
-}
-
-get_rank <- function(X) {
-    .Call(`_quantspace_get_rank`, X)
-}
-

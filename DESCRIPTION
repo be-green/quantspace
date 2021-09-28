@@ -8,6 +8,7 @@ Description: Runs quantile regressions by modeling log-differences between quant
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+SystemRequirements: GNU make
 Imports: 
     quantreg,
     assertthat,
@@ -24,6 +25,7 @@ Imports:
     future.apply,
     MASS,
     Rcpp,
+    RcppArmadillo,
     RcppParallel
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
@@ -35,6 +37,6 @@ Suggests:
 VignetteBuilder: knitr
 LinkingTo: 
     RcppArmadillo,
-    Rcpp,
-    RcppParallel
+    RcppParallel,
+    Rcpp
 URL: https://brice.green/quantspace

@@ -11,7 +11,7 @@ rq.fit.lasso(
   lambda,
   weights,
   scale_x = T,
-  method = "agd",
+  method = "two_pass",
   nfold = 10,
   nlambda = 50,
   parallel = F,

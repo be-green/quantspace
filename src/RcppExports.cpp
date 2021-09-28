@@ -188,28 +188,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// get_Q
-arma::mat get_Q(arma::mat& X);
-RcppExport SEXP _quantspace_get_Q(SEXP XSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_Q(X));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_rank
-int get_rank(arma::mat& X);
-RcppExport SEXP _quantspace_get_rank(SEXP XSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_rank(X));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_quantspace_checkfun", (DL_FUNC) &_quantspace_checkfun, 2},
@@ -223,8 +201,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_quantspace_fit_penalize_approx_quantile_model", (DL_FUNC) &_quantspace_fit_penalize_approx_quantile_model, 14},
     {"_quantspace_glob_obs_mat", (DL_FUNC) &_quantspace_glob_obs_mat, 3},
     {"_quantspace_glob_obs_vec", (DL_FUNC) &_quantspace_glob_obs_vec, 3},
-    {"_quantspace_get_Q", (DL_FUNC) &_quantspace_get_Q, 1},
-    {"_quantspace_get_rank", (DL_FUNC) &_quantspace_get_rank, 1},
     {NULL, NULL, 0}
 };
 

@@ -10,7 +10,8 @@ post_processed_grad_descent(
   tau,
   lambda = 0,
   nwarmup_samples = 0.1 * nrow(X),
-  lp_size = 10000
+  lp_size = 10000,
+  intercept = NULL
 )
 }
 \arguments{
