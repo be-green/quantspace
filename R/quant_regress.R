@@ -533,7 +533,7 @@ rq.fit.agd <- function(X, y, tau = 0.5,
   }
 
   if(n_samples < 10) {
-    n_samples = min(10, length(y))
+    n_samples = min(min(10, length(y)), round(length(y) / 2))
   }
 
   samples = sample(1:length(y), n_samples)
@@ -1038,7 +1038,8 @@ quantreg_spacing = function(
     trunc = TRUE,
     start_list = NA,
     output_quantiles = FALSE,
-    calc_avg_me = FALSE
+    calc_avg_me = FALSE,
+    calc_r2 = T
   ),
   ...) {
 
@@ -1050,6 +1051,7 @@ quantreg_spacing = function(
   output_quantiles = control$output_quantiles
   calc_avg_me = control$calc_avg_me
   lambda = control$lambda
+  calc_r2 = control$calc_r2
 
   if(is.null(output_quantiles)) {
     output_quantiles <- TRUE
@@ -1093,7 +1095,6 @@ quantreg_spacing = function(
   if(missing(var_names) | is.null(var_names)) {
     var_names <- paste0("v", 1:ncol(X))
   }
-
 
   # Ensure matrix is not rank deficient
   if(is.null(lambda)) {
@@ -1144,13 +1145,19 @@ quantreg_spacing = function(
   ehat0 = star_model$residuals
 
   #Calculate R^2
-  V <- sum(rho(u = ehat0, tau = tau, weights = weights))
-  V0 <- fitQuantileRegression(X = as.matrix.csr(rep(1, length(y))),
-                             y = y,
-                             tau = tau,
-                             weights = weights,
-                             algorithm = 'rq.fit.sfn')$residuals
-  V0 <- sum(rho(u = V0, tau = tau,weights = weights))
+  if(calc_r2) {
+    V <- sum(rho(u = ehat0, tau = tau, weights = weights))
+    V0 <- fitQuantileRegression(X = as.matrix.csr(rep(1, length(y))),
+                                y = y,
+                                tau = tau,
+                                weights = weights,
+                                algorithm = algorithm)$residuals
+    V0 <- sum(rho(u = V0, tau = tau,weights = weights))
+  } else {
+    V = NA
+    V0 = NA
+  }
+
 
   #set column names
   coef_df <- as.data.frame(t(star_model$coefficients))
@@ -1253,19 +1260,25 @@ quantreg_spacing = function(
       }
       printWarnings(j_model)
 
-      #Calculate R^2
-      V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
-      V0 <- regressResiduals(
-        reg_spec_data = list(
-          spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
-        ),
-        ehat = ehat, ind_hat = ind_hat,
-        tau = tau.t, trunc = trunc,
-        small = small, weights = weights[ind_hat],
-        algorithm = 'rq.fit.sfn')
-      V0 <- sum(rho(u = V0$residuals, tau = tau.t,
-                    weights = V0$weights))
+      if( calc_r2 ){
 
+        #Calculate R^2
+        V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
+        V0 <- regressResiduals(
+          reg_spec_data = list(
+            spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
+          ),
+          ehat = ehat, ind_hat = ind_hat,
+          tau = tau.t, trunc = trunc,
+          small = small, weights = weights[ind_hat],
+          algorithm = algorithm)
+        V0 <- sum(rho(u = V0$residuals, tau = tau.t,
+                      weights = V0$weights))
+
+      } else {
+        V = NA
+        V0 = NA
+      }
       # Update residuals
       coef = j_model$coefficients
       coef_df <- as.data.frame(t(coef))
@@ -1390,14 +1403,20 @@ quantreg_spacing = function(
       }
 
       printWarnings(j_model)
+      if(calc_r2) {
 
       #Calculate pseudo-R^2
       V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
       V0 <- regressResiduals(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
                              ehat = -ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                             small = small, weights = weights[ind_hat], algorithm = 'rq.fit.sfn')
+                             small = small, weights = weights[ind_hat],
+                             algorithm = algorithm)
       V0 <- sum(rho(u = V0$residuals, tau = tau.t, weights = V0$weights))
 
+      } else {
+        V = NA
+        V0 = NA
+      }
       # Update residuals
       coef = j_model$coefficients
       coef_df <- as.data.frame(t(coef))

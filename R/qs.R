@@ -73,14 +73,16 @@ se_control <- function(se_method = "subsample",
 #' @param small level of "small" values to guarentee numerical stability. If not specified, set dynamically based on the standard deviation of the outcome variable.
 #' @param lambda For penalized regression, you can specify a level of lambda which will weight the penalty. If not set, will be determined based on 10-fold cross-validation.
 #' @param output_quantiles whether to save fitted quantiles as part of the function output
+#' @param calc_r2 whether to calculate psuedo-r2 for quantile regression
 #' @param calc_avg_me whether to return average marginal effects as part of the fitted object
 #' @param ... Other arguments, ignored for now
 #' @export
 qs_control <- function(trunc = TRUE,
-                       small = NULL,
+                       small = 1e-6,
                        lambda = NULL,
                        output_quantiles = TRUE,
                        calc_avg_me = FALSE,
+                       calc_r2 = TRUE,
                        ...) {
 
   list(trunc = trunc,
@@ -88,6 +90,7 @@ qs_control <- function(trunc = TRUE,
        lambda = lambda,
        output_quantiles = output_quantiles,
        calc_avg_me = calc_avg_me,
+       calc_r2 = calc_r2,
        ...)
 }
 
