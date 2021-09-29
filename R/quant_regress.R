@@ -541,6 +541,11 @@ rq.fit.agd <- function(X, y, tau = 0.5,
   X_sub = X[samples,]
   y_sub = y[samples]
 
+  # this happens if there's only 1 column
+  if(!is.matrix(X_sub)) {
+    X_sub <- as.matrix(X_sub)
+  }
+
   fit = fit_approx_quantile_model(X = X, y = y,
                           X_sub = X_sub,
                           y_sub = y_sub,
@@ -1147,12 +1152,9 @@ quantreg_spacing = function(
   #Calculate R^2
   if(calc_r2) {
     V <- sum(rho(u = ehat0, tau = tau, weights = weights))
-    V0 <- fitQuantileRegression(X = as.matrix.csr(rep(1, length(y))),
-                                y = y,
-                                tau = tau,
-                                weights = weights,
-                                algorithm = algorithm)$residuals
-    V0 <- sum(rho(u = V0, tau = tau,weights = weights))
+    # matches univariate qreg
+    q_est <- quantile(y, tau, type = 1)
+    V0 <- sum(rho(u = y - q_est, tau = tau, weights = weights))
   } else {
     V = NA
     V0 = NA
@@ -1264,16 +1266,9 @@ quantreg_spacing = function(
 
         #Calculate R^2
         V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
-        V0 <- regressResiduals(
-          reg_spec_data = list(
-            spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
-          ),
-          ehat = ehat, ind_hat = ind_hat,
-          tau = tau.t, trunc = trunc,
-          small = small, weights = weights[ind_hat],
-          algorithm = algorithm)
-        V0 <- sum(rho(u = V0$residuals, tau = tau.t,
-                      weights = V0$weights))
+        q_est <- quantile(ehat, tau.t, type = 1)
+        V0 <- sum(rho(u = ehat - q_est, tau = tau.t,
+                      weights = j_model$weights))
 
       } else {
         V = NA
@@ -1406,13 +1401,10 @@ quantreg_spacing = function(
       if(calc_r2) {
 
       #Calculate pseudo-R^2
-      V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
-      V0 <- regressResiduals(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
-                             ehat = -ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                             small = small, weights = weights[ind_hat],
-                             algorithm = algorithm)
-      V0 <- sum(rho(u = V0$residuals, tau = tau.t, weights = V0$weights))
-
+        V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
+        q_est <- quantile(-ehat, tau.t, type = 1)
+        V0 <- sum(rho(u = -ehat - q_est, tau = tau.t,
+                      weights = j_model$weights))
       } else {
         V = NA
         V0 = NA

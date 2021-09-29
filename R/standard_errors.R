@@ -31,8 +31,8 @@ subsampleRows <- function(rows, subsample_percent, cluster_index, ...) {
   idx = sample(uci,
                floor(subsample_percent*length(uci)),
                replace = F)
-  sample_idx = which(cluster_index %in% idx)
-  rows[sample_idx,]
+  which(cluster_index %in% idx)
+
 }
 
 #' Function that returns the correct weights for weighted bootstrap
@@ -53,6 +53,7 @@ getWeights <- function(weights, draw_weights, cluster_index) {
     } else {
       w = new_weights * weights
     }
+    w
   } else {
     weights
   }
@@ -87,8 +88,10 @@ resample_qs <- function(X,
                   subsample_percent = subsample_percent,
                   cluster_index = cluster_index)
   weights <- getWeights(weights, draw_weights,
-                        cluster_index = cluster_index)
-  weights <- weights / sum(weights)
+                        cluster_index = cluster_index[rows])
+  if(!is.null(weights)) {
+    weights <- weights / sum(weights)
+  }
 
   quantreg_spacing(
     y = y[rows],
