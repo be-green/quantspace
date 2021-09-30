@@ -62,11 +62,6 @@ findLastRedundantCol <- function(x) {
     tail(1)
 }
 
-#' Remove colinear columns starting from the back of a matrix
-#' @param x matrix to drop columns from
-removeRedundantCols = function(x) {
-
-}
 
 #' Ensure that a regression specification is full rank
 #' @details Verifies if a regression specification is full-rank. If the input
