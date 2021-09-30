@@ -1239,14 +1239,14 @@ quantreg_spacing = function(
       # current spacing is not rank-deficient
       if(!trunc){
         # Ensure matrix is not rank deficient
-        if(is.null(lambda) | zapsmall(lambda) == 0) {
+        if(is.null(lambda) || zapsmall(lambda) == 0) {
           reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[which(ehat > small),], reg_spec_starting_data$var_names)
         } else {
           reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[which(ehat > small),], col_names = var_names)
         }
       } else {
         # Ensure matrix is not rank deficient
-        if(is.null(lambda) | zapsmall(lambda) == 0) {
+        if(is.null(lambda) || zapsmall(lambda) == 0) {
           reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[ind_hat,], reg_spec_starting_data$var_names)
         } else {
           reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,], col_names = var_names)
@@ -1381,7 +1381,7 @@ quantreg_spacing = function(
         }
       } else {
         # Ensure matrix is not rank deficient
-        if(is.null(lambda) | zapsmall(lambda) == 0) {
+        if(is.null(lambda) || zapsmall(lambda) == 0) {
           reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[ind_hat,],
                                               reg_spec_starting_data$var_names)
         } else {

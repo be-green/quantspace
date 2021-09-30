@@ -198,7 +198,7 @@ me_by_variable <- function(fit, type, variable,
 
   for(i in 1:length(data[[variable]])) {
     this_level_me <- me(fit, X = data[i,])
-    var_me[i,] <- this_level_me[which(rownames(this_level_me) == variable),]
+    var_me[i,] <- this_level_me$avgME[which(rownames(this_level_me$avgME) == variable),]
   }
 
   var_me <- as.data.frame(cbind(vardata, var_me))
