@@ -21,6 +21,7 @@ resample_qs(
   draw_weights,
   var_names,
   subsample_percent,
+  cluster_index,
   ...
 )
 
@@ -36,6 +37,7 @@ weighted_bootstrap(
   draw_weights,
   var_names,
   subsample_percent,
+  cluster_index,
   ...
 )
 
@@ -51,6 +53,7 @@ bootstrap(
   draw_weights,
   var_names,
   subsample_percent,
+  cluster_index,
   ...
 )
 
@@ -66,6 +69,7 @@ subsample(
   draw_weights,
   var_names,
   subsample_percent,
+  cluster_index,
   ...
 )
 

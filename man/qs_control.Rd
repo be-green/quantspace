@@ -6,10 +6,11 @@
 \usage{
 qs_control(
   trunc = TRUE,
-  small = NULL,
+  small = 1e-06,
   lambda = NULL,
   output_quantiles = TRUE,
   calc_avg_me = FALSE,
+  calc_r2 = TRUE,
   ...
 )
 }
@@ -23,6 +24,8 @@ qs_control(
 \item{output_quantiles}{whether to save fitted quantiles as part of the function output}
 
 \item{calc_avg_me}{whether to return average marginal effects as part of the fitted object}
+
+\item{calc_r2}{whether to calculate psuedo-r2 for quantile regression}
 
 \item{...}{Other arguments, ignored for now}
 }

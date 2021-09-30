@@ -726,6 +726,13 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
     lambda = cv_fit$lambda.min
   }
 
+  if(anyNA(X)) {
+    which_col = which(apply(X, 2, function(x) all(is.na(x))))
+    X = X[, -which_col]
+    warning("Column ", which_col, " of design matrix found to be colinear with",
+            " intercept when estimating quantile ", tau, ".\n")
+  }
+
   est <- fit_lasso(x = X[,-intercept],
                              y = y,
                              tau = tau,
@@ -738,12 +745,19 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
   coefficients <- est$coefficients
   coefficients <- reorder_coefficients(coefficients, intercept)
 
+
   if(scale_x) {
     coefficients <- rescale_coefficients(coefficients, mu_x, sigma_x, intercept)
     X = unscaled_X
   }
-
+  if(exists("which_col")) {
+    for(i in 1:length(which_col)) {
+      coefficients <- reorder_coefficients(c(NA, coefficients), which_col[i])
+    }
+  }
   residuals = y - X %*% coefficients
+
+
 
   if (!is.null(weights)){
     residuals <- residuals / weights
@@ -1225,14 +1239,14 @@ quantreg_spacing = function(
       # current spacing is not rank-deficient
       if(!trunc){
         # Ensure matrix is not rank deficient
-        if(is.null(lambda)) {
+        if(is.null(lambda) | zapsmall(lambda) == 0) {
           reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[which(ehat > small),], reg_spec_starting_data$var_names)
         } else {
           reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[which(ehat > small),], col_names = var_names)
         }
       } else {
         # Ensure matrix is not rank deficient
-        if(is.null(lambda)) {
+        if(is.null(lambda) | zapsmall(lambda) == 0) {
           reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[ind_hat,], reg_spec_starting_data$var_names)
         } else {
           reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,], col_names = var_names)
@@ -1359,17 +1373,20 @@ quantreg_spacing = function(
       # current spacing is not rank-deficient
       if(!trunc){
         # Ensure matrix is not rank deficient
-        if(!is.null(lambda)) {
-          reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[which(ehat > small),], reg_spec_starting_data$var_names)
+        if(is.null(lambda)) {
+          reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[which(ehat > small),],
+                                              reg_spec_starting_data$var_names)
         } else {
           reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[which(ehat > small),], col_names = var_names)
         }
       } else {
         # Ensure matrix is not rank deficient
-        if(!is.null(lambda)) {
-          reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[ind_hat,], reg_spec_starting_data$var_names)
+        if(is.null(lambda) | zapsmall(lambda) == 0) {
+          reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[ind_hat,],
+                                              reg_spec_starting_data$var_names)
         } else {
-          reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,], col_names = var_names)
+          reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,],
+                                col_names = var_names)
         }
       }
 

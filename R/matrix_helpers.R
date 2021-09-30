@@ -43,6 +43,31 @@ findRedundantCols = function(m, TOL = 0.000000001) {
   which(abs(diag(R)) < TOL)
 }
 
+#' Grab the last colinear column in a matrix
+#' @param x matrix to drop columns from
+# taken from https://stackoverflow.com/questions/12304963/using-eigenvalues-to-test-for-singularity-identifying-collinear-columns
+findLastRedundantCol <- function(x) {
+  xtx <- crossprod(x)
+
+  ee <- eigen(xtx)
+  evals <- zapsmall(ee$values)
+  evecs <- split(zapsmall(ee$vectors),col(ee$vectors))
+
+  cols = mapply(function(val,vec) {
+    if (val!=0) NULL else which(vec!=0)
+  },zapsmall(ee$values),evecs)
+  Filter(f = function(cols) !is.null(cols), cols) %>%
+    tail(1) %>%
+    unlist %>%
+    tail(1)
+}
+
+#' Remove colinear columns starting from the back of a matrix
+#' @param x matrix to drop columns from
+removeRedundantCols = function(x) {
+
+}
+
 #' Ensure that a regression specification is full rank
 #' @details Verifies if a regression specification is full-rank. If the input
 #' is rank-deficient, identifies and drops columns so that the remaining
@@ -55,8 +80,11 @@ findRedundantCols = function(m, TOL = 0.000000001) {
 #' @importFrom methods as
 ensureSpecFullRank = function(spec_mat, col_names) {
 
+  init_p = ncol(spec_mat)
+  p = init_p
+  r = getRank(spec_mat)
   # Check if input is already matrix full rank
-  if (getRank(spec_mat) == ncol(spec_mat)) {
+  if (p == r) {
     return(list(
       "spec_matrix" = spec_mat,
       "var_names" = col_names))
@@ -69,18 +97,25 @@ ensureSpecFullRank = function(spec_mat, col_names) {
     spec_mat <- spec_mat[,-zero_cols]
     col_names <- col_names[-zero_cols]
   }
-
-  r = getRank(spec_mat)
-  p = ncol(spec_mat)
-  # Check if updated matrix is full rank
-  if (r == p) {
-    return(list(
-      "spec_matrix" = spec_mat,
-      "var_names" = col_names))
-  } else {
-    stop("Singular design matrix; has rank ", r,
-         " but ", p, " columns.")
+  drop_cols = c()
+  while (r < p) {
+    drop_col = findLastRedundantCol(spec_mat)
+    spec_mat <- spec_mat[,-drop_col]
+    r = getRank(spec_mat)
+    p = ncol(spec_mat)
+    drop_cols = c(drop_cols, drop_col)
   }
+  if(length(drop_cols) > 0) {
+    nm = col_names
+    if(is.null(nm)) {
+      nm = 1:init_p
+    }
+    warning("Dropping column(s) ", paste0(nm[drop_cols], collapse = ", "),
+            " due to colinearity." )
+  }
+  return(list(
+    "spec_matrix" = spec_mat,
+    "var_names" = col_names))
 }
 
 #' Convert matrix to a SparseM csr matrix

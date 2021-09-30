@@ -93,6 +93,8 @@ resample_qs <- function(X,
     weights <- weights / sum(weights)
   }
 
+  tryCatch({
+
   quantreg_spacing(
     y = y[rows],
     X = X[rows,],
@@ -103,6 +105,11 @@ resample_qs <- function(X,
     weights = weights,
     algorithm = algorithm,
     ...)
+
+  }, error = function(e) {
+    warning(e$message)
+    return(NA)
+    })
 }
 
 #' @rdname standard_errors
