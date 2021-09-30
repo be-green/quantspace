@@ -37,11 +37,11 @@ fit_lasso_no_penalty <- qs(y ~ X1 + X2, data = head(test_data, 900),
                            parallel = F, scale_x = F,
                            algorithm = "lasso",
                            method = "br",
-                           control = qs_control(lambda = 0), se = F)
+                           control = qs_control(lambda = 0), calc_se = F)
 
 fit_br <- qs(y ~ X1 + X2, data = head(test_data, 900),
              parallel = F,
-             algorithm = "rq.fit.br", se = F)
+             algorithm = "rq.fit.br", calc_se = F)
 
 
 lasso_diff = max(abs(coef(fit_br) - coef(fit_lasso_no_penalty)))
