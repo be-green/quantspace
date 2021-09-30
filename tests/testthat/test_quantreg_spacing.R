@@ -1,3 +1,5 @@
+set.seed(42)
+
 X <- stats::model.matrix(mpg ~ cyl, data = mtcars)
 y <- stats::model.response(stats::model.frame(mpg ~ cyl, data = mtcars),
                              type = "numeric")
@@ -35,11 +37,11 @@ fit_lasso_no_penalty <- qs(y ~ X1 + X2, data = head(test_data, 900),
                            parallel = F, scale_x = F,
                            algorithm = "lasso",
                            method = "br",
-                           control = qs_control(lambda = 0))
+                           control = qs_control(lambda = 0), se = F)
 
 fit_br <- qs(y ~ X1 + X2, data = head(test_data, 900),
              parallel = F,
-             algorithm = "rq.fit.br")
+             algorithm = "rq.fit.br", se = F)
 
 
 lasso_diff = max(abs(coef(fit_br) - coef(fit_lasso_no_penalty)))

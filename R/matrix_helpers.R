@@ -45,6 +45,7 @@ findRedundantCols = function(m, TOL = 0.000000001) {
 
 #' Grab the last colinear column in a matrix
 #' @param x matrix to drop columns from
+#' @importFrom utils tail
 # taken from https://stackoverflow.com/questions/12304963/using-eigenvalues-to-test-for-singularity-identifying-collinear-columns
 findLastRedundantCol <- function(x) {
   xtx <- crossprod(x)
@@ -57,8 +58,8 @@ findLastRedundantCol <- function(x) {
     if (val!=0) NULL else which(vec!=0)
   },zapsmall(ee$values),evecs)
   l = Filter(f = function(cols) !is.null(cols), cols)
-  l = unlist(tail(l, 1))
-  tail(l, 1)
+  l = unlist(utils::tail(l, 1))
+  utils::tail(l, 1)
 }
 
 
