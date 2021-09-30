@@ -98,6 +98,9 @@ subsampling." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
+      <a href="../articles/available-algorithms.html">available-algorithms</a>
+    </li>
+    <li>
       <a href="../articles/using-quantspace.html">Using quantspace</a>
     </li>
   </ul>
@@ -141,6 +144,7 @@ subsampling.</p>
   <span class='va'>draw_weights</span>,
   <span class='va'>var_names</span>,
   <span class='va'>subsample_percent</span>,
+  <span class='va'>cluster_index</span>,
   <span class='va'>...</span>
 <span class='op'>)</span>
 
@@ -156,6 +160,7 @@ subsampling.</p>
   <span class='va'>draw_weights</span>,
   <span class='va'>var_names</span>,
   <span class='va'>subsample_percent</span>,
+  <span class='va'>cluster_index</span>,
   <span class='va'>...</span>
 <span class='op'>)</span>
 
@@ -171,6 +176,7 @@ subsampling.</p>
   <span class='va'>draw_weights</span>,
   <span class='va'>var_names</span>,
   <span class='va'>subsample_percent</span>,
+  <span class='va'>cluster_index</span>,
   <span class='va'>...</span>
 <span class='op'>)</span>
 
@@ -186,6 +192,7 @@ subsampling.</p>
   <span class='va'>draw_weights</span>,
   <span class='va'>var_names</span>,
   <span class='va'>subsample_percent</span>,
+  <span class='va'>cluster_index</span>,
   <span class='va'>...</span>
 <span class='op'>)</span>
 
@@ -261,6 +268,10 @@ the lower-level function called by <code><a href='qs.html'>qs</a></code>. This i
     <tr>
       <th>subsample_percent</th>
       <td><p>A number between 0 and one, specifying the percent of the data to subsample for standard error calculations</p></td>
+    </tr>
+    <tr>
+      <th>cluster_index</th>
+      <td><p>index for clusters to sample</p></td>
     </tr>
     <tr>
       <th>...</th>

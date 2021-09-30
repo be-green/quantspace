@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Evaluate PDF given quantiles and residuals — eval_PDF • quantspace</title>
+<title>Quantile regression approximated w/ huber loss followed by post-processing — rq.fit.two_pass • quantspace</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Evaluate PDF given quantiles and residuals — eval_PDF" />
-<meta property="og:description" content="Evaluate PDF given quantiles and residuals" />
+<meta property="og:title" content="Quantile regression approximated w/ huber loss followed by post-processing — rq.fit.two_pass" />
+<meta property="og:description" content="Quantile regression approximated w/ huber loss followed by post-processing" />
 
 
 
@@ -118,46 +118,74 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Evaluate PDF given quantiles and residuals</h1>
+    <h1>Quantile regression approximated w/ huber loss followed by post-processing</h1>
     
-    <div class="hidden name"><code>eval_PDF.Rd</code></div>
+    <div class="hidden name"><code>rq.fit.two_pass.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Evaluate PDF given quantiles and residuals</p>
+    <p>Quantile regression approximated w/ huber loss followed by post-processing</p>
     </div>
 
-    <pre class="usage"><span class='fu'>eval_PDF</span><span class='op'>(</span><span class='va'>y</span>, <span class='va'>quantiles</span>, <span class='va'>alphas</span>, distn <span class='op'>=</span> <span class='st'>"p"</span>, tails <span class='op'>=</span> <span class='st'>"gaussian"</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>rq.fit.two_pass</span><span class='op'>(</span>
+  <span class='va'>X</span>,
+  <span class='va'>y</span>,
+  tau <span class='op'>=</span> <span class='fl'>0.5</span>,
+  weights <span class='op'>=</span> <span class='cn'>NULL</span>,
+  <span class='va'>control</span>,
+  <span class='va'>lambda</span>,
+  intercept <span class='op'>=</span> <span class='cn'>NULL</span>,
+  init_beta <span class='op'>=</span> <span class='cn'>NULL</span>,
+  n_samples <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>min</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/Round.html'>ceiling</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/nrow.html'>nrow</a></span><span class='op'>(</span><span class='va'>X</span><span class='op'>)</span><span class='op'>/</span><span class='fl'>10</span><span class='op'>)</span>, <span class='fl'>10000</span><span class='op'>)</span><span class='op'>)</span>,
+  <span class='va'>...</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
+      <th>X</th>
+      <td><p>design matrix</p></td>
+    </tr>
+    <tr>
       <th>y</th>
-      <td><p>a vector of quantile or pdf</p></td>
+      <td><p>outcome vector</p></td>
     </tr>
     <tr>
-      <th>quantiles</th>
-      <td><p>a matrix of size N b p made up of the previously fitted quantiles</p></td>
+      <th>tau</th>
+      <td><p>target quantile</p></td>
     </tr>
     <tr>
-      <th>alphas</th>
-      <td><p>which quantiles were previously computed, vector of probs</p></td>
+      <th>weights</th>
+      <td><p>optional weight vector</p></td>
     </tr>
     <tr>
-      <th>distn</th>
-      <td><p>a string which indicates what type of distribution to return. See details.</p></td>
+      <th>control</th>
+      <td><p>ignored for now</p></td>
     </tr>
     <tr>
-      <th>tails</th>
-      <td><p>what distribution to use when computing the tails</p></td>
+      <th>lambda</th>
+      <td><p>ignored for now</p></td>
+    </tr>
+    <tr>
+      <th>intercept</th>
+      <td><p>optional integer indicating intercept column
+that identifies initial values</p></td>
+    </tr>
+    <tr>
+      <th>init_beta</th>
+      <td><p>initial guess at betas</p></td>
+    </tr>
+    <tr>
+      <th>n_samples</th>
+      <td><p>number of observations to use in "warmup" regression</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>other arguments, ignored for now</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>the <code>distn</code> argument takes on "p" to evaluate a PF, "c" to evaluate a CDF,
-and "q" to evaluate a quantile distribution.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

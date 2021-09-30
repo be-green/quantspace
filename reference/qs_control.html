@@ -95,6 +95,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
+      <a href="../articles/available-algorithms.html">available-algorithms</a>
+    </li>
+    <li>
       <a href="../articles/using-quantspace.html">Using quantspace</a>
     </li>
   </ul>
@@ -126,10 +129,11 @@
 
     <pre class="usage"><span class='fu'>qs_control</span><span class='op'>(</span>
   trunc <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  small <span class='op'>=</span> <span class='cn'>NULL</span>,
+  small <span class='op'>=</span> <span class='fl'>1e-06</span>,
   lambda <span class='op'>=</span> <span class='cn'>NULL</span>,
   output_quantiles <span class='op'>=</span> <span class='cn'>TRUE</span>,
   calc_avg_me <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  calc_r2 <span class='op'>=</span> <span class='cn'>TRUE</span>,
   <span class='va'>...</span>
 <span class='op'>)</span></pre>
 
@@ -155,6 +159,10 @@
     <tr>
       <th>calc_avg_me</th>
       <td><p>whether to return average marginal effects as part of the fitted object</p></td>
+    </tr>
+    <tr>
+      <th>calc_r2</th>
+      <td><p>whether to calculate psuedo-r2 for quantile regression</p></td>
     </tr>
     <tr>
       <th>...</th>

@@ -94,6 +94,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
+      <a href="../articles/available-algorithms.html">available-algorithms</a>
+    </li>
+    <li>
       <a href="../articles/using-quantspace.html">Using quantspace</a>
     </li>
   </ul>
@@ -286,6 +289,12 @@ given data based on normal distribution</p></td>
       </tr><tr>
         
         <td>
+          <p><code><a href="findLastRedundantCol.html">findLastRedundantCol()</a></code> </p>
+        </td>
+        <td><p>Grab the last colinear column in a matrix</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="findRedundantCols.html">findRedundantCols()</a></code> </p>
         </td>
         <td><p>Returns the indices of the columns to remove to construct a full rank matrix</p></td>
@@ -305,16 +314,16 @@ Huber approximation, warm start based on data subset</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="fit_approx_quantile_model_sp.html">fit_approx_quantile_model_sp()</a></code> </p>
-        </td>
-        <td><p>Compute quantile regression via accelerated gradient descent using
-Huber approximation, warm start based on data subset</p></td>
-      </tr><tr>
-        
-        <td>
           <p><code><a href="fit_lasso.html">fit_lasso()</a></code> </p>
         </td>
         <td><p>Fit a quantile regression w/ a lasso penalty</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="fit_penalize_approx_quantile_model.html">fit_penalize_approx_quantile_model()</a></code> </p>
+        </td>
+        <td><p>Compute quantile regression via accelerated gradient descent using
+Huber approximation, warm start based on data subset</p></td>
       </tr><tr>
         
         <td>
@@ -370,6 +379,18 @@ various matrix types.</p></td>
           <p><code><a href="get_underlying.html">get_underlying()</a></code> </p>
         </td>
         <td><p>Get the data inside the s4 slot of this sparse matrix class</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="glob_obs_mat.html">glob_obs_mat()</a></code> </p>
+        </td>
+        <td><p>Glob observations w/ residuals above a certain magnitude</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="glob_obs_vec.html">glob_obs_vec()</a></code> </p>
+        </td>
+        <td><p>Glob observations w/ residuals above a certain magnitude</p></td>
       </tr><tr>
         
         <td>
@@ -454,6 +475,12 @@ various matrix types.</p></td>
           <p><code><a href="plot.distributional_effects.html">plot(<i>&lt;distributional_effects&gt;</i>)</a></code> </p>
         </td>
         <td><p>Visualize distributional effects</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="post_processed_grad_descent.html">post_processed_grad_descent()</a></code> </p>
+        </td>
+        <td><p>Smoothed Quantile Regression with Post-Processing</p></td>
       </tr><tr>
         
         <td>
@@ -573,12 +600,6 @@ Evaluates the check objective function (possibly weighted) for QREG</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="rq.fit.agd_sparse.html">rq.fit.agd_sparse()</a></code> </p>
-        </td>
-        <td><p>Quantile Regression approximated w/ huber loss and sparse matrices</p></td>
-      </tr><tr>
-        
-        <td>
           <p><code><a href="rq.fit.br.html">rq.fit.br()</a></code> </p>
         </td>
         <td><p>Version that complies with more general requirements</p></td>
@@ -606,6 +627,12 @@ Evaluates the check objective function (possibly weighted) for QREG</p></td>
           <p><code><a href="rq.fit.sfn_start_val.html">rq.fit.sfn_start_val()</a></code> </p>
         </td>
         <td><p>Sparse Regression Quantile Fitting with Weights</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="rq.fit.two_pass.html">rq.fit.two_pass()</a></code> </p>
+        </td>
+        <td><p>Quantile regression approximated w/ huber loss followed by post-processing</p></td>
       </tr><tr>
         
         <td>

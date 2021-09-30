@@ -76,6 +76,9 @@
     <loc>https://brice.green/quantspace/reference/eval_density_R.html</loc>
   </url>
   <url>
+    <loc>https://brice.green/quantspace/reference/findLastRedundantCol.html</loc>
+  </url>
+  <url>
     <loc>https://brice.green/quantspace/reference/findRedundantCols.html</loc>
   </url>
   <url>
@@ -85,10 +88,10 @@
     <loc>https://brice.green/quantspace/reference/fit_approx_quantile_model.html</loc>
   </url>
   <url>
-    <loc>https://brice.green/quantspace/reference/fit_approx_quantile_model_sp.html</loc>
+    <loc>https://brice.green/quantspace/reference/fit_lasso.html</loc>
   </url>
   <url>
-    <loc>https://brice.green/quantspace/reference/fit_lasso.html</loc>
+    <loc>https://brice.green/quantspace/reference/fit_penalize_approx_quantile_model.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/getColNums.html</loc>
@@ -116,6 +119,12 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/get_underlying.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/glob_obs_mat.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/glob_obs_vec.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/inv.html</loc>
@@ -158,6 +167,9 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/plot.distributional_effects.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/post_processed_grad_descent.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/predict.qs.html</loc>
@@ -217,9 +229,6 @@
     <loc>https://brice.green/quantspace/reference/rq.fit.agd.html</loc>
   </url>
   <url>
-    <loc>https://brice.green/quantspace/reference/rq.fit.agd_sparse.html</loc>
-  </url>
-  <url>
     <loc>https://brice.green/quantspace/reference/rq.fit.br.html</loc>
   </url>
   <url>
@@ -233,6 +242,9 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/rq.fit.sfn_start_val.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/rq.fit.two_pass.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/scale_for_lasso.html</loc>
@@ -263,6 +275,9 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/summary.qs.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/articles/available-algorithms.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/articles/using-quantspace.html</loc>

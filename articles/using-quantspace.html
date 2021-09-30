@@ -54,6 +54,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/available-algorithms.html">available-algorithms</a>
+    </li>
+    <li>
       <a href="../articles/using-quantspace.html">Using quantspace</a>
     </li>
   </ul>
@@ -133,31 +136,31 @@
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 <span class="co">#&gt; Baseline Quantile Coefficients:</span>
 <span class="co">#&gt;       Variable Quantile Coefficient       SE</span>
-<span class="co">#&gt; 1 (Intercept)      0.5     0.01095 0.020610</span>
-<span class="co">#&gt; 2          X1      0.5    -0.99270 0.007648</span>
-<span class="co">#&gt; 3          X2      0.5     2.00300 0.012160 </span>
+<span class="co">#&gt; 1 (Intercept)      0.5     0.01095 0.020180</span>
+<span class="co">#&gt; 2          X1      0.5    -0.99270 0.006603</span>
+<span class="co">#&gt; 3          X2      0.5     2.00300 0.012220 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Quantile Spacing Coefficients:</span>
 <span class="co">#&gt;        Variable Quantile Coefficient Standard.Error</span>
-<span class="co">#&gt; 1  (Intercept)     0.10     -0.5139        0.03463</span>
-<span class="co">#&gt; 2           X1     0.10      0.2680        0.03253</span>
-<span class="co">#&gt; 3           X2     0.10      1.4440        0.03262</span>
-<span class="co">#&gt; 4  (Intercept)     0.25     -0.4443        0.02520</span>
-<span class="co">#&gt; 5           X1     0.25      0.2794        0.02471</span>
-<span class="co">#&gt; 6           X2     0.25      1.4690        0.02420</span>
-<span class="co">#&gt; 7  (Intercept)     0.75     -0.4065        0.02210</span>
-<span class="co">#&gt; 8           X1     0.75      0.2393        0.02253</span>
-<span class="co">#&gt; 9           X2     0.75      1.5080        0.02521</span>
-<span class="co">#&gt; 10 (Intercept)     0.90     -0.4618        0.02932</span>
-<span class="co">#&gt; 11          X1     0.90      0.2455        0.03139</span>
-<span class="co">#&gt; 12          X2     0.90      1.4790        0.03674 </span>
+<span class="co">#&gt; 1  (Intercept)     0.10     -0.5139        0.03189</span>
+<span class="co">#&gt; 2           X1     0.10      0.2680        0.02988</span>
+<span class="co">#&gt; 3           X2     0.10      1.4440        0.03677</span>
+<span class="co">#&gt; 4  (Intercept)     0.25     -0.4443        0.02404</span>
+<span class="co">#&gt; 5           X1     0.25      0.2794        0.02367</span>
+<span class="co">#&gt; 6           X2     0.25      1.4690        0.02548</span>
+<span class="co">#&gt; 7  (Intercept)     0.75     -0.4065        0.02372</span>
+<span class="co">#&gt; 8           X1     0.75      0.2393        0.02042</span>
+<span class="co">#&gt; 9           X2     0.75      1.5080        0.02563</span>
+<span class="co">#&gt; 10 (Intercept)     0.90     -0.4618        0.02951</span>
+<span class="co">#&gt; 11          X1     0.90      0.2455        0.03392</span>
+<span class="co">#&gt; 12          X2     0.90      1.4790        0.03083 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Quantile Psuedo-R2:</span>
-<span class="co">#&gt;     0.1: 0.4459</span>
-<span class="co">#&gt;     0.25:    0.4446</span>
+<span class="co">#&gt;     0.1: 0.9146</span>
+<span class="co">#&gt;     0.25:    0.823</span>
 <span class="co">#&gt;     0.5: 0.2872</span>
-<span class="co">#&gt;     0.75:    0.4661</span>
-<span class="co">#&gt;     0.9: 0.45</span></code></pre></div>
+<span class="co">#&gt;     0.75:    0.8267</span>
+<span class="co">#&gt;     0.9: 0.9164</span></code></pre></div>
 <p>We’ve already made a couple choices here. First, we set the regression formula, second we specified the data. The ones that are a bit stranger are the <code>quantiles</code> and <code>baseline_quantile</code> arguments. Because the quantile spacings model is a <em>joint</em> model, we need to estimate everything recursively.</p>
 <p>To get the 0.25 spacing coefficient, we take the predicted median value, <span class="math inline">\(\hat{y}_{med}\)</span>, and calculate <span class="math inline">\(r = y - \hat{y}_{med}\)</span>. For the positive residuals, we then take <code><a href="https://rdrr.io/r/base/Log.html">log(r)</a></code> as the outcome variable, and estimate a median regression. For negative residuals, we do the same thing but with <code><a href="https://rdrr.io/r/base/Log.html">log(-r)</a></code>. This guarentees that the quantiles fitted by the model don’t ever cross.</p>
 <p>The <code>baseline_quantile</code> is the quantile that we take spacings relative to. We don’t recommend changing this away from the median, which is the default. The <code>quantiles</code> argument is simply the complete list of quantile effects you want to estimate.</p>
@@ -196,7 +199,9 @@
 <p>Right now this is done with cubic splines, which can (very occasionally) go negative, which would not imply a valid CDF. If that happens, it’s probably a sign that this is a very poor model for your problem or that you have data which is quite small.</p>
 <p>So how do we do this? Let’s take our fit from above and interpolate it. Because our model is non-linear, the distance between quantiles will vary with the data. By default, the <code>distributional_effects</code> function performs this interpolation at the average level of the data, returning the pdf, cdf, quantile function, and a random number generator for the fitted density.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<code class="sourceCode R">
+
+<span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
   <span class="co"># evaluate the density at 0</span>
@@ -218,11 +223,12 @@
 <span class="co">#&gt; [1] 0.006652383</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[4]]</span>
-<span class="co">#&gt;  [1] -0.01780072  1.89721126  1.44911488 -2.33121367 -3.96389870 -3.56534170</span>
-<span class="co">#&gt;  [7] -4.16744913 -5.33487463  1.78081162 -3.02092618</span></code></pre></div>
+<span class="co">#&gt;  [1] -2.7029264  2.7412493  2.0955536  2.2638996 -4.1777103  6.0385755</span>
+<span class="co">#&gt;  [7]  0.6625209  0.8054141 -4.1649720 -0.7073926</span></code></pre></div>
 <p>We can also do this for various levels of the data. Let’s see how these change as we move up in the first dimension of our X variable.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">X_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1</span><span class="op">)</span>,
+<code class="sourceCode R">
+<span class="va">X_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1</span><span class="op">)</span>,
                        X1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span>, 
                        X2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span>
 
@@ -231,77 +237,6 @@
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">vary_x2</span>, tail_level <span class="op">=</span> <span class="fl">0.001</span><span class="op">)</span></code></pre></div>
 <p><img src="using-quantspace_files/figure-html/plot_de-1.png" width="624"></p>
-</div>
-<div id="marginal-effects" class="section level1">
-<h1 class="hasAnchor">
-<a href="#marginal-effects" class="anchor"></a>Marginal Effects</h1>
-<p>The marginal effects functionality in the <code>quantspace</code> package is baked into the function <code>marginal_effects</code>. This can be used to compute average marginal effects, marginal effects at the average, or marginal effects across different levels of a variable (holding the other variables constant at the sample average).</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># average marginal effects</span>
-<span class="fu"><a href="../reference/marginal_effects.html">marginal_effects</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"ame"</span><span class="op">)</span>
-<span class="co">#&gt; Average Marginal Effects </span>
-<span class="co">#&gt; X1: </span>
-<span class="co">#&gt;        0.1      0.25        0.5       0.75      0.9</span>
-<span class="co">#&gt;  -1.249838 -1.242354 -0.9927048 -0.2009702 4.652145</span>
-<span class="co">#&gt; X2: </span>
-<span class="co">#&gt;        0.1      0.25      0.5     0.75      0.9</span>
-<span class="co">#&gt;  0.6500988 0.6904133 2.003003 6.991483 36.22921</span></code></pre></div>
-<p>This computes marginal effects at the sample average.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># marginal effects at the average</span>
-<span class="fu"><a href="../reference/marginal_effects.html">marginal_effects</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"mea"</span><span class="op">)</span>
-<span class="co">#&gt; Marginal Effects at the Average </span>
-<span class="co">#&gt; X1: </span>
-<span class="co">#&gt;        0.1      0.25        0.5       0.75        0.9</span>
-<span class="co">#&gt;  -1.333568 -1.172606 -0.9927048 -0.8327413 -0.6774448</span>
-<span class="co">#&gt; X2: </span>
-<span class="co">#&gt;       0.1     0.25      0.5     0.75      0.9</span>
-<span class="co">#&gt;  0.190075 1.057131 2.003003 3.010885 3.946473</span></code></pre></div>
-<p>This computes marginal effects across different levels of each variable, holding all others in the model fixed.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># marginal effects for varying levels of each variable</span>
-<span class="fu"><a href="../reference/marginal_effects.html">marginal_effects</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"varying"</span><span class="op">)</span>
-<span class="co">#&gt; Varying Over Levels </span>
-<span class="co">#&gt; X1: </span>
-<span class="co">#&gt;           X1       0.1       0.25        0.5       0.75         0.9</span>
-<span class="co">#&gt;  -2.26103948 -1.005308 -0.9991773 -0.9927048 -0.9874306 -0.98196734</span>
-<span class="co">#&gt;  -1.93044557 -1.013104 -1.0032235 -0.9927048 -0.9840232 -0.97511530</span>
-<span class="co">#&gt;  -1.59985165 -1.025723 -1.0097991 -0.9927048 -0.9784145 -0.96389004</span>
-<span class="co">#&gt;  -1.26925774 -1.046150 -1.0204852 -0.9927048 -0.9691824 -0.94549999</span>
-<span class="co">#&gt;  -0.93866382 -1.079215 -1.0378515 -0.9927048 -0.9539860 -0.91537137</span>
-<span class="co">#&gt;  -0.60806990 -1.132738 -1.0660740 -0.9927048 -0.9289720 -0.86601022</span>
-<span class="co">#&gt;  -0.27747599 -1.219379 -1.1119392 -0.9927048 -0.8877978 -0.78513768</span>
-<span class="co">#&gt;   0.05311793 -1.359634 -1.1864760 -0.9927048 -0.8200235 -0.65263439</span>
-<span class="co">#&gt;   0.38371185 -1.586681 -1.3076079 -0.9927048 -0.7084640 -0.43553333</span>
-<span class="co">#&gt;   0.71430576 -1.954237 -1.5044629 -0.9927048 -0.5248324 -0.07981439</span>
-<span class="co">#&gt;   1.04489968 -2.549265 -1.8243776 -0.9927048 -0.2225670  0.50304230</span>
-<span class="co">#&gt;   1.37549360 -3.512559 -2.3442802 -0.9927048  0.2749748  1.45809273</span>
-<span class="co">#&gt;   1.70608751 -5.072068 -3.1891888 -0.9927048  1.0939497  3.02304309</span>
-<span class="co">#&gt;   2.03668143 -7.596852 -4.5622741 -0.9927048  2.4420171  5.58743592</span>
-<span class="co">#&gt; X2: </span>
-<span class="co">#&gt;           X2         0.1        0.25      0.5      0.75       0.9</span>
-<span class="co">#&gt;  -2.28629570   1.9382666   1.9701582 2.003003  2.035037  2.066789</span>
-<span class="co">#&gt;  -1.95661863   1.8983672   1.9496978 2.003003  2.055660  2.107362</span>
-<span class="co">#&gt;  -1.62694157   1.8338733   1.9164918 2.003003  2.089559  2.173745</span>
-<span class="co">#&gt;  -1.29726450   1.7296228   1.8626004 2.003003  2.145281  2.282363</span>
-<span class="co">#&gt;  -0.96758743   1.5611053   1.7751379 2.003003  2.236874  2.460086</span>
-<span class="co">#&gt;  -0.63791037   1.2886979   1.6331912 2.003003  2.387434  2.750891</span>
-<span class="co">#&gt;  -0.30823330   0.8483451   1.4028201 2.003003  2.634918  3.226738</span>
-<span class="co">#&gt;   0.02144376   0.1364929   1.0289412 2.003003  3.041726  4.005390</span>
-<span class="co">#&gt;   0.35112083  -1.0142714   0.4221575 2.003003  3.710423  5.279565</span>
-<span class="co">#&gt;   0.68079789  -2.8746032  -0.5626169 2.003003  4.809607  7.364653</span>
-<span class="co">#&gt;   1.01047496  -5.8820771  -2.1608484 2.003003  6.616412 10.776812</span>
-<span class="co">#&gt;   1.34015202 -10.7441420  -4.7546848 2.003003  9.586382 16.360791</span>
-<span class="co">#&gt;   1.66982909 -18.6045859  -8.9643299 2.003003 14.468326 25.499146</span>
-<span class="co">#&gt;   1.99950615 -31.3126920 -15.7963382 2.003003 22.493113 40.454678</span></code></pre></div>
-<p>You can also specify a single variable of interest like so.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># marginal effects at the average, just X2</span>
-<span class="fu"><a href="../reference/marginal_effects.html">marginal_effects</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"mea"</span>, variable <span class="op">=</span> <span class="st">"X2"</span><span class="op">)</span>
-<span class="co">#&gt; Marginal Effects at the Average </span>
-<span class="co">#&gt; X2: </span>
-<span class="co">#&gt;       0.1     0.25      0.5     0.75      0.9</span>
-<span class="co">#&gt;  0.190075 1.057131 2.003003 3.010885 3.946473</span></code></pre></div>
 </div>
   </div>
 
