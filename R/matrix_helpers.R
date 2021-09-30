@@ -57,7 +57,7 @@ findLastRedundantCol <- function(x) {
     if (val!=0) NULL else which(vec!=0)
   },zapsmall(ee$values),evecs)
   l = Filter(f = function(cols) !is.null(cols), cols)
-  l = unlist(tail(1))
+  l = unlist(tail(l, 1))
   tail(l, 1)
 }
 
@@ -84,13 +84,6 @@ ensureSpecFullRank = function(spec_mat, col_names) {
       "var_names" = col_names))
   }
 
-  transp_prod <- t(spec_mat) %*% spec_mat
-  # First check if any dummy columns are all zero
-  zero_cols <- which(diag(transp_prod) == 0)
-  if (length(zero_cols) > 0) {
-    spec_mat <- spec_mat[,-zero_cols]
-    col_names <- col_names[-zero_cols]
-  }
   drop_cols = c()
   while (r < p) {
     drop_col = findLastRedundantCol(spec_mat)
