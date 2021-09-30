@@ -18,3 +18,4 @@
                         "Bug reports: github.com/be-green/quantspace/issues")
 }
 
+utils::globalVariables("y")

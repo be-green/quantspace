@@ -21,7 +21,6 @@ rho <- function(u,tau=.5,weights = NULL){
 #' @param TOL tolerance for rank calculation
 #' @return The rank of the matrix m
 getRank = function(m, TOL = 1e-10) {
-
   transp_prod <- as.matrix(t(m) %*% (m))
   return(sum(abs(diag(qr.R(qr(transp_prod)))) > TOL))
 }
@@ -34,18 +33,35 @@ getRank = function(m, TOL = 1e-10) {
 #' returns the indices of columns to remove from the original matrix so that the
 #' resulting matrix is full rank.
 findRedundantCols = function(m, TOL = 0.000000001) {
-
-
   decomp <- qr(m)
   orig_col_names <- colnames(m)
   R <- qr.R(decomp)
   R_col_names <- colnames(R)
-  return(setdiff(
-    1:length(orig_col_names) ,
-    match(
-      R_col_names[which(abs(diag(R)) > TOL)],
-      orig_col_names)))
+  if(is.null(R_col_names)) {
+    R_col_names <- paste0("X", 1:ncol(R))
+  }
+  which(abs(diag(R)) < TOL)
 }
+
+#' Grab the last colinear column in a matrix
+#' @param x matrix to drop columns from
+#' @importFrom utils tail
+# taken from https://stackoverflow.com/questions/12304963/using-eigenvalues-to-test-for-singularity-identifying-collinear-columns
+findLastRedundantCol <- function(x) {
+  xtx <- crossprod(x)
+
+  ee <- eigen(xtx)
+  evals <- zapsmall(ee$values)
+  evecs <- split(zapsmall(ee$vectors),col(ee$vectors))
+
+  cols = mapply(function(val,vec) {
+    if (val!=0) NULL else which(vec!=0)
+  },zapsmall(ee$values),evecs)
+  l = Filter(f = function(cols) !is.null(cols), cols)
+  l = unlist(utils::tail(l, 1))
+  utils::tail(l, 1)
+}
+
 
 #' Ensure that a regression specification is full rank
 #' @details Verifies if a regression specification is full-rank. If the input
@@ -59,35 +75,35 @@ findRedundantCols = function(m, TOL = 0.000000001) {
 #' @importFrom methods as
 ensureSpecFullRank = function(spec_mat, col_names) {
 
+  init_p = ncol(spec_mat)
+  p = init_p
+  r = getRank(spec_mat)
   # Check if input is already matrix full rank
-  if (getRank(spec_mat) == ncol(spec_mat)) {
+  if (p == r) {
     return(list(
       "spec_matrix" = spec_mat,
       "var_names" = col_names))
   }
 
-  transp_prod <- t(spec_mat) %*% spec_mat
-  # First check if any dummy columns are all zero
-  zero_cols <- which(diag(transp_prod) == 0)
-  if (length(zero_cols) > 0) {
-    spec_mat <- spec_mat[,-zero_cols]
-    col_names <- col_names[-zero_cols]
+  drop_cols = c()
+  while (r < p) {
+    drop_col = findLastRedundantCol(spec_mat)
+    spec_mat <- spec_mat[,-drop_col]
+    r = getRank(spec_mat)
+    p = ncol(spec_mat)
+    drop_cols = c(drop_cols, drop_col)
   }
-
-  # Check if updated matrix is full rank
-  if (getRank(spec_mat) == ncol(spec_mat)) {
-    return(list(
-      "spec_matrix" = spec_mat,
-      "var_names" = col_names))
+  if(length(drop_cols) > 0) {
+    nm = col_names
+    if(is.null(nm)) {
+      nm = 1:init_p
+    }
+    warning("Dropping column(s) ", paste0(nm[drop_cols], collapse = ", "),
+            " due to colinearity." )
   }
-
-  # Use a generic routine to identify columns to drop
-  dgc_spec_mat <- as(spec_mat, "dgCMatrix")
-  colnames(dgc_spec_mat) <- col_names
-  cols_to_drop = findRedundantCols(dgc_spec_mat)
   return(list(
-    "spec_matrix" = spec_mat[,-cols_to_drop],
-    "var_names" = col_names[-cols_to_drop]))
+    "spec_matrix" = spec_mat,
+    "var_names" = col_names))
 }
 
 #' Convert matrix to a SparseM csr matrix

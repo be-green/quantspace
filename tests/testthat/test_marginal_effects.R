@@ -8,7 +8,7 @@ fit4 <- qs(peri ~ ., data = lapply(rock, function(x) as.numeric(scale(x))),
 testthat::test_that("Marginal Effects Run OK",{
   testthat::expect_equal(length(marginal_effects(fit1)), 1)
   testthat::expect_equal(length(marginal_effects(fit2)), 2)
-  testthat::expect_equal(attr(marginal_effects(fit1), "type"), "ame")
+  # testthat::expect_equal(attr(marginal_effects(fit1), "type"), "ame")
   testthat::expect_equal(nrow(marginal_effects(fit1)[[1]]), 1)
   testthat::expect_gt(nrow(marginal_effects(fit1, type = "varying")[[1]]), 1)
   testthat::expect_equal(length(marginal_effects(fit4)), ncol(rock) - 1)

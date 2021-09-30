@@ -13,7 +13,8 @@ check <- function (x, tau = 0.5) {
 #' @param method what underlying regression method to use for fitting
 #' @param ... other arguments to pass to method
 #' @importFrom SparseM as.matrix.csr
-fit_lasso <- function (x, y, tau = 0.5, lambda = NULL, weights = NULL, intercept = TRUE,
+fit_lasso <- function (x, y, tau = 0.5, lambda = NULL, weights = NULL,
+                       intercept = TRUE,
           coef.cutoff = 1e-04, method = "sfn",
           ...) {
   if (is.null(dim(x))) {
@@ -37,36 +38,50 @@ fit_lasso <- function (x, y, tau = 0.5, lambda = NULL, weights = NULL, intercept
                lambda, sep = ""))
   }
 
-  lambda <- lambda * n
-  if (length(lambda) == 1) {
-    pen_x <- rbind(diag(rep(lambda, p)), diag(rep(-lambda,
-                                                  p)))
+  if(method == "two_pass" | method == "agd") {
+    int = get_intercept(x)
+    if(int == 0) {
+      x = cbind(1, x)
+    }
+    model = fitQuantileRegression(
+      X = x, y = y,tau = tau,
+      algorithm = check_algorithm(method),
+      weights = weights, scale = 1,
+      ..., lambda = lambda
+    )
   } else {
-    pen_x <- rbind(diag(lambda), diag(-lambda))
-    pen_x <- pen_x[rowSums(pen_x == 0) != dim(pen_x)[2],]
+
+    lambda <- lambda * n
+    if (length(lambda) == 1) {
+      pen_x <- rbind(diag(rep(lambda, p)), diag(rep(-lambda,
+                                                    p)))
+    } else {
+      pen_x <- rbind(diag(lambda), diag(-lambda))
+      pen_x <- pen_x[rowSums(pen_x == 0) != dim(pen_x)[2],]
+    }
+    aug_n <- dim(pen_x)[1]
+    aug_x <- rbind(x, pen_x)
+    if (intercept) {
+      aug_x <- cbind(c(rep(1, n), rep(0, aug_n)), aug_x)
+    }
+    aug_y <- c(y, rep(0, aug_n))
+
+    if(!is.null(weights)) {
+      orig_weights <- weights
+      weights <- c(weights, rep(1, aug_n))
+
+    }
+
+    if(method == "sfn") {
+      aug_x <- SparseM::as.matrix.csr(aug_x)
+    }
+
+    model = fitQuantileRegression(X = aug_x, y = aug_y,tau = tau,
+                                  algorithm = check_algorithm(method),
+                                  weights = weights, scale = 1,
+                                  ...)
+
   }
-  aug_n <- dim(pen_x)[1]
-  aug_x <- rbind(x, pen_x)
-  if (intercept) {
-    aug_x <- cbind(c(rep(1, n), rep(0, aug_n)), aug_x)
-  }
-  aug_y <- c(y, rep(0, aug_n))
-
-  if(!is.null(weights)) {
-    orig_weights <- weights
-    weights <- c(weights, rep(1, aug_n))
-
-  }
-
-
-  if(method == "sfn") {
-    aug_x <- SparseM::as.matrix.csr(aug_x)
-  }
-
-  model = fitQuantileRegression(X = aug_x, y = aug_y,tau = tau,
-                                algorithm = check_algorithm(method),
-                                weights = weights, scale = 0,
-                                ...)
 
   p_star <- p + intercept
   coefs <- coefficients(model)[1:p_star]
@@ -147,7 +162,7 @@ randomly_assign <- function(n, nfolds) {
 #' that sets all coefficients to zero. Then it computes kfold CV scores
 #' along a grid of lambdas, returning the scores and the smallest lambda.
 lasso_cv_search <- function (x, y, tau = 0.5,
-                             weights = NULL, method = "sfn",
+                             weights = NULL, method = "two_pass",
                              intercept = TRUE, nfolds = 10,
                              foldid = NULL, nlambda = 100,
                              eps = 1e-04, init.lambda = 2,

@@ -1,16 +1,36 @@
+set.seed(100)
 
+test_that( "Singularity errors in bootstrapping become warnings", {
+  expect_warning(qs(mpg ~ hp, data = mtcars,
+                    std_err_control = se_control(se_method = "bootstrap"),
+                    parallel = F))
+})
+
+X <- matrix(rt(10000, 1.5), ncol = 10)
+y <- 0.2 + X %*% rnorm(ncol(X)) + exp(rnorm(nrow(X)))
 # these will all generate warnings, ignore it for now
+
+data = data.frame(y = y, X)
+
 suppressWarnings({
-  boot_fit <- qs(mpg ~ hp, data = mtcars,
-                 std_err_control = se_control(se_method = "bootstrap"))
-  wboot_fit <- qs(mpg ~ hp, data = mtcars,
-                  std_err_control = se_control(se_method = "weighted_bootstrap"))
-  subsample_fit <- qs(mpg ~ hp, data = mtcars,
-                      std_err_control = se_control(se_method = "subsample"))
-  custom_fit <- qs(mpg ~ hp, data = mtcars,
+  boot_fit <- qs(y ~ X, data = data,
+                 std_err_control = se_control(se_method = "bootstrap"),
+                 parallel = T)
+
+  wboot_fit <- qs(y ~ X, data = data,
+                  std_err_control = se_control(se_method = "weighted_bootstrap"),
+                  parallel = T)
+
+  subsample_fit <- qs(y ~ X, data = data,
+                      std_err_control = se_control(se_method = "subsample"),
+                      parallel = T)
+
+  custom_fit <- qs(y ~ X, data = data,
                    std_err_control = se_control(se_method = "resample_qs",
                    draw_weights = T, sampling_method = "subsample",
-                   subsample_percent = 0.3))
+                   subsample_percent = 0.3),
+                   parallel = T)
+
   cluster_fit <- qs(mpg ~ hp, data = mtcars,
                     std_err_control = se_control(se_method = "bootstrap"),
                     cluster_formula = ~ cyl)

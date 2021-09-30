@@ -21,6 +21,7 @@ resample_qs(
   draw_weights,
   var_names,
   subsample_percent,
+  cluster_index,
   ...
 )
 
@@ -36,6 +37,7 @@ weighted_bootstrap(
   draw_weights,
   var_names,
   subsample_percent,
+  cluster_index,
   ...
 )
 
@@ -51,6 +53,7 @@ bootstrap(
   draw_weights,
   var_names,
   subsample_percent,
+  cluster_index,
   ...
 )
 
@@ -66,6 +69,7 @@ subsample(
   draw_weights,
   var_names,
   subsample_percent,
+  cluster_index,
   ...
 )
 
@@ -118,6 +122,8 @@ the lower-level function called by \code{\link{qs}}. This is a named list, with 
 \item{var_names}{RHS regression variable names.}
 
 \item{subsample_percent}{A number between 0 and one, specifying the percent of the data to subsample for standard error calculations}
+
+\item{cluster_index}{index for clusters to sample}
 
 \item{...}{other arguments passed to quantile fitting function}
 

@@ -13,7 +13,7 @@ quantreg_spacing(
   algorithm = "rq.fit.sfn",
   weights = NULL,
   control = list(small = 1e-06, trunc = TRUE, start_list = NA, output_quantiles =
-    FALSE, calc_avg_me = FALSE),
+    FALSE, calc_avg_me = FALSE, calc_r2 = T),
   ...
 )
 }

@@ -63,7 +63,7 @@ get_marginal_effects = function(qreg_coeffs,
   avgME = matrix(NA, N, p)
 
   if(!missing(qreg_vcv_vec)) {
-    avgME_se = avg_spacings*0
+    avgME_se = matrix(NA, N, p)
   } else {
     avgME_se = c()
   }
@@ -90,14 +90,15 @@ get_marginal_effects = function(qreg_coeffs,
     # Can't see an easy way to avoid a double loop here
     if(calc_se && !missing(qreg_vcv_vec)){
       for(kk in 1:p){
-        avgME_se[kk,jj] = sqrt(R_matrix[kk,,jj] %*%
+        avgME_se[jj,kk] = sqrt(R_matrix[kk,,jj] %*%
                                  matrix(qreg_vcv_vec[,jj],p,p) %*%
                                  t(matrix(R_matrix[kk,,jj,drop=FALSE], 1, p)))
       }
     }
   }
 
-  if(calc_se) return(list('avgME' = avgME, 'avgME_se' = avgME_se))
+  if(calc_se) return(list('avgME' = avgME,
+                          'avgME_se' = avgME_se))
   else return(list('avgME' = avgME))
 }
 
@@ -121,10 +122,17 @@ me <- function(fit, X) {
   spacings <- as.matrix(X %*% reg_coefs)
   spacings[,-jstar] <- exp(spacings[,-jstar])
 
-  me <- get_marginal_effects(reg_coefs, spacings, jstar)$avgME
+  me <- get_marginal_effects(reg_coefs, spacings, jstar,
+                             calc_se = T,
+                             qreg_vcv_vec = fit$se$quant_cov)
 
-  colnames(me) <- fit$specs$alpha
-  rownames(me) <- fit$specs$coef_names
+  # point estimates
+  colnames(me[[1]]) <- fit$specs$alpha
+  rownames(me[[1]]) <- fit$specs$coef_names
+
+  # standard errors
+  colnames(me[[2]]) <- fit$specs$alpha
+  rownames(me[[2]]) <- fit$specs$coef_names
 
   me
 }
@@ -180,28 +188,17 @@ me_by_variable <- function(fit, type, variable,
     data[[variable]] <- vardata
     data[[variable]] <- vardata
 
-  } else if (type == "ame") {
-    vardata <- mean(X[,variable])
-    data <- as.data.frame(X)
-  } else {
+  }  else {
     stop("Type must be one of:\n",
-         "\t \"ame\": average marginal effect\n",
          "\t \"mea\": marginal effects at the average\n",
          "\t \"varying\": marginal effects across different levels of variable")
   }
 
   var_me <- matrix(NA, nrow = length(vardata), ncol = length(fit$specs$alpha))
-  if(type != "ame") {
 
-    for(i in 1:length(data[[variable]])) {
-      this_level_me <- me(fit, X = data[i,])
-      var_me[i,] <- this_level_me[which(rownames(this_level_me) == variable),]
-    }
-
-  } else {
-    var_me <- me(fit, X = data)
-    var_me <- var_me[which(rownames(var_me) == variable),]
-    var_me <- matrix(var_me, ncol = length(var_me))
+  for(i in 1:length(data[[variable]])) {
+    this_level_me <- me(fit, X = data[i,])
+    var_me[i,] <- this_level_me$avgME[which(rownames(this_level_me$avgME) == variable),]
   }
 
   var_me <- as.data.frame(cbind(vardata, var_me))
@@ -234,7 +231,7 @@ me_by_variable <- function(fit, type, variable,
 #' @importFrom stats terms
 #' @export
 marginal_effects <- function(fit,
-                             type = "ame",
+                             type = "mea",
                              variable = "all",
                              data = NA,
                              size = NA,

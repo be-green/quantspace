@@ -1,3 +1,5 @@
+set.seed(42)
+
 X <- stats::model.matrix(mpg ~ cyl, data = mtcars)
 y <- stats::model.response(stats::model.frame(mpg ~ cyl, data = mtcars),
                              type = "numeric")
@@ -24,6 +26,7 @@ test_that("Generic Algorithm Interface Matches Specific Output", {
   testthat::expect_true(inherits(reg_spec, "matrix.csr"))
 })
 
+suppressWarnings({
 
 x = matrix(rnorm(1000), ncol = 2)
 y = 1 + 2 * x[,1] - 0.4 * x[,2] + rnorm(nrow(x)) * ( x[,1]) * 4 + rnorm(nrow(x)) * ( x[,2]) *3
@@ -34,15 +37,16 @@ fit_lasso_no_penalty <- qs(y ~ X1 + X2, data = head(test_data, 900),
                            parallel = F, scale_x = F,
                            algorithm = "lasso",
                            method = "br",
-                           control = qs_control(lambda = 0))
+                           control = qs_control(lambda = 0), calc_se = F)
 
 fit_br <- qs(y ~ X1 + X2, data = head(test_data, 900),
              parallel = F,
-             algorithm = "rq.fit.br")
+             algorithm = "rq.fit.br", calc_se = F)
 
 
 lasso_diff = max(abs(coef(fit_br) - coef(fit_lasso_no_penalty)))
 
+})
 testthat::test_that("Lasso matches br when not penalized", {
   testthat::expect_equivalent(0, lasso_diff)
 })

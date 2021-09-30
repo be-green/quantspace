@@ -24,23 +24,36 @@ bootstrapRows <- function(rows, ...) {
 #' Function that fully bootstraps rows
 #' @param rows rows to potentially resample
 #' @param subsample_percent percentage of data to use in subsampling
+#' @param cluster_index number of weights to draw
 #' @param ... other arguments, ignored
-subsampleRows <- function(rows, subsample_percent, ...) {
-  sample(rows,floor(subsample_percent*length(rows)), replace = F)
+subsampleRows <- function(rows, subsample_percent, cluster_index, ...) {
+  uci = unique(cluster_index)
+  idx = sample(uci,
+               floor(subsample_percent*length(uci)),
+               replace = F)
+  which(cluster_index %in% idx)
+
 }
 
 #' Function that returns the correct weights for weighted bootstrap
 #' @param weights vector of existing regression weights
 #' @param draw_weights whether draw random exponential weights
-#' @param n number of weights to draw
-getWeights <- function(weights, draw_weights, n) {
+#' @param cluster_index number of weights to draw
+getWeights <- function(weights, draw_weights, cluster_index) {
+  uci = unique(cluster_index)
+  n = length(uci)
   if(draw_weights) {
     new_weights <- pmax(stats::rexp(n),1e-3)
+    wframe <- merge(data.frame(cluster_index = cluster_index),
+                    data.frame(cluster_index = uci, w = new_weights))
+    wframe <- merge(wframe, as.data.frame(table(cluster_index)))
+    new_weights = wframe$w / wframe$Freq
     if(is.null(weights)) {
-      new_weights
+      w = new_weights
     } else {
-      new_weights * weights
+      w = new_weights * weights
     }
+    w
   } else {
     weights
   }
@@ -50,8 +63,8 @@ getWeights <- function(weights, draw_weights, n) {
 #' @param subsample_percent A number between 0 and one, specifying the percent of the data to subsample for standard error calculations
 #' @param draw_weights Whether to use random exponential weights for bootstrap, either TRUE or FALSE
 #' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
+#' @param cluster_index index for clusters to sample
 #' @param ... Other arguments, ignored for now
-#' @export
 resample_qs <- function(X,
                         y,
                         weights,
@@ -63,6 +76,7 @@ resample_qs <- function(X,
                         draw_weights,
                         var_names,
                         subsample_percent,
+                        cluster_index,
                         ...) {
 
 
@@ -70,8 +84,16 @@ resample_qs <- function(X,
     sampling_method <- paste0(sampling_method, "Rows")
   }
 
-  rows <- getRows(1:nrow(X), sampling_method = sampling_method, subsample_percent = subsample_percent)
-  weights <- getWeights(weights, draw_weights, length(rows))
+  rows <- getRows(1:nrow(X), sampling_method = sampling_method,
+                  subsample_percent = subsample_percent,
+                  cluster_index = cluster_index)
+  weights <- getWeights(weights, draw_weights,
+                        cluster_index = cluster_index[rows])
+  if(!is.null(weights)) {
+    weights <- weights / sum(weights)
+  }
+
+  tryCatch({
 
   quantreg_spacing(
     y = y[rows],
@@ -83,6 +105,11 @@ resample_qs <- function(X,
     weights = weights,
     algorithm = algorithm,
     ...)
+
+  }, error = function(e) {
+    warning(e$message)
+    return(NA)
+    })
 }
 
 #' @rdname standard_errors
@@ -98,12 +125,14 @@ weighted_bootstrap <- function(X,
                                draw_weights,
                                var_names,
                                subsample_percent,
+                               cluster_index,
                                ...) {
   resample_qs(X = X, y = y, weights = weights,
            sampling_method = "leaveRows", draw_weights = T,
            alpha = alpha, jstar = jstar, control = control,
            algorithm = algorithm, subsample_percent = 1,
-           var_names = var_names, ...)
+           var_names = var_names,
+           cluster_index = cluster_index, ...)
 }
 
 #' @rdname standard_errors
@@ -119,12 +148,14 @@ bootstrap <- function(X,
                       draw_weights,
                       var_names,
                       subsample_percent,
+                      cluster_index,
                       ...) {
   resample_qs(X = X, y = y, weights = weights,
               sampling_method = "bootstrapRows", draw_weights = F,
               alpha = alpha, jstar = jstar, control = control,
               algorithm = algorithm, subsample_percent = 1,
-              var_names = var_names, ...)
+              var_names = var_names,
+              cluster_index = cluster_index, ...)
 }
 
 #' @rdname standard_errors
@@ -139,12 +170,14 @@ subsample <- function(X,
                       draw_weights,
                       var_names,
                       subsample_percent,
+                      cluster_index,
                       ...) {
   resample_qs(X = X, y = y, weights = weights,
               sampling_method = "subsampleRows", draw_weights = F,
               alpha = alpha, jstar = jstar, control = control,
               algorithm = algorithm, subsample_percent = subsample_percent,
-              var_names = var_names, ...)
+              var_names = var_names,
+              cluster_index = cluster_index, ...)
 }
 
 #' check if all values of two vectors match
@@ -271,8 +304,10 @@ standard_errors <- function(y,
   }
 
   if(is.null(cluster_matrix)) {
-    cluster_index <- rep(1, nrow(X))
+    # if there are no clusters, resample and weight rows
+    cluster_index <- 1:nrow(X)
   } else {
+    # otherwise sample and weight clusters (like a block bootstrap)
     cluster_index <- get_strata(cluster_matrix)
   }
 
@@ -303,22 +338,19 @@ standard_errors <- function(y,
                                      draw_weights,
                                      sampling_method = sampling_method,
                                      ...) {
-                              clustered_fits <- list()
-                              for(j in 1:num_clusters) {
-                                clustered_fits[[j]] <-
-                                  do.call(se_method,
-                                        args = list(X = X_mat[which(cluster_index == j),],
-                                                    y = y[which(cluster_index == j)],
-                                                    weights = weights[which(cluster_index == j)],
-                                                    alpha = alpha, jstar = jstar, control = control,
-                                                    algorithm = algorithm,
-                                                    subsample_percent = subsample_percent,
-                                                    var_names = var_names,
-                                                    draw_weights = draw_weights,
-                                                    sampling_method = sampling_method,
-                                                    ...))
-                              }
-                              purrr::pmap(clustered_fits, rbind)
+
+                                    do.call(se_method,
+                                          args = list(X = X_mat,
+                                                      y = y,
+                                                      weights = weights,
+                                                      alpha = alpha, jstar = jstar, control = control,
+                                                      algorithm = algorithm,
+                                                      subsample_percent = subsample_percent,
+                                                      var_names = var_names,
+                                                      draw_weights = draw_weights,
+                                                      sampling_method = sampling_method,
+                                                      cluster_index = cluster_index,
+                                                      ...))
   }), X_mat = X, se_method = std_err_control$se_method, cluster_index = cluster_index,
   y = y, weights = weights, alpha = alpha,
   jstar = jstar, var_names = var_names, control = control,

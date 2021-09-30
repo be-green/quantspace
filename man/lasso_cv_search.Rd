@@ -9,7 +9,7 @@ lasso_cv_search(
   y,
   tau = 0.5,
   weights = NULL,
-  method = "sfn",
+  method = "two_pass",
   intercept = TRUE,
   nfolds = 10,
   foldid = NULL,

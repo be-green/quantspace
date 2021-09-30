@@ -4,12 +4,14 @@
 \alias{subsampleRows}
 \title{Function that fully bootstraps rows}
 \usage{
-subsampleRows(rows, subsample_percent, ...)
+subsampleRows(rows, subsample_percent, cluster_index, ...)
 }
 \arguments{
 \item{rows}{rows to potentially resample}
 
 \item{subsample_percent}{percentage of data to use in subsampling}
+
+\item{cluster_index}{number of weights to draw}
 
 \item{...}{other arguments, ignored}
 }

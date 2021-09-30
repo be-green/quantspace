@@ -236,6 +236,236 @@ rq.fit.br <- function(X, y, tau = 0.5,
        weights = weights)
 }
 
+#' Smoothed Quantile Regression with Post-Processing
+#' @param X design matrix
+#' @param y outcome variable
+#' @param tau target quantile
+#' @param lambda optional weight on penalty function
+#' @param nwarmup_samples number of samples to use for warmup in approximat
+#' quantile regression
+#' @param lp_size size of linear programming problem passed to the simplex
+#' algorithm
+#' @param intercept integer for location of intercept column
+#' @details This function performs smoothed quantile regression w/ post-processing
+#' to ensure accuracy of the approximate first-order method.
+#' @importFrom stats quantile
+#' @importFrom quantreg rq.fit.br
+post_processed_grad_descent = function(X, y,
+                                       tau, lambda = 0,
+                                       nwarmup_samples = 0.1 * nrow(X),
+                                       lp_size = 10000, intercept = NULL) {
+  n <- nrow(X)
+  p <- ncol(X)
+
+  if(is.null(intercept)) {
+    intercept <- get_intercept(X)
+  }
+
+  if(nwarmup_samples > n) {
+    nwarmup_samples <- min(n, nwarmup_samples/10)
+  }
+
+  if(nwarmup_samples < p) {
+    nwarmup_samples <- p * 2
+  }
+
+  if(lp_size > n) {
+
+    if(lambda > 0) {
+      # based on the quantreg implementation rq.lasso.fit
+      lambdan = lambda * nrow(X)
+      lambdan <- c(0, rep(lambdan, ncol(X) - 1))
+      R <- diag(lambdan, nrow = length(lambdan))
+      R <- R[which(lambdan != 0), , drop = FALSE]
+      r <- rep(0, nrow(R))
+      neg_R  <- -R
+      X = rbind(X, R, neg_R)
+      y = c(y, r, r)
+    }
+
+    fit = quantreg::rq.fit.br(X, y, tau)
+    return(coef(fit))
+  }
+
+  samples <- sample(1:n, nwarmup_samples, replace = F)
+
+  X_sub <- X[samples,]
+  y_sub <- y[samples]
+  init_beta = rep(0, ncol(X))
+
+  init_fit = fit_approx_quantile_model(X,
+                                       y,
+                                       X_sub,
+                                       y_sub,
+                                       tau,
+                                       init_beta,
+                                       maxiter = 1000,
+                                       mu = 1e-15,
+                                       beta_tol = 1e-5,
+                                       check_tol = 1e-5,
+                                       intercept = intercept,
+                                       num_samples = nwarmup_samples,
+                                       warm_start = 1,
+                                       scale = 1, lambda,
+                                       min_delta = 1e-10)
+
+  res = as.vector(init_fit$residuals)
+  checked_res = check(res, tau)
+
+  thresh = quantile(checked_res, lp_size / n)
+
+  globbed_x = glob_obs_mat(X, res, thresh)
+  globbed_y = glob_obs_vec(y, res, thresh)
+  which_globbed = which(res > thresh | res < -thresh)
+
+  if(lambda > 0) {
+    # based on the quantreg implementation rq.lasso.fit
+    lambdan = lambda * nrow(X)
+    lambdan <- c(0, rep(lambdan, ncol(globbed_x) - 1))
+    R <- diag(lambdan, nrow = length(lambdan))
+    R <- R[which(lambdan != 0), , drop = FALSE]
+    r <- rep(0, nrow(R))
+    neg_R  <- -R
+    globbed_x = rbind(globbed_x, R, neg_R)
+    globbed_y = c(globbed_y, r, r)
+  }
+
+  suppressWarnings({
+    new_fit = quantreg::rq.fit.br(globbed_x, globbed_y, tau)
+  })
+  if(lambda > 0) {
+    added_rows = (nrow(globbed_x) - nrow(R) * 2 + 1):nrow(globbed_x)
+    globbed_x = globbed_x[-added_rows,]
+    globbed_y = globbed_y[-added_rows]
+  }
+
+  new_res = y - X %*% coef(new_fit)
+
+
+  # if any residual now has the wrong sign, repeat the process w/ a
+  # stricter tolerance for beta
+  # if they don't, then the constraint is dominated
+  i = 0
+  max_times = 10
+  while(any(sign(new_res[which_globbed]) != sign(res[which_globbed])) & i < max_times) {
+    i = i + 1
+    init_fit = fit_approx_quantile_model(X,
+                                         y,
+                                         X_sub,
+                                         y_sub,
+                                         tau,
+                                         new_fit$coefficients,
+                                         mu = 1e-15,
+                                         maxiter = 1000,
+                                         beta_tol = 1e-10,
+                                         check_tol = 1e-10,
+                                         intercept = intercept,
+                                         num_samples = nwarmup_samples,
+                                         warm_start = 0, scale = 1, lambda,
+                                         min_delta = 1e-10)
+
+    res = as.vector(init_fit$residuals)
+    checked_res = check(res)
+    thresh = quantile(checked_res, lp_size / n)
+    globbed_x = glob_obs_mat(X, res, thresh)
+    globbed_y = glob_obs_vec(y, res, thresh)
+
+    which_globbed = which(res > thresh | res < -thresh)
+
+    if(lambda > 0) {
+      # based on the quantreg implementation rq.lasso.fit
+      lambdan = lambda * nrow(X)
+      lambdan <- c(0, rep(lambdan, ncol(globbed_x) - 1))
+      R <- diag(lambdan, nrow = length(lambdan))
+      R <- R[which(lambdan != 0), , drop = FALSE]
+      r <- rep(0, nrow(R))
+      neg_R  <- -R
+      globbed_x = rbind(globbed_x, R, neg_R)
+      globbed_y = c(globbed_y, r, r)
+    }
+
+    suppressWarnings({
+      new_fit = quantreg::rq.fit.br(globbed_x, globbed_y, tau)
+    })
+
+    if(lambda > 0) {
+      added_rows = (nrow(globbed_x) - nrow(R) * 2 + 1):nrow(globbed_x)
+      globbed_x = globbed_x[-added_rows,]
+      globbed_y = globbed_y[-added_rows]
+    }
+
+    new_res = y - X %*% coef(new_fit)
+  }
+  coef(new_fit)
+}
+
+#' Quantile regression approximated w/ huber loss followed by post-processing
+#' @param X design matrix
+#' @param y outcome vector
+#' @param tau target quantile
+#' @param weights optional weight vector
+#' @param control ignored for now
+#' @param lambda ignored for now
+#' @param n_samples number of observations to use in "warmup" regression
+#' @param init_beta initial guess at betas
+#' @param intercept optional integer indicating intercept column
+#' that identifies initial values
+#' @param ... other arguments, ignored for now
+#' @export
+#' @importFrom stats rnorm
+rq.fit.two_pass <- function(X, y, tau = 0.5,
+                       weights = NULL, control,
+                       lambda, intercept = NULL,
+                       init_beta = NULL,
+                       n_samples = min(c(ceiling(nrow(X)/10),
+                                         10000)),
+                       ...) {
+  if(!inherits(X, "matrix")) {
+    X <- as.matrix(X)
+  }
+
+  # additional syntax to incorporate weights is included here
+  if (!is.null(weights)){
+
+    n = nrow(X)
+    if(n != dim(as.matrix(weights))[1]){
+      stop("Dimensions of design matrix and the weight vector not compatible")
+    }
+    # multiplying y by the weights
+    y <- y * weights
+
+    # pre-multiplying the a matrix by a diagonal matrix of weights
+    #a <- sweep(a,MARGIN=1,weights,`*`)
+    X <- weights * X
+  }
+  if(is.null(intercept)) {
+    intercept <- get_intercept(X)
+  }
+  if(is.null(init_beta)) {
+    init_beta = rep(0, ncol(X))
+  }
+
+  if(n_samples < 10) {
+    n_samples = min(10, length(y))
+  }
+
+  if(is.null(lambda)) {
+    lambda = 0
+  }
+
+  fit = post_processed_grad_descent(X = X, y = y,
+                                    tau = tau, lambda = lambda, intercept)
+
+  list(coefficients = fit,
+       residuals = y - X %*% fit,
+       control = list(),
+       ierr = 0,
+       it = 0,
+       weights = weights)
+
+}
+
+
 #' Quantile Regression approximated w/ huber loss
 #' @param X design matrix
 #' @param y outcome vector
@@ -293,17 +523,22 @@ rq.fit.agd <- function(X, y, tau = 0.5,
     intercept <- get_intercept(X)
   }
   if(is.null(init_beta)) {
-    init_beta = stats::rnorm(ncol(X))
+    init_beta = rep(0, ncol(X))
   }
 
   if(n_samples < 10) {
-    n_samples = min(10, length(y))
+    n_samples = min(min(10, length(y)), round(length(y) / 2))
   }
 
   samples = sample(1:length(y), n_samples)
 
   X_sub = X[samples,]
   y_sub = y[samples]
+
+  # this happens if there's only 1 column
+  if(!is.matrix(X_sub)) {
+    X_sub <- as.matrix(X_sub)
+  }
 
   fit = fit_approx_quantile_model(X = X, y = y,
                           X_sub = X_sub,
@@ -313,104 +548,16 @@ rq.fit.agd <- function(X, y, tau = 0.5,
                           maxiter = maxiter,
                           beta_tol = beta_tol,check_tol = check_tol,
                           intercept = intercept, num_samples = n_samples,
-                          scale = scale,
+                          scale = scale
                           )
 
-  list(coefficients = as.vector(fit),
-       residuals = y - X %*% fit,
+  list(coefficients = coef(fit),
+       residuals = fit$residuals,
        control = list(),
        ierr = 0,
        it = 0,
        weights = weights)
 }
-
-
-#' Quantile Regression approximated w/ huber loss and sparse matrices
-#' @param X design matrix
-#' @param y outcome vector
-#' @param tau target quantile
-#' @param weights optional weight vector
-#' @param control ignored for now
-#' @param lambda ignored for now
-#' @param smoothing_window neighborhood around 0 which is
-#' smoothed by either typical least squares or appropriately
-#' tilted least squares loss function
-#' @param beta_tol stopping rule based on max value of gradient
-#' @param check_tol stopping rule based on change in the loss function
-#' @param maxiter largest number of iterations allowed
-#' @param n_samples number of observations to use in "warmup" regression
-#' @param init_beta initial guess at betas
-#' @param intercept optional integer indicating intercept column
-#' that identifies initial values
-#' @param ... other arguments, ignored for now
-#' @export
-#' @importFrom stats rnorm
-#' @importFrom Matrix Matrix
-rq.fit.agd_sparse <- function(X, y, tau = 0.5,
-                       weights = NULL, control,
-                       lambda, smoothing_window = 1e-4,
-                       beta_tol = 1e-4,
-                       check_tol = 1e-4,
-                       maxiter = 1000,
-                       n_samples = min(c(ceiling(nrow(X)/10),
-                                         10000)),
-                       init_beta = NULL,
-                       intercept = NULL,
-                       ...) {
-
-
-  if(!inherits(X, "matrix")) {
-    X <- as.matrix(X)
-  }
-
-  # additional syntax to incorporate weights is included here
-  if (!is.null(weights)){
-
-    n = nrow(X)
-    if(n != dim(as.matrix(weights))[1]){
-      stop("Dimensions of design matrix and the weight vector not compatible")
-    }
-    # multiplying y by the weights
-    y <- y * weights
-
-    # pre-multiplying the a matrix by a diagonal matrix of weights
-    #a <- sweep(a,MARGIN=1,weights,`*`)
-    X <- diag(weights) * X
-  }
-  if(is.null(intercept)) {
-    intercept <- get_intercept(X)
-  }
-  if(is.null(init_beta)) {
-    init_beta = stats::rnorm(ncol(X))
-  }
-
-  if(n_samples < 10) {
-    n_samples = min(10, length(y))
-  }
-
-  samples = sample(1:length(y), n_samples)
-
-
-  X = Matrix::Matrix(X, sparse = T)
-
-  fit = fit_approx_quantile_model_sp(X = X, y = y,
-                                  X_sub = X[samples,],
-                                  y_sub = y[samples],
-                                  tau = tau,
-                                  mu = smoothing_window, init_beta = init_beta,
-                                  maxiter = maxiter,
-                                  beta_tol = beta_tol,check_tol = check_tol,
-                                  intercept = intercept, num_samples = n_samples,
-  )
-
-  list(coefficients = fit,
-       residuals = as.vector(y - X %*% fit),
-       control = list(),
-       ierr = 0,
-       it = 0,
-       weights = weights)
-}
-
 
 #' Quantile Regression w/ Lasso Penalty
 #' @param X Design matrix, X
@@ -426,7 +573,7 @@ rq.fit.agd_sparse <- function(X, y, tau = 0.5,
 #' @param nlambda number of lambdas to search over.
 #' @export
 rq.fit.lasso <- function(X, y, tau, lambda, weights,
-                         scale_x = T, method = "agd", nfold = 10,
+                         scale_x = T, method = "two_pass", nfold = 10,
                          nlambda = 50, parallel = F, ...) {
 
   if(!is.matrix(X)) {
@@ -485,6 +632,13 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
     lambda = cv_fit$lambda.min
   }
 
+  if(anyNA(X)) {
+    which_col = which(apply(X, 2, function(x) all(is.na(x))))
+    X = X[, -which_col]
+    warning("Column ", which_col, " of design matrix found to be colinear with",
+            " intercept when estimating quantile ", tau, ".\n")
+  }
+
   est <- fit_lasso(x = X[,-intercept],
                              y = y,
                              tau = tau,
@@ -497,12 +651,19 @@ rq.fit.lasso <- function(X, y, tau, lambda, weights,
   coefficients <- est$coefficients
   coefficients <- reorder_coefficients(coefficients, intercept)
 
+
   if(scale_x) {
     coefficients <- rescale_coefficients(coefficients, mu_x, sigma_x, intercept)
     X = unscaled_X
   }
-
+  if(exists("which_col")) {
+    for(i in 1:length(which_col)) {
+      coefficients <- reorder_coefficients(c(NA, coefficients), which_col[i])
+    }
+  }
   residuals = y - X %*% coefficients
+
+
 
   if (!is.null(weights)){
     residuals <- residuals / weights
@@ -802,7 +963,8 @@ quantreg_spacing = function(
     trunc = TRUE,
     start_list = NA,
     output_quantiles = FALSE,
-    calc_avg_me = FALSE
+    calc_avg_me = FALSE,
+    calc_r2 = T
   ),
   ...) {
 
@@ -814,6 +976,7 @@ quantreg_spacing = function(
   output_quantiles = control$output_quantiles
   calc_avg_me = control$calc_avg_me
   lambda = control$lambda
+  calc_r2 = control$calc_r2
 
   if(is.null(output_quantiles)) {
     output_quantiles <- TRUE
@@ -858,9 +1021,12 @@ quantreg_spacing = function(
     var_names <- paste0("v", 1:ncol(X))
   }
 
-
   # Ensure matrix is not rank deficient
-  reg_spec_starting_data <- list(spec_matrix = X, col_names = var_names)
+  if(is.null(lambda)) {
+    reg_spec_starting_data <- ensureSpecFullRank(X, var_names)
+  } else {
+    reg_spec_starting_data <- list(spec_matrix = X, col_names = var_names)
+  }
 
   if(!is.null(lambda)) {
     if(length(lambda) > 1) {
@@ -904,13 +1070,16 @@ quantreg_spacing = function(
   ehat0 = star_model$residuals
 
   #Calculate R^2
-  V <- sum(rho(u = ehat0, tau = tau, weights = weights))
-  V0 <- fitQuantileRegression(X = as.matrix.csr(rep(1, length(y))),
-                             y = y,
-                             tau = tau,
-                             weights = weights,
-                             algorithm = 'rq.fit.sfn')$residuals
-  V0 <- sum(rho(u = V0, tau = tau,weights = weights))
+  if(calc_r2) {
+    V <- sum(rho(u = ehat0, tau = tau, weights = weights))
+    # matches univariate qreg
+    q_est <- quantile(y, tau, type = 1)
+    V0 <- sum(rho(u = y - q_est, tau = tau, weights = weights))
+  } else {
+    V = NA
+    V0 = NA
+  }
+
 
   #set column names
   coef_df <- as.data.frame(t(star_model$coefficients))
@@ -975,12 +1144,19 @@ quantreg_spacing = function(
       # Ensure the cut of the starting data that we take for
       # current spacing is not rank-deficient
       if(!trunc){
-        reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[which(ehat > small),],
-                                            col_names = reg_spec_starting_data$var_names)
+        # Ensure matrix is not rank deficient
+        if(is.null(lambda) || zapsmall(lambda) == 0) {
+          reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[which(ehat > small),], reg_spec_starting_data$var_names)
+        } else {
+          reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[which(ehat > small),], col_names = var_names)
+        }
       } else {
-        # else, handle rank specification for typically-sized matrix
-        reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,],
-                                            col_names = reg_spec_starting_data$var_names)
+        # Ensure matrix is not rank deficient
+        if(is.null(lambda) || zapsmall(lambda) == 0) {
+          reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[ind_hat,], reg_spec_starting_data$var_names)
+        } else {
+          reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,], col_names = var_names)
+        }
       }
 
       # run quantile regression
@@ -1006,19 +1182,18 @@ quantreg_spacing = function(
       }
       printWarnings(j_model)
 
-      #Calculate R^2
-      V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
-      V0 <- regressResiduals(
-        reg_spec_data = list(
-          spec_matrix = as.matrix.csr(rep(1, length(ind_hat)))
-        ),
-        ehat = ehat, ind_hat = ind_hat,
-        tau = tau.t, trunc = trunc,
-        small = small, weights = weights[ind_hat],
-        algorithm = 'rq.fit.sfn')
-      V0 <- sum(rho(u = V0$residuals, tau = tau.t,
-                    weights = V0$weights))
+      if( calc_r2 ){
 
+        #Calculate R^2
+        V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
+        q_est <- quantile(ehat, tau.t, type = 1)
+        V0 <- sum(rho(u = ehat - q_est, tau = tau.t,
+                      weights = j_model$weights))
+
+      } else {
+        V = NA
+        V0 = NA
+      }
       # Update residuals
       coef = j_model$coefficients
       coef_df <- as.data.frame(t(coef))
@@ -1100,9 +1275,26 @@ quantreg_spacing = function(
       # Determine quantile to estimate
       tau.t = (alpha[j + 1] - alpha[j])/(alpha[j + 1])
 
-      reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,],
-                                          col_names = reg_spec_starting_data$var_names)
-
+      # Ensure the cut of the starting data that we take for
+      # current spacing is not rank-deficient
+      if(!trunc){
+        # Ensure matrix is not rank deficient
+        if(is.null(lambda)) {
+          reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[which(ehat > small),],
+                                              reg_spec_starting_data$var_names)
+        } else {
+          reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[which(ehat > small),], col_names = var_names)
+        }
+      } else {
+        # Ensure matrix is not rank deficient
+        if(is.null(lambda) || zapsmall(lambda) == 0) {
+          reg_spec_data <- ensureSpecFullRank(reg_spec_starting_data$spec_matrix[ind_hat,],
+                                              reg_spec_starting_data$var_names)
+        } else {
+          reg_spec_data <- list(spec_matrix = reg_spec_starting_data$spec_matrix[ind_hat,],
+                                col_names = var_names)
+        }
+      }
 
       #run quantile regression
       if(!any(is.na(start_list))) { # if the user supplied starting values, then use them in the function
@@ -1129,14 +1321,17 @@ quantreg_spacing = function(
       }
 
       printWarnings(j_model)
+      if(calc_r2) {
 
       #Calculate pseudo-R^2
-      V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
-      V0 <- regressResiduals(reg_spec_data = list('spec_matrix' = as.matrix.csr(rep(1, length(ind_hat)))),
-                             ehat = -ehat, ind_hat = ind_hat, tau = tau.t, trunc = trunc,
-                             small = small, weights = weights[ind_hat], algorithm = 'rq.fit.sfn')
-      V0 <- sum(rho(u = V0$residuals, tau = tau.t, weights = V0$weights))
-
+        V <- sum(rho(u = j_model$residuals, tau = tau.t, weights = j_model$weights))
+        q_est <- quantile(-ehat, tau.t, type = 1)
+        V0 <- sum(rho(u = -ehat - q_est, tau = tau.t,
+                      weights = j_model$weights))
+      } else {
+        V = NA
+        V0 = NA
+      }
       # Update residuals
       coef = j_model$coefficients
       coef_df <- as.data.frame(t(coef))
