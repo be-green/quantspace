@@ -63,8 +63,8 @@ getWeights <- function(weights, draw_weights, cluster_index) {
 #' @param subsample_percent A number between 0 and one, specifying the percent of the data to subsample for standard error calculations
 #' @param draw_weights Whether to use random exponential weights for bootstrap, either TRUE or FALSE
 #' @param sampling_method One of "leaveRows", "subsampleRows", or "bootstrapRows".
+#' @param cluster_index index for clusters to sample
 #' @param ... Other arguments, ignored for now
-#' @export
 resample_qs <- function(X,
                         y,
                         weights,

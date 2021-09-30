@@ -56,10 +56,9 @@ findLastRedundantCol <- function(x) {
   cols = mapply(function(val,vec) {
     if (val!=0) NULL else which(vec!=0)
   },zapsmall(ee$values),evecs)
-  Filter(f = function(cols) !is.null(cols), cols) %>%
-    tail(1) %>%
-    unlist %>%
-    tail(1)
+  l = Filter(f = function(cols) !is.null(cols), cols)
+  l = unlist(tail(1))
+  tail(l, 1)
 }
 
 

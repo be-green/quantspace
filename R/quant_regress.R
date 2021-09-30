@@ -245,6 +245,7 @@ rq.fit.br <- function(X, y, tau = 0.5,
 #' quantile regression
 #' @param lp_size size of linear programming problem passed to the simplex
 #' algorithm
+#' @param intercept integer for location of intercept column
 #' @details This function performs smoothed quantile regression w/ post-processing
 #' to ensure accuracy of the approximate first-order method.
 #' @importFrom stats quantile
@@ -405,15 +406,8 @@ post_processed_grad_descent = function(X, y,
 #' @param weights optional weight vector
 #' @param control ignored for now
 #' @param lambda ignored for now
-#' @param smoothing_window neighborhood around 0 which is
-#' smoothed by either typical least squares or appropriately
-#' tilted least squares loss function
-#' @param beta_tol stopping rule based on max value of gradient
-#' @param check_tol stopping rule based on change in the loss function
-#' @param maxiter largest number of iterations allowed
 #' @param n_samples number of observations to use in "warmup" regression
 #' @param init_beta initial guess at betas
-#' @param scale whether to scale x and y variables in regression
 #' @param intercept optional integer indicating intercept column
 #' that identifies initial values
 #' @param ... other arguments, ignored for now
@@ -564,94 +558,6 @@ rq.fit.agd <- function(X, y, tau = 0.5,
        it = 0,
        weights = weights)
 }
-
-
-#' Quantile Regression approximated w/ huber loss and sparse matrices
-#' @param X design matrix
-#' @param y outcome vector
-#' @param tau target quantile
-#' @param weights optional weight vector
-#' @param control ignored for now
-#' @param lambda ignored for now
-#' @param smoothing_window neighborhood around 0 which is
-#' smoothed by either typical least squares or appropriately
-#' tilted least squares loss function
-#' @param beta_tol stopping rule based on max value of gradient
-#' @param check_tol stopping rule based on change in the loss function
-#' @param maxiter largest number of iterations allowed
-#' @param n_samples number of observations to use in "warmup" regression
-#' @param init_beta initial guess at betas
-#' @param intercept optional integer indicating intercept column
-#' that identifies initial values
-#' @param ... other arguments, ignored for now
-#' @export
-#' @importFrom stats rnorm
-#' @importFrom Matrix Matrix
-rq.fit.agd_sparse <- function(X, y, tau = 0.5,
-                       weights = NULL, control,
-                       lambda, smoothing_window = 1e-4,
-                       beta_tol = 1e-4,
-                       check_tol = 1e-4,
-                       maxiter = 1000,
-                       n_samples = min(c(ceiling(nrow(X)/10),
-                                         10000)),
-                       init_beta = NULL,
-                       intercept = NULL,
-                       ...) {
-
-
-  if(!inherits(X, "matrix")) {
-    X <- as.matrix(X)
-  }
-
-  # additional syntax to incorporate weights is included here
-  if (!is.null(weights)){
-
-    n = nrow(X)
-    if(n != dim(as.matrix(weights))[1]){
-      stop("Dimensions of design matrix and the weight vector not compatible")
-    }
-    # multiplying y by the weights
-    y <- y * weights
-
-    # pre-multiplying the a matrix by a diagonal matrix of weights
-    #a <- sweep(a,MARGIN=1,weights,`*`)
-    X <- diag(weights) * X
-  }
-  if(is.null(intercept)) {
-    intercept <- get_intercept(X)
-  }
-  if(is.null(init_beta)) {
-    init_beta = stats::rnorm(ncol(X))
-  }
-
-  if(n_samples < 10) {
-    n_samples = min(10, length(y))
-  }
-
-  samples = sample(1:length(y), n_samples)
-
-
-  X = Matrix::Matrix(X, sparse = T)
-
-  fit = fit_approx_quantile_model_sp(X = X, y = y,
-                                  X_sub = X[samples,],
-                                  y_sub = y[samples],
-                                  tau = tau,
-                                  mu = smoothing_window, init_beta = init_beta,
-                                  maxiter = maxiter,
-                                  beta_tol = beta_tol,check_tol = check_tol,
-                                  intercept = intercept, num_samples = n_samples,
-  )
-
-  list(coefficients = fit,
-       residuals = as.vector(y - X %*% fit),
-       control = list(),
-       ierr = 0,
-       it = 0,
-       weights = weights)
-}
-
 
 #' Quantile Regression w/ Lasso Penalty
 #' @param X Design matrix, X

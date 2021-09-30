@@ -28,6 +28,8 @@ quantile regression}
 
 \item{lp_size}{size of linear programming problem passed to the simplex
 algorithm}
+
+\item{intercept}{integer for location of intercept column}
 }
 \description{
 Smoothed Quantile Regression with Post-Processing

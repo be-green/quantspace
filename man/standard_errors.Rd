@@ -123,6 +123,8 @@ the lower-level function called by \code{\link{qs}}. This is a named list, with 
 
 \item{subsample_percent}{A number between 0 and one, specifying the percent of the data to subsample for standard error calculations}
 
+\item{cluster_index}{index for clusters to sample}
+
 \item{...}{other arguments passed to quantile fitting function}
 
 \item{cluster_matrix}{Matrix of cluster variables, as returned by a model formula}

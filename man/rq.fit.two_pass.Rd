@@ -38,18 +38,6 @@ that identifies initial values}
 \item{n_samples}{number of observations to use in "warmup" regression}
 
 \item{...}{other arguments, ignored for now}
-
-\item{smoothing_window}{neighborhood around 0 which is
-smoothed by either typical least squares or appropriately
-tilted least squares loss function}
-
-\item{beta_tol}{stopping rule based on max value of gradient}
-
-\item{check_tol}{stopping rule based on change in the loss function}
-
-\item{maxiter}{largest number of iterations allowed}
-
-\item{scale}{whether to scale x and y variables in regression}
 }
 \description{
 Quantile regression approximated w/ huber loss followed by post-processing
