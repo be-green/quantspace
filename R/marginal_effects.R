@@ -91,8 +91,9 @@ get_marginal_effects = function(qreg_coeffs,
     if(calc_se && !missing(qreg_vcv_vec)){
       for(kk in 1:p){
         avgME_se[jj,kk] = sqrt(R_matrix[kk,,jj] %*%
-                                 matrix(qreg_vcv_vec[,jj],p,p) %*%
-                                 t(matrix(R_matrix[kk,,jj,drop=FALSE], 1, p)))
+                               qreg_vcv_vec[seq(jj, N * p, by = N),
+                                            seq(jj, N * p, by = N)] %*%
+                                 matrix(R_matrix[kk,,jj], ncol = 1))
       }
     }
   }
@@ -101,8 +102,6 @@ get_marginal_effects = function(qreg_coeffs,
                           'avgME_se' = avgME_se))
   else return(list('avgME' = avgME))
 }
-
-
 
 #' Get marginal effects at a set of levels for the covariates
 #' @param fit A fitted model from the `qs` function
@@ -117,10 +116,9 @@ me <- function(fit, X) {
     X <- as.matrix(X)
   }
   jstar <- fit$specs$jstar
-
+  alphas <- fit$specs$alpha
   reg_coefs <- t(coef(fit))
-  spacings <- as.matrix(X %*% reg_coefs)
-  spacings[,-jstar] <- exp(spacings[,-jstar])
+  spacings <- avg_spacing(X, reg_coefs, alphas, jstar)
 
   me <- get_marginal_effects(reg_coefs, spacings, jstar,
                              calc_se = T,
