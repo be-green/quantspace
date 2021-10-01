@@ -103,7 +103,7 @@ ensureSpecFullRank = function(spec_mat, col_names) {
   }
   return(list(
     "spec_matrix" = spec_mat,
-    "var_names" = col_names))
+    "var_names" = col_names[-drop_cols]))
 }
 
 #' Convert matrix to a SparseM csr matrix

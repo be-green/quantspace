@@ -25,7 +25,6 @@ Imports:
     future.apply,
     MASS,
     Rcpp,
-    RcppArmadillo,
     RcppParallel
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
