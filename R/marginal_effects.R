@@ -50,6 +50,7 @@ avg_spacing = function(x, betas, alpha, jstar, trim=0){
 #' @param j_star the first quantile the user wishes to predict (usually the middle one)
 #' @param calc_se boolean value, indicating whether the user wishes to calculate the marginal effect standard errors
 #' @param qreg_vcv_vec variance-covariance matrix from point estimates, only necessary if calculating standard errors
+#' @importFrom stringr str_extract
 #' @return list of values: avgME: calculated average marginal effects
 #' avgME_se (user-specified): standard errors on the calculated marginal effects
 get_marginal_effects = function(qreg_coeffs,
@@ -61,6 +62,10 @@ get_marginal_effects = function(qreg_coeffs,
   N = dim(qreg_coeffs)[1]
   p = dim(qreg_coeffs)[2]
   avgME = matrix(NA, N, p)
+
+  nms <- colnames(qreg_vcv_vec)
+  qtls <- stringr::str_extract(nms, "^[0-9\\.]+")
+  coef_nms <- stringr::str_replace(nms, paste0(qtls, "_"), "")
 
   if(!missing(qreg_vcv_vec)) {
     avgME_se = matrix(NA, N, p)
@@ -76,6 +81,8 @@ get_marginal_effects = function(qreg_coeffs,
   R_matrix[,j_star,] = 1
 
   for(jj in 1:N) {
+    nm <- rownames(qreg_coeffs)[jj]
+    covmat_rows = which(coef_nms == nm)
 
     for(kk in 1:(j_star-1)){
       R_matrix[1:(j_star-kk),j_star-kk,jj] = -avg_spacings[j_star-kk]
@@ -84,18 +91,31 @@ get_marginal_effects = function(qreg_coeffs,
       R_matrix[(j_star+kk):p,(j_star+kk),jj] = avg_spacings[j_star+kk]
     }
 
-    avgME[jj,] = R_matrix[,,jj] %*% qreg_coeffs[jj,]
+    if(length(covmat_rows) == p) {
+      avgME[jj,] = R_matrix[,,jj] %*% qreg_coeffs[jj,]
 
-    # calculating standard errors here.
-    # Can't see an easy way to avoid a double loop here
-    if(calc_se && !missing(qreg_vcv_vec)){
-      for(kk in 1:p){
-        avgME_se[jj,kk] = sqrt(R_matrix[kk,,jj] %*%
-                               qreg_vcv_vec[seq(jj, N * p, by = N),
-                                            seq(jj, N * p, by = N)] %*%
-                                 matrix(R_matrix[kk,,jj], ncol = 1))
+      # calculating standard errors here.
+      # Can't see an easy way to avoid a double loop here
+      if(calc_se && !missing(qreg_vcv_vec)){
+        for(kk in 1:p){
+          avgME_se[jj,kk] = sqrt(R_matrix[kk,,jj] %*%
+                                   qreg_vcv_vec[covmat_rows,
+                                                covmat_rows] %*%
+                                   matrix(R_matrix[kk,,jj], ncol = 1))
+        }
+      }
+    } else {
+      avgME[jj,] = NA
+
+      # calculating standard errors here.
+      # Can't see an easy way to avoid a double loop here
+      if(calc_se && !missing(qreg_vcv_vec)){
+        for(kk in 1:p){
+          avgME_se[jj,kk] = NA
+        }
       }
     }
+
   }
 
   if(calc_se) return(list('avgME' = avgME,
