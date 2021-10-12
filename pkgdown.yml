@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   available-algorithms: available-algorithms.html
   using-quantspace: using-quantspace.html
-last_built: 2021-09-30T15:28Z
+last_built: 2021-10-12T15:07Z
 urls:
   reference: https://brice.green/quantspace/reference
   article: https://brice.green/quantspace/articles
