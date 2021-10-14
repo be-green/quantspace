@@ -49,7 +49,7 @@ cub_root_select <- function(a, b, c, d, q_1, q_2) {
 cub_root_select_rconics <- function(a, b, c, d, q_1, q_2) {
   #roots_clean <- matrix(Re(roots)[abs(Im(roots)) < 1e-6], ncol = 3, byrow = TRUE)
   coeff <- cbind(a,b,c,d)
-  roots <- apply(cbind(a,b,c,d), 1, RConics::cubic)
+  roots <- apply(coeff, 1, RConics::cubic)
   roots_clean <- matrix(roots, ncol = 3, byrow = TRUE)
   roots_clean[abs(Im(roots_clean)) > 1e-6] <- NA
   roots_clean <- Re(roots_clean)

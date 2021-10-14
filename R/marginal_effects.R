@@ -64,14 +64,13 @@ get_marginal_effects = function(qreg_coeffs,
   avgME = matrix(NA, N, p)
 
   nms <- colnames(qreg_vcv_vec)
+  if(is.null(nms)) {
+    nms <- rownames(qreg_coeffs)
+  }
   qtls <- stringr::str_extract(nms, "^[0-9\\.]+")
   coef_nms <- stringr::str_replace(nms, paste0(qtls, "_"), "")
 
-  if(!missing(qreg_vcv_vec)) {
-    avgME_se = matrix(NA, N, p)
-  } else {
-    avgME_se = c()
-  }
+  avgME_se = matrix(NA, N, p)
 
   # matrix with transformations of data that give marginal effects;
   # ME = R_matrix * qreg_coeffs
@@ -91,7 +90,7 @@ get_marginal_effects = function(qreg_coeffs,
       R_matrix[(j_star+kk):p,(j_star+kk),jj] = avg_spacings[j_star+kk]
     }
 
-    if(length(covmat_rows) == p) {
+    if(calc_se == F | length(covmat_rows) == p) {
       avgME[jj,] = R_matrix[,,jj] %*% qreg_coeffs[jj,]
 
       # calculating standard errors here.
@@ -102,6 +101,10 @@ get_marginal_effects = function(qreg_coeffs,
                                    qreg_vcv_vec[covmat_rows,
                                                 covmat_rows] %*%
                                    matrix(R_matrix[kk,,jj], ncol = 1))
+        }
+      } else {
+        for(kk in 1:p){
+          avgME_se[jj,kk] = NA
         }
       }
     } else {
@@ -118,9 +121,8 @@ get_marginal_effects = function(qreg_coeffs,
 
   }
 
-  if(calc_se) return(list('avgME' = avgME,
-                          'avgME_se' = avgME_se))
-  else return(list('avgME' = avgME))
+    return(list('avgME' = avgME,
+                'avgME_se' = avgME_se))
 }
 
 #' Get marginal effects at a set of levels for the covariates
@@ -140,8 +142,13 @@ me <- function(fit, X) {
   reg_coefs <- t(coef(fit))
   spacings <- avg_spacing(X, reg_coefs, alphas, jstar)
 
+  if(any(is.na(fit$se$quant_cov))) {
+    calcSE = F
+  } else {
+    calcSE = T
+  }
   me <- get_marginal_effects(reg_coefs, spacings, jstar,
-                             calc_se = T,
+                             calc_se = calcSE,
                              qreg_vcv_vec = fit$se$quant_cov)
 
   # point estimates
@@ -155,93 +162,15 @@ me <- function(fit, X) {
   me
 }
 
-#' Get marginal effects at a set of levels for the covariates
-#' @param fit A fitted model from the `qs` function
-#' @param type one of "ame" (average marginal effects),
-#' "mea" (marginal effects at the average), or "varying" (varying marginal
-#' effects over different levels of the data)
-#' @param variable variable to calculate marginal effects over
-#' @param data optional data.frame that specifies level of data to calculate
-#' marginal effects
-#' @param size What bin size to use when varying the variable of interest
-#' @param trim What to trim the variable of interest at, 0 < trim < 0.5
-#' @details This function defaults to using
-#' the average defaults to average for all coefficients
-#' except variable chosen. If you want to vary a covariate but keep everything
-#' else fixed at a certain level, you can specify the data argument.
-#' The size argument defaults to a bin size of 1/3 of the standard deviation
-#' of the variable, and the trim defaults to using the 95th percentile
-#' instead of the max because there may be large outliers. You can over-ride
-#' by setting trim to 0, which will use the min and max.
-#' @importFrom stats model.matrix
-#' @importFrom stats as.formula
-me_by_variable <- function(fit, type, variable,
-                           data = NA, size = NA, trim = 0.05) {
-
-
-  if(length(data) == 1 & anyNA(data)) {
-    X = stats::model.matrix(stats::as.formula(fit$specs$formula),
-                              data = fit$specs$X)
-
-  } else {
-    X <- data
-  }
-
-  if (type == "mea") {
-    data <- data.frame(t(colMeans(X)))
-    vardata <- mean(X[,variable])
-  } else if (type == "varying") {
-    data <- t(colMeans(X))
-
-    var <- X[,variable]
-    if(is.numeric(var)) {
-      vardata <- bin_along_range(var)
-    } else {
-      vardata <- unique(var)
-    }
-
-    data <- as.data.frame(do.call("rbind", lapply(rep(list(data[,-which(colnames(data) == variable)]),
-                                                      length(vardata)), unlist)))
-
-    data[[variable]] <- vardata
-    data[[variable]] <- vardata
-
-  }  else {
-    stop("Type must be one of:\n",
-         "\t \"mea\": marginal effects at the average\n",
-         "\t \"varying\": marginal effects across different levels of variable")
-  }
-
-  var_me <- matrix(NA, nrow = length(vardata), ncol = length(fit$specs$alpha))
-
-  for(i in 1:length(data[[variable]])) {
-    this_level_me <- me(fit, X = data[i,])
-    var_me[i,] <- this_level_me$avgME[which(rownames(this_level_me$avgME) == variable),]
-  }
-
-  var_me <- as.data.frame(cbind(vardata, var_me))
-  colnames(var_me) <- c(variable, fit$specs$alpha)
-  rownames(var_me) <- NULL
-
-  var_me
-}
-
 #' Get all marginal effects of variables in the fit
 #' @param fit model fitted by `qs()`
-#' @param type one of "ame" (average marginal effects),
-#' "mea" (marginal effects at the average), or "varying" (varying marginal
-#' effects over different levels of the data)
+#' @param type one of "ame" (average marginal effects) or
+#' "mea" (marginal effects at the average)
 #' @param variable which variable to calculate marginal effects on
 #' @param data optional data.frame that specifies level of data to calculate
 #' marginal effects
-#' @param size What bin size to use when varying the variable of interest
 #' @param trim What to trim the variable of interest at, 0 < trim < 0.5
-#' @details This function defaults to using
-#' the average defaults to average for all coefficients
-#' except variable chosen. If you want to vary a covariate but keep everything
-#' else fixed at a certain level, you can specify the data argument.
-#' The size argument defaults to a bin size of 1/3 of the standard deviation
-#' of the variable, and the trim defaults to using the 95th percentile
+#' @details The trim defaults to using the 95th percentile
 #' instead of the max because there may be large outliers. You can over-ride
 #' by setting trim to 0, which will use the min and max.
 #' By default, marginal effects will calculate marginal effects for
@@ -252,29 +181,30 @@ marginal_effects <- function(fit,
                              type = "mea",
                              variable = "all",
                              data = NA,
-                             size = NA,
                              trim = 0.05) {
 
   if(anyNA(data) & length(data) == 1) {
     data = stats::model.matrix(fit$specs$formula, data = fit$specs$X)
   }
-  if(variable == "all") {
+  if(length(variable) == 1 && variable == "all") {
     variable <- setdiff(colnames(data), "(Intercept)")
   }
 
-  all_me <- lapply(variable,
-                   function(v) {
-                     me_by_variable(fit, type,
-                                    v, data,
-                                    size, trim)
-                   })
 
-  names(all_me) <- variable
+  if(type == "mea") {
+    data = matrix(colMeans(data), nrow = 1)
+  }
+  all_me <- me(fit, X = data)
+  if(length(variable) > 1 || variable != "all") {
+    all_me$avgME <- all_me$avgME[which(rownames(all_me$avgME) %in% variable),, drop = F]
+    all_me$avgME_se <- all_me$avgME_se[which(rownames(all_me$avgME_se) %in% variable),,  drop = F]
+  }
+
   attr(all_me, "jstar") <- fit$specs$jstar
 
-  ff = stats::as.formula(fit$specs$formula)
-  attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff, data = data),
-                                                      "response")]
+  # ff = stats::as.formula(fit$specs$formula)
+  # attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff, data = data),
+  #                                                     "response")]
 
   attr(all_me, "type") <- type
 
@@ -290,17 +220,23 @@ marginal_effects <- function(fit,
 print.qs_me <- function(x, ...) {
   type = attr(x, "type")
   out_type <- switch(type,
-                     ame = "Average Marginal Effects \n",
-                     mea = "Marginal Effects at the Average \n",
-                     varying = "Varying Over Levels \n")
+                     ame = "Average Marginal Effects:\n",
+                     mea = "Marginal Effects at the Average:\n")
   cat(out_type)
-  for (i in 1:length(x)) {
-    cat(paste0(names(x)[i],": \n"))
-    if(type != "varying") {
-      print(x[[i]][,-1], row.names = F, ...)
-    } else {
-      print(x[[i]], row.names = F, ...)
-    }
+  # cat(paste0(names(x)[i],": \n"))
+  mat <- matrix(nrow = nrow(x$avgME) + nrow(x$avgME_se),
+                ncol = ncol(x$avgME))
+  rn = c()
+  sub_x_rn = rownames(x$avgME)
+  for(i in 1:nrow(x$avgME)) {
+      rn <- c(rn, c(sub_x_rn[i], paste(sub_x_rn[i], "SE")))
+      mat[2 * i - 1,] <- x$avgME[i,]
+      mat[2 * i,] <- x$avgME_se[i,]
+
   }
+  rownames(mat) <- rn
+  colnames(mat) <- colnames(x$avgME)
+  print(mat, ...)
+
 
 }
