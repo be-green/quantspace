@@ -270,6 +270,9 @@ marginal_effects <- function(fit,
                      })
     names(all_me) <- variable
   } else {
+    if(type == "mea") {
+      data = matrix(colMeans(data), nrow = 1)
+    }
     all_me <- me(fit, X = data)
     if(length(variable) > 1 || variable != "all") {
       all_me$avgME <- all_me$avgME[which(rownames(all_me$avgME) %in% variable),, drop = F]
@@ -280,9 +283,9 @@ marginal_effects <- function(fit,
 
   attr(all_me, "jstar") <- fit$specs$jstar
 
-  ff = stats::as.formula(fit$specs$formula)
-  attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff, data = data),
-                                                      "response")]
+  # ff = stats::as.formula(fit$specs$formula)
+  # attr(all_me, "outcome") <- all.vars(ff)[attr(stats::terms(ff, data = data),
+  #                                                     "response")]
 
   attr(all_me, "type") <- type
 
