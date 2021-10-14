@@ -5,27 +5,33 @@
 \alias{mice.impute.qs}
 \title{Imputation function to be used with the mice package}
 \usage{
-make_penalized_blots(data, ...)
+make_penalized_blots(
+  data,
+  quantiles = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99),
+  ...
+)
 
 mice.impute.qs(
   y,
   ry,
   x,
   wy = NULL,
-  quantiles = c(0.1, 0.25, 0.5, 0.75, 0.9),
+  quantiles = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99),
   baseline_quantile = 0.5,
-  algorithm = "sfn",
+  algorithm = "two_pass",
   tails = "gaussian",
   parallel = F,
   calc_se = F,
   weights = NULL,
-  control = qs_control(),
+  control = qs_control(calc_r2 = F, calc_avg_me = F),
   std_err_control = se_control(),
   ...
 )
 }
 \arguments{
 \item{data}{data to be interpolated by mice}
+
+\item{quantiles}{vector of quantiles to be estimated}
 
 \item{...}{other arguments to be passed to quantreg_spacing}
 
@@ -36,8 +42,6 @@ mice.impute.qs(
 \item{x}{independent variables}
 
 \item{wy}{cases to be imputed}
-
-\item{quantiles}{vector of quantiles to be estimated}
 
 \item{baseline_quantile}{baseline quantile to measure spacings from (defaults to 0.5)}
 
@@ -89,14 +93,16 @@ Imputation function to be used with the mice package
 \examples{
 \dontrun{
 library(mice)
-x <- rnorm(1000)
+x <- rnorm(10000)
 x[sample(1:length(x), 100)] <- NA
 x <- matrix(x, ncol = 10)
 
-# default method
-mice(x, method = "qs", calc_se = F)
+# get optimal lambdas from CV search based on complete data
+bl <- make_penalized_blots(x)
 
-# lasso penalty w/ specified lambda
-mice(x, method = "qs", algorithm = "lasso", calc_se = F, control = qs_control(lambda = 0.05))
+# pass those to the lasso and get imputations
+imputations = mice::mice(x, m = 10,
+                         defaultMethod = c("qs", "logreg", "polyreg", "polr"),
+                         blots = bl, algorithm = "lasso")
 }
 }

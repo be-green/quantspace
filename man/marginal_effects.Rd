@@ -4,28 +4,18 @@
 \alias{marginal_effects}
 \title{Get all marginal effects of variables in the fit}
 \usage{
-marginal_effects(
-  fit,
-  type = "mea",
-  variable = "all",
-  data = NA,
-  size = NA,
-  trim = 0.05
-)
+marginal_effects(fit, type = "mea", variable = "all", data = NA, trim = 0.05)
 }
 \arguments{
 \item{fit}{model fitted by \code{qs()}}
 
-\item{type}{one of "ame" (average marginal effects),
-"mea" (marginal effects at the average), or "varying" (varying marginal
-effects over different levels of the data)}
+\item{type}{one of "ame" (average marginal effects) or
+"mea" (marginal effects at the average)}
 
 \item{variable}{which variable to calculate marginal effects on}
 
 \item{data}{optional data.frame that specifies level of data to calculate
 marginal effects}
-
-\item{size}{What bin size to use when varying the variable of interest}
 
 \item{trim}{What to trim the variable of interest at, 0 < trim < 0.5}
 }
@@ -33,12 +23,7 @@ marginal effects}
 Get all marginal effects of variables in the fit
 }
 \details{
-This function defaults to using
-the average defaults to average for all coefficients
-except variable chosen. If you want to vary a covariate but keep everything
-else fixed at a certain level, you can specify the data argument.
-The size argument defaults to a bin size of 1/3 of the standard deviation
-of the variable, and the trim defaults to using the 95th percentile
+The trim defaults to using the 95th percentile
 instead of the max because there may be large outliers. You can over-ride
 by setting trim to 0, which will use the min and max.
 By default, marginal effects will calculate marginal effects for

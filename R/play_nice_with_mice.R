@@ -1,9 +1,13 @@
 #' @rdname mice-helpers
 #' @param data data to be interpolated by mice
+#' @param quantiles Quantiles to target
 #' @param ... other controls to be passed to the [`qs`] function
 #' @importFrom stats complete.cases
 #' @export
-make_penalized_blots <- function(data, ...) {
+make_penalized_blots <- function(data,
+                                 quantiles = c(0.01, 0.05, 0.1, 0.25, 0.5,
+                                               0.75, 0.9, 0.95, 0.99),
+                                 ...) {
 
   if(!is.data.frame(data)) {
     data <- as.data.frame(data)
@@ -23,10 +27,12 @@ make_penalized_blots <- function(data, ...) {
     if(use_qs[[i]]) {
       formula <- as.formula(paste0(colnames(data)[i], "~ ."))
 
-      fit <- qs(formula, data = data[stats::complete.cases(data),],
+      fit <- qs(formula, quantiles = quantiles,
+                data = data[stats::complete.cases(data),],
                 calc_se = F, algorithm = "lasso", ...)
 
-      l[[i]]$control <- qs_control(lambda = unlist(fit$quantreg_fit$lambda))
+      l[[i]]$control <- qs_control(lambda = unlist(fit$quantreg_fit$lambda),
+                                   calc_avg_me = F, calc_r2 = F)
     }
   }
   l
@@ -76,27 +82,30 @@ make_penalized_blots <- function(data, ...) {
 #' @examples
 #' \dontrun{
 #' library(mice)
-#' x <- rnorm(1000)
+#' x <- rnorm(10000)
 #' x[sample(1:length(x), 100)] <- NA
 #' x <- matrix(x, ncol = 10)
 #'
-#' # default method
-#' mice(x, method = "qs", calc_se = F)
+#' # get optimal lambdas from CV search based on complete data
+#' bl <- make_penalized_blots(x)
 #'
-#' # lasso penalty w/ specified lambda
-#' mice(x, method = "qs", algorithm = "lasso", calc_se = F, control = qs_control(lambda = 0.05))
-#' }
+#' # pass those to the lasso and get imputations
+#' imputations = mice::mice(x, m = 10,
+#'                          defaultMethod = c("qs", "logreg", "polyreg", "polr"),
+#'                          blots = bl, algorithm = "lasso")
+#'}
 #' @export
 #' @importFrom MASS mvrnorm
 mice.impute.qs <- function(y, ry, x, wy = NULL,
-                           quantiles = c(0.1, 0.25, 0.5, 0.75, 0.9),
+                           quantiles = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99),
                            baseline_quantile = 0.5,
-                           algorithm = "sfn",
+                           algorithm = "two_pass",
                            tails = "gaussian",
                            parallel = F,
                            calc_se = F,
                            weights = NULL,
-                           control = qs_control(),
+                           control = qs_control(calc_r2 = F,
+                                                calc_avg_me = F),
                            std_err_control = se_control(),
                            ...) {
   if (is.null(wy)) {
@@ -150,7 +159,7 @@ mice.impute.qs <- function(y, ry, x, wy = NULL,
       std_err_control = std_err_control,
       parallel = parallel,
       control = qs_control(control$trunc, control$small, lambda = lambda,
-                           output_quantiles = F, calc_avg_me = F),
+                           output_quantiles = F, calc_avg_me = F, calc_r2 = F),
       ...)
 
 
@@ -169,6 +178,9 @@ mice.impute.qs <- function(y, ry, x, wy = NULL,
                                data = x[which(wy),],
                                jstar = jstar)
 
-  rng <- distributional_effects(out, tails = tails, alphas = alpha, parallel = parallel)
+  suppressWarnings({
+    rng <- distributional_effects(out, tails = tails, alphas = alpha, parallel = parallel)
+  })
+
   rng$r(1)
 }
