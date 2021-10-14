@@ -188,8 +188,8 @@ me_by_variable <- function(fit, type, variable,
   }
 
   if (type == "mea") {
-    data <- data.frame(t(colMeans(X)))
-    vardata <- mean(X[,variable])
+    # data <- data.frame(t(colMeans(X)))
+    # vardata <- mean(X[,variable])
   } else if (type == "varying") {
     data <- t(colMeans(X))
 
@@ -206,24 +206,23 @@ me_by_variable <- function(fit, type, variable,
     data[[variable]] <- vardata
     data[[variable]] <- vardata
 
-  }  else {
+  } else if (type == "ame") {
+    # vardata <- X[,variable]
+  } else {
     stop("Type must be one of:\n",
          "\t \"mea\": marginal effects at the average\n",
-         "\t \"varying\": marginal effects across different levels of variable")
+         "\t \"varying\": marginal effects across different levels of variable\n",
+         "\t \"ame\": average marginal effects\n")
   }
 
   var_me <- matrix(NA, nrow = length(vardata), ncol = length(fit$specs$alpha))
 
-  for(i in 1:length(data[[variable]])) {
-    this_level_me <- me(fit, X = data[i,])
-    var_me[i,] <- this_level_me$avgME[which(rownames(this_level_me$avgME) == variable),]
+  if(type == "varying") {
+
+  } else {
+    var_me <- me(fit, X = X)
+    return(var_me)
   }
-
-  var_me <- as.data.frame(cbind(vardata, var_me))
-  colnames(var_me) <- c(variable, fit$specs$alpha)
-  rownames(var_me) <- NULL
-
-  var_me
 }
 
 #' Get all marginal effects of variables in the fit
@@ -258,18 +257,27 @@ marginal_effects <- function(fit,
   if(anyNA(data) & length(data) == 1) {
     data = stats::model.matrix(fit$specs$formula, data = fit$specs$X)
   }
-  if(variable == "all") {
+  if(length(variable) == 1 && variable == "all") {
     variable <- setdiff(colnames(data), "(Intercept)")
   }
 
-  all_me <- lapply(variable,
-                   function(v) {
-                     me_by_variable(fit, type,
-                                    v, data,
-                                    size, trim)
-                   })
+  if(type == "varying") {
+    all_me <- lapply(variable,
+                     function(v) {
+                       me_by_variable(fit, type,
+                                      v, data,
+                                      size, trim)
+                     })
+    names(all_me) <- variable
+  } else {
+    all_me <- me(fit, X = data)
+    if(length(variable) > 1 || variable != "all") {
+      all_me$avgME <- all_me$avgME[which(rownames(all_me$avgME) %in% variable),, drop = F]
+      all_me$avgME_se <- all_me$avgME_se[which(rownames(all_me$avgME_se) %in% variable),,  drop = F]
+    }
+    all_me <- list(all_me)
+  }
 
-  names(all_me) <- variable
   attr(all_me, "jstar") <- fit$specs$jstar
 
   ff = stats::as.formula(fit$specs$formula)
@@ -290,14 +298,27 @@ marginal_effects <- function(fit,
 print.qs_me <- function(x, ...) {
   type = attr(x, "type")
   out_type <- switch(type,
-                     ame = "Average Marginal Effects \n",
-                     mea = "Marginal Effects at the Average \n",
-                     varying = "Varying Over Levels \n")
+                     ame = "Average Marginal Effects",
+                     mea = "Marginal Effects at the Average",
+                     varying = "Varying Over Levels")
   cat(out_type)
   for (i in 1:length(x)) {
     cat(paste0(names(x)[i],": \n"))
     if(type != "varying") {
-      print(x[[i]][,-1], row.names = F, ...)
+      sub_x = x[[i]]
+      mat <- matrix(nrow = nrow(sub_x$avgME) + nrow(sub_x$avgME_se),
+                    ncol = ncol(sub_x$avgME))
+      rn = c()
+      sub_x_rn = rownames(sub_x$avgME)
+      for(i in 1:nrow(sub_x$avgME)) {
+          rn <- c(rn, c(sub_x_rn[i], paste(sub_x_rn[i], "SE")))
+          mat[2 * i - 1,] <- sub_x$avgME[i,]
+          mat[2 * i,] <- sub_x$avgME_se[i,]
+
+      }
+      rownames(mat) <- rn
+      colnames(mat) <- colnames(sub_x)
+      print(mat, ...)
     } else {
       print(x[[i]], row.names = F, ...)
     }
