@@ -127,21 +127,25 @@
     <p>Imputation function to be used with the mice package</p>
     </div>
 
-    <pre class="usage"><span class='fu'>make_penalized_blots</span><span class='op'>(</span><span class='va'>data</span>, <span class='va'>...</span><span class='op'>)</span>
+    <pre class="usage"><span class='fu'>make_penalized_blots</span><span class='op'>(</span>
+  <span class='va'>data</span>,
+  quantiles <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.01</span>, <span class='fl'>0.05</span>, <span class='fl'>0.1</span>, <span class='fl'>0.25</span>, <span class='fl'>0.5</span>, <span class='fl'>0.75</span>, <span class='fl'>0.9</span>, <span class='fl'>0.95</span>, <span class='fl'>0.99</span><span class='op'>)</span>,
+  <span class='va'>...</span>
+<span class='op'>)</span>
 
 <span class='fu'>mice.impute.qs</span><span class='op'>(</span>
   <span class='va'>y</span>,
   <span class='va'>ry</span>,
   <span class='va'>x</span>,
   wy <span class='op'>=</span> <span class='cn'>NULL</span>,
-  quantiles <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.1</span>, <span class='fl'>0.25</span>, <span class='fl'>0.5</span>, <span class='fl'>0.75</span>, <span class='fl'>0.9</span><span class='op'>)</span>,
+  quantiles <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.01</span>, <span class='fl'>0.05</span>, <span class='fl'>0.1</span>, <span class='fl'>0.25</span>, <span class='fl'>0.5</span>, <span class='fl'>0.75</span>, <span class='fl'>0.9</span>, <span class='fl'>0.95</span>, <span class='fl'>0.99</span><span class='op'>)</span>,
   baseline_quantile <span class='op'>=</span> <span class='fl'>0.5</span>,
-  algorithm <span class='op'>=</span> <span class='st'>"sfn"</span>,
+  algorithm <span class='op'>=</span> <span class='st'>"two_pass"</span>,
   tails <span class='op'>=</span> <span class='st'>"gaussian"</span>,
   parallel <span class='op'>=</span> <span class='cn'>F</span>,
   calc_se <span class='op'>=</span> <span class='cn'>F</span>,
   weights <span class='op'>=</span> <span class='cn'>NULL</span>,
-  control <span class='op'>=</span> <span class='fu'><a href='qs_control.html'>qs_control</a></span><span class='op'>(</span><span class='op'>)</span>,
+  control <span class='op'>=</span> <span class='fu'><a href='qs_control.html'>qs_control</a></span><span class='op'>(</span>calc_r2 <span class='op'>=</span> <span class='cn'>F</span>, calc_avg_me <span class='op'>=</span> <span class='cn'>F</span><span class='op'>)</span>,
   std_err_control <span class='op'>=</span> <span class='fu'><a href='se_control.html'>se_control</a></span><span class='op'>(</span><span class='op'>)</span>,
   <span class='va'>...</span>
 <span class='op'>)</span></pre>
@@ -152,6 +156,10 @@
     <tr>
       <th>data</th>
       <td><p>data to be interpolated by mice</p></td>
+    </tr>
+    <tr>
+      <th>quantiles</th>
+      <td><p>vector of quantiles to be estimated</p></td>
     </tr>
     <tr>
       <th>...</th>
@@ -172,10 +180,6 @@
     <tr>
       <th>wy</th>
       <td><p>cases to be imputed</p></td>
-    </tr>
-    <tr>
-      <th>quantiles</th>
-      <td><p>vector of quantiles to be estimated</p></td>
     </tr>
     <tr>
       <th>baseline_quantile</th>
@@ -241,15 +245,17 @@ samples with replacement.`</p></li>
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
 <span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/amices/mice'>mice</a></span><span class='op'>)</span>
-<span class='va'>x</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>1000</span><span class='op'>)</span>
+<span class='va'>x</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>10000</span><span class='op'>)</span>
 <span class='va'>x</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span>, <span class='fl'>100</span><span class='op'>)</span><span class='op'>]</span> <span class='op'>&lt;-</span> <span class='cn'>NA</span>
 <span class='va'>x</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span><span class='op'>(</span><span class='va'>x</span>, ncol <span class='op'>=</span> <span class='fl'>10</span><span class='op'>)</span>
 
-<span class='co'># default method</span>
-<span class='fu'><a href='https://amices.org/mice/reference/mice.html'>mice</a></span><span class='op'>(</span><span class='va'>x</span>, method <span class='op'>=</span> <span class='st'>"qs"</span>, calc_se <span class='op'>=</span> <span class='cn'>F</span><span class='op'>)</span>
+<span class='co'># get optimal lambdas from CV search based on complete data</span>
+<span class='va'>bl</span> <span class='op'>&lt;-</span> <span class='fu'>make_penalized_blots</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span>
 
-<span class='co'># lasso penalty w/ specified lambda</span>
-<span class='fu'><a href='https://amices.org/mice/reference/mice.html'>mice</a></span><span class='op'>(</span><span class='va'>x</span>, method <span class='op'>=</span> <span class='st'>"qs"</span>, algorithm <span class='op'>=</span> <span class='st'>"lasso"</span>, calc_se <span class='op'>=</span> <span class='cn'>F</span>, control <span class='op'>=</span> <span class='fu'><a href='qs_control.html'>qs_control</a></span><span class='op'>(</span>lambda <span class='op'>=</span> <span class='fl'>0.05</span><span class='op'>)</span><span class='op'>)</span>
+<span class='co'># pass those to the lasso and get imputations</span>
+<span class='va'>imputations</span> <span class='op'>=</span> <span class='fu'>mice</span><span class='fu'>::</span><span class='fu'><a href='https://amices.org/mice/reference/mice.html'>mice</a></span><span class='op'>(</span><span class='va'>x</span>, m <span class='op'>=</span> <span class='fl'>10</span>,
+                         defaultMethod <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"qs"</span>, <span class='st'>"logreg"</span>, <span class='st'>"polyreg"</span>, <span class='st'>"polr"</span><span class='op'>)</span>,
+                         blots <span class='op'>=</span> <span class='va'>bl</span>, algorithm <span class='op'>=</span> <span class='st'>"lasso"</span><span class='op'>)</span>
 <span class='op'>}</span>
 </div></pre>
   </div>
