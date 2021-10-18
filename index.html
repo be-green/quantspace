@@ -118,7 +118,7 @@
 <a href="#performance-benefits-for-agd" class="anchor"></a>Performance benefits for <code>agd</code>
 </h2>
 <p>One of the algorithms (agd) available for fitting quantile regressions in the <code>quantspace</code> package uses the <code>Armadillo</code> C++ library for linear algebra. This library is able to leverage high-speed linear algebra packages such as <a href="https://www.openblas.net/">openblas</a> or the <a href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html">Intel MKL libraries</a>.</p>
-<p>The AGD method uses a Nesterov-smoothed accelerated gradient descent approach, where a window around the origin is smoothed w/ a least squares objective function. It currently leverages the step-size selection method from the <a href="https://github.com/XiaoouPan/conquer">conquer package</a> and was based substantially on their gradient descent code.</p>
+<p>The AGD method uses a Nesterov-smoothed accelerated gradient descent approach with back-tracking, where a window around the origin is smoothed w/ a least squares objective function. An earlier version used the step-size selection method from the <a href="https://github.com/XiaoouPan/conquer">conquer package</a> and was based substantially on their gradient descent code.</p>
 </div>
 </div>
 <div id="basic-usage" class="section level1">
