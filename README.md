@@ -91,7 +91,7 @@ algebra. This library is able to leverage high-speed linear algebra
 packages such as [openblas](https://www.openblas.net/) or the [Intel MKL
 libraries](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html).
 
-The AGD method uses a Nesterov-smoothed accelerated gradient descent approach, where a window around the origin is smoothed w/ a least squares objective function. It currently leverages the step-size selection method from the [conquer package](https://github.com/XiaoouPan/conquer) and was based substantially on their gradient descent code.
+The AGD method uses a Nesterov-smoothed accelerated gradient descent approach with back-tracking, where a window around the origin is smoothed w/ a least squares objective function. An earlier version used the step-size selection method from the [conquer package](https://github.com/XiaoouPan/conquer) and was based substantially on their gradient descent code.
 
 # Basic Usage
 
