@@ -10,7 +10,7 @@ se_control(
   num_bs = 100,
   draw_weights = F,
   sampling_method = "subsampleRows",
-  parallel_thresh = 1e+05,
+  parallel_thresh = 0,
   ...
 )
 }

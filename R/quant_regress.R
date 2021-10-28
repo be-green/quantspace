@@ -1083,10 +1083,11 @@ quantreg_spacing = function(
 
   #set column names
   coef_df <- as.data.frame(t(star_model$coefficients))
-  colnames(coef_df) <- reg_spec_starting_data$var_names
-  # coef_df <- addMissingSpecColumns(
-  #   coef_df,
-  #   var_names)
+  coef_df <- addMissingSpecColumns(
+    coef_df,
+    var_names)
+  colnames(coef_df) <- var_names
+
   colnames(coef_df) <- paste(alpha[jstar], colnames(coef_df), sep="_")
 
   #log output for return

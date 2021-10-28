@@ -58,8 +58,8 @@ findLastRedundantCol <- function(x) {
     if (val!=0) NULL else which(vec!=0)
   },zapsmall(ee$values),evecs)
   l = Filter(f = function(cols) !is.null(cols), cols)
-  l = unlist(utils::tail(l, 1))
-  utils::tail(l, 1)
+  l = unlist(l[[which.max(sapply(l, max))]])
+  max(l)
 }
 
 
@@ -91,14 +91,14 @@ ensureSpecFullRank = function(spec_mat, col_names) {
     spec_mat <- spec_mat[,-drop_col]
     r = getRank(spec_mat)
     p = ncol(spec_mat)
-    drop_cols = c(drop_cols, drop_col)
+    drop_cols = c(drop_cols, drop_col + sum(drop_col >= drop_cols))
   }
   if(length(drop_cols) > 0) {
     nm = col_names
     if(is.null(nm)) {
       nm = 1:init_p
     }
-    warning("Dropping column(s) ", paste0(nm[drop_cols], collapse = ", "),
+    warning("Dropping column(s) ", paste0(nm[sort(drop_cols)], collapse = ", "),
             " due to colinearity." )
   }
   return(list(
@@ -151,7 +151,7 @@ denseMatrixToSparse = function(m) {
 #' value of missing columns for all rows.
 addMissingSpecColumns = function(df, names) {
   missing_cols <- setdiff(names, colnames(df))
-  df[missing_cols] <- 0
+  df[missing_cols] <- NA
   return(df[names])
 }
 

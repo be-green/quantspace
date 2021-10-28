@@ -53,7 +53,7 @@ se_control <- function(se_method = "subsample",
                        num_bs = 100,
                        draw_weights = F,
                        sampling_method = "subsampleRows",
-                       parallel_thresh = 100000,
+                       parallel_thresh = 0,
                        ...) {
   list(
     se_method = se_method,
@@ -190,6 +190,10 @@ qs <- function(formula, data = NULL,
     cluster_matrix = NULL
   } else {
       cluster_matrix = stats::model.matrix(cluster_formula, data)
+      int = get_intercept(cluster_matrix)
+      if(int > 0) {
+        cluster_matrix = cluster_matrix[,-int]
+      }
   }
 
   quantreg_fit <- quantreg_spacing(
