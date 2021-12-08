@@ -19,6 +19,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -31,18 +33,12 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">quantspace</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.1</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
@@ -54,9 +50,6 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/available-algorithms.html">available-algorithms</a>
-    </li>
-    <li>
       <a href="../articles/using-quantspace.html">Using quantspace</a>
     </li>
   </ul>
@@ -88,52 +81,52 @@
 <p>The <code>quantspace</code> library implements a flexible approach to quantile estimation which guarentees that quantiles do not cross at any point in the data. This will walk through the basic usage of quantspace, how to change algorithms, use different standard error methods, handle plotting, prediction, and interpreting coefficients.</p>
 <p>To start, we load the library:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://brice.green/quantspace">quantspace</a></span><span class="op">)</span>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://brice.green/quantspace">quantspace</a></span><span class="op">)</span>
 <span class="co">#&gt; Loaded quantspace v0.1, using 3 cores for bootstrap sampling (see ?getCores).</span>
 <span class="co">#&gt; Bug reports: github.com/be-green/quantspace/issues</span>
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1999</span><span class="op">)</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1999</span><span class="op">)</span></code></pre></div>
 <p>To get a sense of how quantspace works, I’ll use some simulated data.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Design Matrix</span>
-<span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">10000</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
-<span class="va">betas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>
+<span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">10000</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
+<span class="va">betas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>
 
 <span class="co"># make the scale also depend on X</span>
-<span class="va">scale_betas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">1.5</span><span class="op">)</span>
-<span class="va">err</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">X</span> <span class="op">%*%</span> <span class="va">scale_betas</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span>
-<span class="va">y</span> <span class="op">&lt;-</span> <span class="va">X</span> <span class="op">%*%</span> <span class="va">betas</span> <span class="op">+</span> <span class="va">err</span></code></pre></div>
+<span class="va">scale_betas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">1.5</span><span class="op">)</span>
+<span class="va">err</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">scale_betas</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span>
+<span class="va">y</span> <span class="op">&lt;-</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">betas</span> <span class="op">+</span> <span class="va">err</span></code></pre></div>
 <p>This gives us some fatter tails and some dependence in the tails. Let’s look at y in order to get a sense.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
 
 <span class="co"># what does the tail dependence do relative to normal errors</span>
-<span class="va">y_no_err_dep</span> <span class="op">&lt;-</span> <span class="va">X</span> <span class="op">%*%</span> <span class="va">betas</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span>
+<span class="va">y_no_err_dep</span> <span class="op">&lt;-</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">betas</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span>
 
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span><span class="op">(</span><span class="va">y_no_err_dep</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Y with normal errors"</span><span class="op">)</span></code></pre></div>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/qplot.html" class="external-link">qplot</a></span><span class="op">(</span><span class="va">y_no_err_dep</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Y with normal errors"</span><span class="op">)</span></code></pre></div>
 <p><img src="using-quantspace_files/figure-html/plot_data-1.png" width="624"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Y with tail dependence"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/qplot.html" class="external-link">qplot</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Y with tail dependence"</span><span class="op">)</span>
 <span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></code></pre></div>
 <p><img src="using-quantspace_files/figure-html/unnamed-chunk-3-1.png" width="624"></p>
-<div id="the-qs-function" class="section level1">
-<h1 class="hasAnchor">
-<a href="#the-qs-function" class="anchor"></a>The <code>qs</code> function</h1>
-<div id="basic-use" class="section level2">
-<h2 class="hasAnchor">
-<a href="#basic-use" class="anchor"></a>Basic use</h2>
+<div class="section level1">
+<h1 id="the-qs-function">The <code>qs</code> function<a class="anchor" aria-label="anchor" href="#the-qs-function"></a>
+</h1>
+<div class="section level2">
+<h2 id="basic-use">Basic use<a class="anchor" aria-label="anchor" href="#basic-use"></a>
+</h2>
 <p>Let’s try to get at that info! The main function which estimates models via quantile spacings is the <code>qs</code> function. Let’s check out an example:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">regression_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y</span>, <span class="va">X</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">regression_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y</span>, <span class="va">X</span><span class="op">)</span>
 
 <span class="co"># fits a quantile spacings model</span>
 <span class="co"># these quantiles are set as the default argument, and you</span>
 <span class="co"># can change them as you need to</span>
 <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qs.html">qs</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">X1</span> <span class="op">+</span> <span class="va">X2</span>, data <span class="op">=</span> <span class="va">regression_data</span>, 
-          quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>,<span class="fl">0.9</span><span class="op">)</span>, 
+          quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>,<span class="fl">0.9</span><span class="op">)</span>, 
           baseline_quantile <span class="op">=</span> <span class="fl">0.5</span>,
           algorithm <span class="op">=</span> <span class="st">"sfn"</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 <span class="co">#&gt; Baseline Quantile Coefficients:</span>
 <span class="co">#&gt;       Variable Quantile Coefficient       SE</span>
 <span class="co">#&gt; 1 (Intercept)      0.5     0.01095 0.020180</span>
@@ -162,29 +155,29 @@
 <span class="co">#&gt;     0.75:    0.8267</span>
 <span class="co">#&gt;     0.9: 0.9164</span></code></pre></div>
 <p>We’ve already made a couple choices here. First, we set the regression formula, second we specified the data. The ones that are a bit stranger are the <code>quantiles</code> and <code>baseline_quantile</code> arguments. Because the quantile spacings model is a <em>joint</em> model, we need to estimate everything recursively.</p>
-<p>To get the 0.25 spacing coefficient, we take the predicted median value, <span class="math inline">\(\hat{y}_{med}\)</span>, and calculate <span class="math inline">\(r = y - \hat{y}_{med}\)</span>. For the positive residuals, we then take <code><a href="https://rdrr.io/r/base/Log.html">log(r)</a></code> as the outcome variable, and estimate a median regression. For negative residuals, we do the same thing but with <code><a href="https://rdrr.io/r/base/Log.html">log(-r)</a></code>. This guarentees that the quantiles fitted by the model don’t ever cross.</p>
+<p>To get the 0.25 spacing coefficient, we take the predicted median value, <span class="math inline">\(\hat{y}_{med}\)</span>, and calculate <span class="math inline">\(r = y - \hat{y}_{med}\)</span>. For the positive residuals, we then take <code>log(r)</code> as the outcome variable, and estimate a median regression. For negative residuals, we do the same thing but with <code>log(-r)</code>. This guarentees that the quantiles fitted by the model don’t ever cross.</p>
 <p>The <code>baseline_quantile</code> is the quantile that we take spacings relative to. We don’t recommend changing this away from the median, which is the default. The <code>quantiles</code> argument is simply the complete list of quantile effects you want to estimate.</p>
 <p>The <code>algorithm</code> argument is the algorithm you want to use in order to fit the quantile regression at each stage. This will be covered in more detail later, but the options include all the algorithms implemented in the <code>quantreg</code> package (e.g. “br”, “pfn”, “sfn”) as well as “agd”, which implements accelerated gradient descent over a semi-smooth approximation of the quantile loss function, and “lasso” and “post-lasso”, which are penalized variants of the other algorithms. There will be more to come in the future, and there is an interface for adding your own algorithm which will be documented in a separate vignette. By default, this is “sfn”, which is the fastest method available in the <code>quantreg</code> package for most problems. For large-scale problems, you may see speed gains from using the “agd” algorithm.</p>
 <p><em>Note (June 7, 2021): the interface to the penalized regression variants is likely to change in the near future. Treat as experimental.</em></p>
 <p>There are also <code>s3</code> methods common to other packages available for basic operations. These include <code>coef</code> and <code>coefficients</code>, which return a matrix of coefficients, <code>predict</code> which returns fitted quantiles (or out of sample predictions via the argument <code>newdata</code>), <code>summary</code> which summarizes the fitted model, and <code>resid</code> and <code>residuals</code> which return model residuals.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># get coefficients</span>
-<span class="va">betas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<span class="va">betas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 
 <span class="co"># get residuals</span>
-<span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">resid</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 
 <span class="co"># in sample predictions</span>
-<span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 
 <span class="co"># out of sample predictions</span>
-<span class="va">oos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>
-<span class="va">pred_oos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">oos</span><span class="op">)</span></code></pre></div>
+<span class="va">oos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>
+<span class="va">pred_oos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">oos</span><span class="op">)</span></code></pre></div>
 <p>The <code>qs</code> function also has some control parameters you can see described in more detail on the help page for the function (<code><a href="../reference/qs.html">?qs</a></code>), including <code>parallel</code>, which determines whether bootstrap draws should be parallelized, <code>calc_se</code> which determines whether to calculate standard errors, and <code>weights</code>, which allows you run a weighted regression.</p>
 </div>
-<div id="advanced-usage" class="section level2">
-<h2 class="hasAnchor">
-<a href="#advanced-usage" class="anchor"></a>Advanced Usage</h2>
+<div class="section level2">
+<h2 id="advanced-usage">Advanced Usage<a class="anchor" aria-label="anchor" href="#advanced-usage"></a>
+</h2>
 <p>The more sophisticated controls for the quantile spacings model and standard errors are specified via the <code>control</code> and <code>std_err_control</code> arguments. Each of these is specified via calls to the <code><a href="../reference/qs_control.html">qs_control()</a></code> and <code><a href="../reference/se_control.html">se_control()</a></code> functions. For details, you can always check the help pages (e.g. <code><a href="../reference/qs_control.html">?qs_control</a></code>).</p>
 <p>The <code>qs_control</code> function allows you to set <code>small</code>, the level at which values are treated as zero, <code>trunc</code>, whether to truncate residuals below the value of <code>small</code>, <code>lambda</code>, an optional penalty parameter for use with the <code>lasso</code> algorithm, <code>output_quantiles</code>, which controls whether to save fitted quantiles, and <code>calc_avg_me</code>, which determines whether to calculate average marginal effects. Perhaps with the exception of <code>lambda</code>, none of these need to be changed very often (if at all).</p>
 <p>The <code>se_control</code> function allows the user to specify various aspects of the bootstrapping and subsampling used to calculate standard errors. By default, standard errors are calculated via subsampling, with 100 draws. There are several available algorithms for computing standard errors, all based on empirical reweighting and bootstrapping. Setting <code>se_control(se_method = "weighted_bootstrap"</code>) will randomly re-weight data based on random exponential weights drawn with rate parameter 1. Using <code>"subsample"</code>, which is the default, will construct subsamples of the data (without replacement. The size of these subsamples is set via <code>subsample_percent</code>. Using <code>"bootstrap"</code> will use data sample with replacement the same size as the original sample. To truly customize this, you can set this argument to <code>"rq_sample"</code>.</p>
@@ -192,9 +185,9 @@
 <p>In the future, the package may add closed-form standard errors via the delta method, but as of now all standard error methods are based on bootstrapping and subsampling.</p>
 </div>
 </div>
-<div id="distributional-modeling" class="section level1">
-<h1 class="hasAnchor">
-<a href="#distributional-modeling" class="anchor"></a>Distributional Modeling</h1>
+<div class="section level1">
+<h1 id="distributional-modeling">Distributional Modeling<a class="anchor" aria-label="anchor" href="#distributional-modeling"></a>
+</h1>
 <p>The other thing that the <code>quantspace</code> package is very useful for is modeling the full distribution of outcomes. To do this, it contains routines which efficiently interpolate the fitted quantiles via cubic splines. Modeling the log distance away from the median, rather than treating each quantile independently, prevents the fitted quantiles from crossing, which means that we can always recover a valid density by interpolating between them.</p>
 <p>Right now this is done with cubic splines, which can (very occasionally) go negative, which would not imply a valid CDF. If that happens, it’s probably a sign that this is a very poor model for your problem or that you have data which is quite small.</p>
 <p>So how do we do this? Let’s take our fit from above and interpolate it. Because our model is non-linear, the distance between quantiles will vary with the data. By default, the <code>distributional_effects</code> function performs this interpolation at the average level of the data, returning the pdf, cdf, quantile function, and a random number generator for the fitted density.</p>
@@ -203,7 +196,7 @@
 
 <span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
+<span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>
   <span class="co"># evaluate the density at 0</span>
   pdf <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="fu">pdf</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
   <span class="co"># evaluate the cdf at 0</span>
@@ -228,14 +221,14 @@
 <p>We can also do this for various levels of the data. Let’s see how these change as we move up in the first dimension of our X variable.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
-<span class="va">X_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1</span><span class="op">)</span>,
-                       X1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span>, 
-                       X2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span>
+<span class="va">X_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1</span><span class="op">)</span>,
+                       X1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span>, 
+                       X2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span>
 
 <span class="co"># interpolate fitted quantiles at all levels of X1</span>
 <span class="va">vary_x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">X_levels</span>, tails <span class="op">=</span> <span class="st">"gaussian"</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">vary_x2</span>, tail_level <span class="op">=</span> <span class="fl">0.001</span><span class="op">)</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">vary_x2</span>, tail_level <span class="op">=</span> <span class="fl">0.001</span><span class="op">)</span></code></pre></div>
 <p><img src="using-quantspace_files/figure-html/plot_de-1.png" width="624"></p>
 </div>
   </div>
@@ -251,11 +244,13 @@
 
 
       <footer><div class="copyright">
-  <p>Developed by Brice Green.</p>
+  <p></p>
+<p>Developed by Brice Green.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
 </div>
 
       </footer>
@@ -263,6 +258,8 @@
 
   
 
+
+  
 
   </body>
 </html>

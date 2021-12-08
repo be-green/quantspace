@@ -19,6 +19,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -31,18 +33,12 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">quantspace</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.1</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="reference/index.html">Reference</a>
 </li>
@@ -54,9 +50,6 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/available-algorithms.html">available-algorithms</a>
-    </li>
-    <li>
       <a href="articles/using-quantspace.html">Using quantspace</a>
     </li>
   </ul>
@@ -75,65 +68,65 @@
       </header><div class="row">
   <div class="contents col-md-9">
 
-<div id="quantspace" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#quantspace" class="anchor"></a>quantspace</h1></div>
+<div class="section level1">
+<div class="page-header"><h1 id="quantspace">quantspace<a class="anchor" aria-label="anchor" href="#quantspace"></a>
+</h1></div>
 <!-- badges: start -->
 
-<p>This is an R package for estimating quantile regression coefficients via the quantile spacing method, as described in the paper <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2220901">Quantile Spacings: A Simple Method for the Joint Estimation of Multiple Quantiles Without Crossing, Schmidt &amp; Zhu</a>.</p>
+<p>This is an R package for estimating quantile regression coefficients via the quantile spacing method, as described in the paper <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2220901" class="external-link">Quantile Spacings: A Simple Method for the Joint Estimation of Multiple Quantiles Without Crossing, Schmidt &amp; Zhu</a>.</p>
 <p>The package allows users to fit quantile regressions and predictive distributions in a manner which avoids the quantile crossing problem. Fitted quantiles are guaranteed to be positive, because instead of directly estimating each quantile, the package will estimate the quantile effect on the log of the residuals with the correct corresponding sign.</p>
 <p>In other words, imagine we estimate the median quantile for the data. Now we are interested in the 75th percentile. But we don’t want our quantiles to cross, which they are guaranteed to do in a non-trivial linear model (if the lines aren’t parallel, they will cross). To avoid this problem, the package take the log of the residuals relative to the median, and estimates a linear quantile regression on that quantity. The exponential model guarantees that the fitted quantile will have a non-negative difference vs. the median. You can translate the spacing back to a fitted quantile by taking the spacing predicted by the model, exponentiating, and adding back to the median.</p>
 <p>The package also contains utilities for interpolating the density implied by the fitted quantiles. It does this in two steps–first it takes the highest and lowest fitted quantiles (0.95 and 0.05 by default) and uses a parametric assumption to fit the tails (gaussian by default), and then uses cubic splines to interpolate the fitted quantiles, giving a continuous predictive distribution.</p>
 <p>The package is flexible, and works with any number of algorithms. It contains specialized methods for large-scale data, which use a smoothed approximation of the quantile loss function, combined with accelerated gradient descent, to estimate models at scales beyond the scope of traditional methods.</p>
 </div>
-<div id="installation" class="section level1">
-<h1 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h1>
+<div class="section level1">
+<h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h1>
 <p>You’ll need R installed on your computer run the package. To install, the easiest method is to run</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>remotes<span class="op">::</span><span class="kw">install_github</span>(<span class="st">"be-green/quantspace"</span>)</span></code></pre></div>
 <p>which requires the <code>remotes</code> package. <code>quantspace</code> also has some code which must be compiled.</p>
-<div id="compiling-on-windows" class="section level2">
-<h2 class="hasAnchor">
-<a href="#compiling-on-windows" class="anchor"></a>Compiling on Windows</h2>
-<p>On windows that requires the installation of <a href="https://cran.r-project.org/bin/windows/Rtools/">Rtools</a>. For versions of R &gt;= 4.0, you must use <code>rtools40</code>, and <a href="https://cran.r-project.org/bin/windows/Rtools/history.html">the older rtools</a> for versions before 4.0.</p>
+<div class="section level2">
+<h2 id="compiling-on-windows">Compiling on Windows<a class="anchor" aria-label="anchor" href="#compiling-on-windows"></a>
+</h2>
+<p>On windows that requires the installation of <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">Rtools</a>. For versions of R &gt;= 4.0, you must use <code>rtools40</code>, and <a href="https://cran.r-project.org/bin/windows/Rtools/history.html" class="external-link">the older rtools</a> for versions before 4.0.</p>
 </div>
-<div id="compiling-on-mac" class="section level2">
-<h2 class="hasAnchor">
-<a href="#compiling-on-mac" class="anchor"></a>Compiling on Mac</h2>
-<p>On a mac, you will require a C++ compiler, a <code>gfortran</code> binary and the like. While you can install these things via terminal + homebrew, the easiest way is to use the <a href="https://github.com/rmacoslib/r-macos-rtools#how-do-i-use-the-installer">toolchain installer</a>.</p>
+<div class="section level2">
+<h2 id="compiling-on-mac">Compiling on Mac<a class="anchor" aria-label="anchor" href="#compiling-on-mac"></a>
+</h2>
+<p>On a mac, you will require a C++ compiler, a <code>gfortran</code> binary and the like. While you can install these things via terminal + homebrew, the easiest way is to use the <a href="https://github.com/rmacoslib/r-macos-rtools#how-do-i-use-the-installer" class="external-link">toolchain installer</a>.</p>
 </div>
-<div id="compiling-on-linux" class="section level2">
-<h2 class="hasAnchor">
-<a href="#compiling-on-linux" class="anchor"></a>Compiling on Linux</h2>
+<div class="section level2">
+<h2 id="compiling-on-linux">Compiling on Linux<a class="anchor" aria-label="anchor" href="#compiling-on-linux"></a>
+</h2>
 <p>On most linux distributions, you shouldn’t have to do anything special. You will still need a <code>C++</code> compiler installed, but usually something like <code>g++</code> is already available. On some Redhat linux server systems you will need to enable developer tools for your session before building. You can do this like so:</p>
-<ol>
+<ol style="list-style-type: decimal">
 <li>Open a terminal window</li>
 <li>
 <code>scl enable devtoolset-x bash</code> where <code>x</code> is replaced with the version of devtools available to your redhat system</li>
 <li>Boot up R and install the package</li>
 </ol>
 </div>
-<div id="performance-benefits-for-agd" class="section level2">
-<h2 class="hasAnchor">
-<a href="#performance-benefits-for-agd" class="anchor"></a>Performance benefits for <code>agd</code>
+<div class="section level2">
+<h2 id="performance-benefits-for-agd">Performance benefits for <code>agd</code>
+<a class="anchor" aria-label="anchor" href="#performance-benefits-for-agd"></a>
 </h2>
-<p>One of the algorithms (agd) available for fitting quantile regressions in the <code>quantspace</code> package uses the <code>Armadillo</code> C++ library for linear algebra. This library is able to leverage high-speed linear algebra packages such as <a href="https://www.openblas.net/">openblas</a> or the <a href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html">Intel MKL libraries</a>.</p>
-<p>The AGD method uses a Nesterov-smoothed accelerated gradient descent approach with back-tracking, where a window around the origin is smoothed w/ a least squares objective function. An earlier version used the step-size selection method from the <a href="https://github.com/XiaoouPan/conquer">conquer package</a> and was based substantially on their gradient descent code.</p>
+<p>One of the algorithms (agd) available for fitting quantile regressions in the <code>quantspace</code> package uses the <code>Armadillo</code> C++ library for linear algebra. This library is able to leverage high-speed linear algebra packages such as <a href="https://www.openblas.net/" class="external-link">openblas</a> or the <a href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html" class="external-link">Intel MKL libraries</a>.</p>
+<p>The AGD method uses a Nesterov-smoothed accelerated gradient descent approach with back-tracking, where a window around the origin is smoothed w/ a least squares objective function. An earlier version used the step-size selection method from the <a href="https://github.com/XiaoouPan/conquer" class="external-link">conquer package</a> and was based substantially on their gradient descent code.</p>
 </div>
 </div>
-<div id="basic-usage" class="section level1">
-<h1 class="hasAnchor">
-<a href="#basic-usage" class="anchor"></a>Basic Usage</h1>
+<div class="section level1">
+<h1 id="basic-usage">Basic Usage<a class="anchor" aria-label="anchor" href="#basic-usage"></a>
+</h1>
 <p>Say we want to run a quantile regression. The easiest way to do this is to use the <code>qs</code> function.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://brice.green/quantspace">quantspace</a></span><span class="op">)</span>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://brice.green/quantspace">quantspace</a></span><span class="op">)</span>
 <span class="co">#&gt; Loaded quantspace v0.1, using 6 cores for bootstrap sampling (see ?getCores).</span>
 <span class="co">#&gt; Bug reports: github.com/be-green/quantspace/issues</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">mpg</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mpg</span><span class="op">)</span>
 
 <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/qs.html">qs</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">hwy</span> <span class="op">~</span> <span class="va">displ</span>, 
-          data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+          data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>If we print our estimate, we’ll see the baseline coefficients (in this case the median is chosen as the central quantile), and then the spacings coefficients.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">est</span>
@@ -154,54 +147,54 @@
 <span class="co">#&gt; 8       displ     0.90      0.2271         0.2829</span></code></pre></div>
 <p>Suppose we want to see how good our fit is? We might want out of sample predictive tests. To do this, we simply run</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">oos_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">est</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="va">oos_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">est</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>Let’s plot some of this stuff to see how it looks!</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
-<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span>,
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
+<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span>,
                         <span class="va">oos_pred</span><span class="op">)</span>
 
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, 
-       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">displ</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="va">hwy</span>, ymin <span class="op">=</span> <span class="va">`X0.25`</span>, ymax <span class="op">=</span> <span class="va">`X0.75`</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"lightblue"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">`X0.1`</span>, ymax <span class="op">=</span> <span class="va">`X0.9`</span><span class="op">)</span>,
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, 
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">displ</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="va">hwy</span>, ymin <span class="op">=</span> <span class="va">`X0.25`</span>, ymax <span class="op">=</span> <span class="va">`X0.75`</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"lightblue"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">`X0.1`</span>, ymax <span class="op">=</span> <span class="va">`X0.9`</span><span class="op">)</span>,
               fill <span class="op">=</span> <span class="st">"lightblue"</span>, alpha <span class="op">=</span> <span class="fl">0.3</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
           subtitle <span class="op">=</span> <span class="st">"Out of Sample Predictions"</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-5-1.png" width="100%"></p>
 <p>Let’s try a multivariate model, with multiple X variables. To make the predictions easier to see, I’m going to sort the true values, and plot our predicted quantiles as point-ranges, with the fatter range representing the 50% interval, and the thin one representing the 80% interval.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/qs.html">qs</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">hwy</span> <span class="op">~</span> <span class="va">displ</span> <span class="op">+</span> <span class="va">cty</span>, 
-          data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span>
+          data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">190</span><span class="op">)</span><span class="op">)</span>
 
-<span class="va">oos_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">est</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span><span class="op">)</span>
+<span class="va">oos_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">est</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span><span class="op">)</span>
 
-<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span>,
+<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="fl">70</span><span class="op">)</span>,
                         <span class="va">oos_pred</span><span class="op">)</span>
 
-<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="va">plot_data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">plot_data</span><span class="op">$</span><span class="va">hwy</span><span class="op">)</span>,<span class="op">]</span>
+<span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="va">plot_data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">plot_data</span><span class="op">$</span><span class="va">hwy</span><span class="op">)</span>,<span class="op">]</span>
 
-<span class="va">plot_data</span><span class="op">$</span><span class="va">Index</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span>
+<span class="va">plot_data</span><span class="op">$</span><span class="va">Index</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span>
 
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, 
-       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Index</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="va">hwy</span>, ymin <span class="op">=</span> <span class="va">`X0.25`</span>, ymax <span class="op">=</span> <span class="va">`X0.75`</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html">geom_pointrange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"lightblue"</span>, size <span class="op">=</span> <span class="fl">1.1</span>,
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, 
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Index</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="va">hwy</span>, ymin <span class="op">=</span> <span class="va">`X0.25`</span>, ymax <span class="op">=</span> <span class="va">`X0.75`</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_pointrange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"lightblue"</span>, size <span class="op">=</span> <span class="fl">1.1</span>,
                   fatten <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html">geom_pointrange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span>, ymin <span class="op">=</span> <span class="va">`X0.1`</span>, ymax <span class="op">=</span> <span class="va">`X0.9`</span><span class="op">)</span>,
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_pointrange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">`X0.5`</span>, ymin <span class="op">=</span> <span class="va">`X0.1`</span>, ymax <span class="op">=</span> <span class="va">`X0.9`</span><span class="op">)</span>,
                   color <span class="op">=</span> <span class="st">"lightblue"</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Predicted Gallons per Mile"</span>,
           subtitle <span class="op">=</span> <span class="st">"Out of Sample Predictions, Multivariate Model"</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-6-1.png" width="100%"></p>
 <p>Looks like we are missing some aspect of the problem for the lowest gallons-per-mile of car–perhaps we need to include an additional covariate. This type of model diagnostic is helpful, since the 80% interval for the fitted quantile should contain the observed value 80% of the time. If that’s happening not-at-random, or not happening it might be time to check your model.</p>
 </div>
-<div id="distributional-effects" class="section level1">
-<h1 class="hasAnchor">
-<a href="#distributional-effects" class="anchor"></a>Distributional Effects</h1>
+<div class="section level1">
+<h1 id="distributional-effects">Distributional Effects<a class="anchor" aria-label="anchor" href="#distributional-effects"></a>
+</h1>
 <p>What if we want to interpolate the fitted quantiles? For example, a full changes-in-changes difference in difference model involves the cumulative distribution function of the treated vs. the counterfactual predicted by the control group. We can do that by interpolating the fitted distributions for each group. Or maybe you just want a full predictive density to predict with/evaluate/sample from.</p>
 <p>Let’s start with the fitted model above. To interpolate the fitted quantiles, all you need to do is run the following.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -214,9 +207,9 @@
 <span class="co">#&gt;  [1] 0.05397541 0.04655421 0.04505485 0.04704032 0.05438701 0.04198281</span>
 <span class="co">#&gt;  [7] 0.04158249 0.04753504 0.04674888 0.04402587</span></code></pre></div>
 </div>
-<div id="marginal-effects" class="section level1">
-<h1 class="hasAnchor">
-<a href="#marginal-effects" class="anchor"></a>Marginal Effects</h1>
+<div class="section level1">
+<h1 id="marginal-effects">Marginal Effects<a class="anchor" aria-label="anchor" href="#marginal-effects"></a>
+</h1>
 <p>You can evaluate marginal effects with the function <code>marginal_effects</code>, which contains methods for average marginal effects, marginal effects at the average, and marginal effects as they vary across levels of a variable.</p>
 </div>
 
@@ -224,36 +217,48 @@
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="license">
-<h2>License</h2>
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>
-<li><small><a href="https://opensource.org/licenses/mit-license.php">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
+<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
 </ul>
 </div>
+
+
+<div class="citation">
+<h2 data-toc-skip>Citation</h2>
+<ul class="list-unstyled">
+<li><a href="authors.html#citation">Citing quantspace</a></li>
+</ul>
+</div>
+
 <div class="developers">
-<h2>Developers</h2>
+<h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Brice Green <br><small class="roles"> Maintainer </small>  </li>
 </ul>
 </div>
 
-  <div class="dev-status">
-<h2>Dev status</h2>
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/be-green/quantspace/actions"><img src="https://github.com/be-green/quantspace/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
-<li><a href="https://codecov.io/gh/be-green/quantspace?branch=master"><img src="https://codecov.io/gh/be-green/quantspace/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
+<li><a href="https://github.com/be-green/quantspace/actions" class="external-link"><img src="https://github.com/be-green/quantspace/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
+<li><a href="https://codecov.io/gh/be-green/quantspace?branch=master" class="external-link"><img src="https://codecov.io/gh/be-green/quantspace/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
 </ul>
 </div>
-</div>
+
+  </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Brice Green.</p>
+  <p></p>
+<p>Developed by Brice Green.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
 </div>
 
       </footer>
@@ -261,6 +266,8 @@
 
   
 
+
+  
 
   </body>
 </html>

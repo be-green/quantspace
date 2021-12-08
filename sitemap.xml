@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://brice.green/quantspace/404.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/LICENSE-text.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/LICENSE.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/articles/index.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/articles/using-quantspace.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/authors.html</loc>
+  </url>
+  <url>
     <loc>https://brice.green/quantspace/index.html</loc>
   </url>
   <url>
@@ -125,6 +143,9 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/glob_obs_vec.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/index.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/inv.html</loc>
@@ -272,11 +293,5 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/summary.qs.html</loc>
-  </url>
-  <url>
-    <loc>https://brice.green/quantspace/articles/available-algorithms.html</loc>
-  </url>
-  <url>
-    <loc>https://brice.green/quantspace/articles/using-quantspace.html</loc>
   </url>
 </urlset>
