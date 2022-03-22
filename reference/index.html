@@ -26,7 +26,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -92,6 +92,10 @@
         </td>
         <td><p>Check which rows of a matrix match a whole vector</p></td>
       </tr><tr><td>
+          <p><code><a href="csrToDgc.html">csrToDgc()</a></code> </p>
+        </td>
+        <td><p>Convert SparseM row compressed matrix to Matrix dgC matrix</p></td>
+      </tr><tr><td>
           <p><code><a href="cub_root.html">cub_root()</a></code> </p>
         </td>
         <td><p>Find cube root of the form ax^3 + bx^2 + cx + d=0</p></td>
@@ -150,31 +154,13 @@ that match the arguments for f</p></td>
         <td><p>A function to evaluate the quantile or density of
 given data based on normal distribution</p></td>
       </tr><tr><td>
-          <p><code><a href="findLastRedundantCol.html">findLastRedundantCol()</a></code> </p>
-        </td>
-        <td><p>Grab the last colinear column in a matrix</p></td>
-      </tr><tr><td>
-          <p><code><a href="findRedundantCols.html">findRedundantCols()</a></code> </p>
-        </td>
-        <td><p>Returns the indices of the columns to remove to construct a full rank matrix</p></td>
-      </tr><tr><td>
           <p><code><a href="fitQuantileRegression.html">fitQuantileRegression()</a></code> </p>
         </td>
         <td><p>Estimate a single quantile regression</p></td>
       </tr><tr><td>
-          <p><code><a href="fit_approx_quantile_model.html">fit_approx_quantile_model()</a></code> </p>
-        </td>
-        <td><p>Compute quantile regression via accelerated gradient descent using
-Huber approximation, warm start based on data subset</p></td>
-      </tr><tr><td>
           <p><code><a href="fit_lasso.html">fit_lasso()</a></code> </p>
         </td>
         <td><p>Fit a quantile regression w/ a lasso penalty</p></td>
-      </tr><tr><td>
-          <p><code><a href="fit_penalize_approx_quantile_model.html">fit_penalize_approx_quantile_model()</a></code> </p>
-        </td>
-        <td><p>Compute quantile regression via accelerated gradient descent using
-Huber approximation, warm start based on data subset</p></td>
       </tr><tr><td>
           <p><code><a href="getColNums.html">getColNums()</a></code> </p>
         </td>
@@ -213,14 +199,6 @@ various matrix types.</p></td>
         </td>
         <td><p>Get the data inside the s4 slot of this sparse matrix class</p></td>
       </tr><tr><td>
-          <p><code><a href="glob_obs_mat.html">glob_obs_mat()</a></code> </p>
-        </td>
-        <td><p>Glob observations w/ residuals above a certain magnitude</p></td>
-      </tr><tr><td>
-          <p><code><a href="glob_obs_vec.html">glob_obs_vec()</a></code> </p>
-        </td>
-        <td><p>Glob observations w/ residuals above a certain magnitude</p></td>
-      </tr><tr><td>
           <p><code><a href="inv.html">inv()</a></code> </p>
         </td>
         <td><p>Inverse of a matrix, but catches the error</p></td>
@@ -252,6 +230,14 @@ various matrix types.</p></td>
           <p><code><a href="marginal_effects.html">marginal_effects()</a></code> </p>
         </td>
         <td><p>Get all marginal effects of variables in the fit</p></td>
+      </tr><tr><td>
+          <p><code><a href="matrixTocsc.html">matrixTocsc()</a></code> </p>
+        </td>
+        <td><p>Convert Matrix Sparse Matrix to SparseM row compressed matrix</p></td>
+      </tr><tr><td>
+          <p><code><a href="matrixTocsr.html">matrixTocsr()</a></code> </p>
+        </td>
+        <td><p>Convert Matrix Sparse Matrix to SparseM row compressed matrix</p></td>
       </tr><tr><td>
           <p><code><a href="me.html">me()</a></code> </p>
         </td>
@@ -432,7 +418,7 @@ subsampling.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer></div>

@@ -1,9 +1,9 @@
 pandoc: 2.7.3
-pkgdown: 2.0.1
+pkgdown: 2.0.2
 pkgdown_sha: ~
 articles:
   using-quantspace: using-quantspace.html
-last_built: 2021-12-08T16:45Z
+last_built: 2022-03-22T18:35Z
 urls:
   reference: https://brice.green/quantspace/reference
   article: https://brice.green/quantspace/articles

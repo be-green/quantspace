@@ -52,6 +52,9 @@
     <loc>https://brice.green/quantspace/reference/columns_match_vector.html</loc>
   </url>
   <url>
+    <loc>https://brice.green/quantspace/reference/csrToDgc.html</loc>
+  </url>
+  <url>
     <loc>https://brice.green/quantspace/reference/cub_root.html</loc>
   </url>
   <url>
@@ -94,22 +97,10 @@
     <loc>https://brice.green/quantspace/reference/eval_density_R.html</loc>
   </url>
   <url>
-    <loc>https://brice.green/quantspace/reference/findLastRedundantCol.html</loc>
-  </url>
-  <url>
-    <loc>https://brice.green/quantspace/reference/findRedundantCols.html</loc>
-  </url>
-  <url>
     <loc>https://brice.green/quantspace/reference/fitQuantileRegression.html</loc>
   </url>
   <url>
-    <loc>https://brice.green/quantspace/reference/fit_approx_quantile_model.html</loc>
-  </url>
-  <url>
     <loc>https://brice.green/quantspace/reference/fit_lasso.html</loc>
-  </url>
-  <url>
-    <loc>https://brice.green/quantspace/reference/fit_penalize_approx_quantile_model.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/getColNums.html</loc>
@@ -139,12 +130,6 @@
     <loc>https://brice.green/quantspace/reference/get_underlying.html</loc>
   </url>
   <url>
-    <loc>https://brice.green/quantspace/reference/glob_obs_mat.html</loc>
-  </url>
-  <url>
-    <loc>https://brice.green/quantspace/reference/glob_obs_vec.html</loc>
-  </url>
-  <url>
     <loc>https://brice.green/quantspace/reference/index.html</loc>
   </url>
   <url>
@@ -170,6 +155,12 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/marginal_effects.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/matrixTocsc.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/matrixTocsr.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/me.html</loc>

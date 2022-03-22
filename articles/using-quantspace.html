@@ -43,7 +43,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -108,12 +108,12 @@
 <code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/qplot.html" class="external-link">qplot</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Y with tail dependence"</span><span class="op">)</span>
 <span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></code></pre></div>
 <p><img src="using-quantspace_files/figure-html/unnamed-chunk-3-1.png" width="624"></p>
-<div class="section level1">
-<h1 id="the-qs-function">The <code>qs</code> function<a class="anchor" aria-label="anchor" href="#the-qs-function"></a>
-</h1>
 <div class="section level2">
-<h2 id="basic-use">Basic use<a class="anchor" aria-label="anchor" href="#basic-use"></a>
+<h2 id="the-qs-function">The <code>qs</code> function<a class="anchor" aria-label="anchor" href="#the-qs-function"></a>
 </h2>
+<div class="section level3">
+<h3 id="basic-use">Basic use<a class="anchor" aria-label="anchor" href="#basic-use"></a>
+</h3>
 <p>Let’s try to get at that info! The main function which estimates models via quantile spacings is the <code>qs</code> function. Let’s check out an example:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">regression_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y</span>, <span class="va">X</span><span class="op">)</span>
@@ -124,36 +124,36 @@
 <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qs.html">qs</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">X1</span> <span class="op">+</span> <span class="va">X2</span>, data <span class="op">=</span> <span class="va">regression_data</span>, 
           quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>,<span class="fl">0.9</span><span class="op">)</span>, 
           baseline_quantile <span class="op">=</span> <span class="fl">0.5</span>,
-          algorithm <span class="op">=</span> <span class="st">"sfn"</span><span class="op">)</span>
+          algorithm <span class="op">=</span> <span class="st">"br"</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 <span class="co">#&gt; Baseline Quantile Coefficients:</span>
 <span class="co">#&gt;       Variable Quantile Coefficient       SE</span>
-<span class="co">#&gt; 1 (Intercept)      0.5     0.01095 0.020180</span>
-<span class="co">#&gt; 2          X1      0.5    -0.99270 0.006603</span>
-<span class="co">#&gt; 3          X2      0.5     2.00300 0.012220 </span>
+<span class="co">#&gt; 1 (Intercept)      0.5     0.01095 0.022040</span>
+<span class="co">#&gt; 2          X1      0.5    -0.99270 0.006513</span>
+<span class="co">#&gt; 3          X2      0.5     2.00300 0.013130 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Quantile Spacing Coefficients:</span>
 <span class="co">#&gt;        Variable Quantile Coefficient Standard.Error</span>
-<span class="co">#&gt; 1  (Intercept)     0.10     -0.5139        0.03189</span>
-<span class="co">#&gt; 2           X1     0.10      0.2680        0.02988</span>
-<span class="co">#&gt; 3           X2     0.10      1.4440        0.03677</span>
-<span class="co">#&gt; 4  (Intercept)     0.25     -0.4443        0.02404</span>
-<span class="co">#&gt; 5           X1     0.25      0.2794        0.02367</span>
-<span class="co">#&gt; 6           X2     0.25      1.4690        0.02548</span>
-<span class="co">#&gt; 7  (Intercept)     0.75     -0.4065        0.02372</span>
-<span class="co">#&gt; 8           X1     0.75      0.2393        0.02042</span>
-<span class="co">#&gt; 9           X2     0.75      1.5080        0.02563</span>
-<span class="co">#&gt; 10 (Intercept)     0.90     -0.4618        0.02951</span>
-<span class="co">#&gt; 11          X1     0.90      0.2455        0.03392</span>
-<span class="co">#&gt; 12          X2     0.90      1.4790        0.03083 </span>
+<span class="co">#&gt; 1  (Intercept)     0.10     -0.5113        0.03202</span>
+<span class="co">#&gt; 2           X1     0.10      0.2710        0.03509</span>
+<span class="co">#&gt; 3           X2     0.10      1.4390        0.03556</span>
+<span class="co">#&gt; 4  (Intercept)     0.25     -0.4445        0.02076</span>
+<span class="co">#&gt; 5           X1     0.25      0.2789        0.02238</span>
+<span class="co">#&gt; 6           X2     0.25      1.4690        0.02513</span>
+<span class="co">#&gt; 7  (Intercept)     0.75     -0.4058        0.01942</span>
+<span class="co">#&gt; 8           X1     0.75      0.2405        0.01988</span>
+<span class="co">#&gt; 9           X2     0.75      1.5070        0.02277</span>
+<span class="co">#&gt; 10 (Intercept)     0.90     -0.4606        0.02945</span>
+<span class="co">#&gt; 11          X1     0.90      0.2493        0.03245</span>
+<span class="co">#&gt; 12          X2     0.90      1.4770        0.03613 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Quantile Psuedo-R2:</span>
-<span class="co">#&gt;     0.1: 0.9146</span>
-<span class="co">#&gt;     0.25:    0.823</span>
+<span class="co">#&gt;     0.1: 0.9158</span>
+<span class="co">#&gt;     0.25:    0.8239</span>
 <span class="co">#&gt;     0.5: 0.2872</span>
-<span class="co">#&gt;     0.75:    0.8267</span>
-<span class="co">#&gt;     0.9: 0.9164</span></code></pre></div>
+<span class="co">#&gt;     0.75:    0.8258</span>
+<span class="co">#&gt;     0.9: 0.9162</span></code></pre></div>
 <p>We’ve already made a couple choices here. First, we set the regression formula, second we specified the data. The ones that are a bit stranger are the <code>quantiles</code> and <code>baseline_quantile</code> arguments. Because the quantile spacings model is a <em>joint</em> model, we need to estimate everything recursively.</p>
 <p>To get the 0.25 spacing coefficient, we take the predicted median value, <span class="math inline">\(\hat{y}_{med}\)</span>, and calculate <span class="math inline">\(r = y - \hat{y}_{med}\)</span>. For the positive residuals, we then take <code>log(r)</code> as the outcome variable, and estimate a median regression. For negative residuals, we do the same thing but with <code>log(-r)</code>. This guarentees that the quantiles fitted by the model don’t ever cross.</p>
 <p>The <code>baseline_quantile</code> is the quantile that we take spacings relative to. We don’t recommend changing this away from the median, which is the default. The <code>quantiles</code> argument is simply the complete list of quantile effects you want to estimate.</p>
@@ -175,9 +175,9 @@
 <span class="va">pred_oos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">oos</span><span class="op">)</span></code></pre></div>
 <p>The <code>qs</code> function also has some control parameters you can see described in more detail on the help page for the function (<code><a href="../reference/qs.html">?qs</a></code>), including <code>parallel</code>, which determines whether bootstrap draws should be parallelized, <code>calc_se</code> which determines whether to calculate standard errors, and <code>weights</code>, which allows you run a weighted regression.</p>
 </div>
-<div class="section level2">
-<h2 id="advanced-usage">Advanced Usage<a class="anchor" aria-label="anchor" href="#advanced-usage"></a>
-</h2>
+<div class="section level3">
+<h3 id="advanced-usage">Advanced Usage<a class="anchor" aria-label="anchor" href="#advanced-usage"></a>
+</h3>
 <p>The more sophisticated controls for the quantile spacings model and standard errors are specified via the <code>control</code> and <code>std_err_control</code> arguments. Each of these is specified via calls to the <code><a href="../reference/qs_control.html">qs_control()</a></code> and <code><a href="../reference/se_control.html">se_control()</a></code> functions. For details, you can always check the help pages (e.g. <code><a href="../reference/qs_control.html">?qs_control</a></code>).</p>
 <p>The <code>qs_control</code> function allows you to set <code>small</code>, the level at which values are treated as zero, <code>trunc</code>, whether to truncate residuals below the value of <code>small</code>, <code>lambda</code>, an optional penalty parameter for use with the <code>lasso</code> algorithm, <code>output_quantiles</code>, which controls whether to save fitted quantiles, and <code>calc_avg_me</code>, which determines whether to calculate average marginal effects. Perhaps with the exception of <code>lambda</code>, none of these need to be changed very often (if at all).</p>
 <p>The <code>se_control</code> function allows the user to specify various aspects of the bootstrapping and subsampling used to calculate standard errors. By default, standard errors are calculated via subsampling, with 100 draws. There are several available algorithms for computing standard errors, all based on empirical reweighting and bootstrapping. Setting <code>se_control(se_method = "weighted_bootstrap"</code>) will randomly re-weight data based on random exponential weights drawn with rate parameter 1. Using <code>"subsample"</code>, which is the default, will construct subsamples of the data (without replacement. The size of these subsamples is set via <code>subsample_percent</code>. Using <code>"bootstrap"</code> will use data sample with replacement the same size as the original sample. To truly customize this, you can set this argument to <code>"rq_sample"</code>.</p>
@@ -185,16 +185,14 @@
 <p>In the future, the package may add closed-form standard errors via the delta method, but as of now all standard error methods are based on bootstrapping and subsampling.</p>
 </div>
 </div>
-<div class="section level1">
-<h1 id="distributional-modeling">Distributional Modeling<a class="anchor" aria-label="anchor" href="#distributional-modeling"></a>
-</h1>
+<div class="section level2">
+<h2 id="distributional-modeling">Distributional Modeling<a class="anchor" aria-label="anchor" href="#distributional-modeling"></a>
+</h2>
 <p>The other thing that the <code>quantspace</code> package is very useful for is modeling the full distribution of outcomes. To do this, it contains routines which efficiently interpolate the fitted quantiles via cubic splines. Modeling the log distance away from the median, rather than treating each quantile independently, prevents the fitted quantiles from crossing, which means that we can always recover a valid density by interpolating between them.</p>
 <p>Right now this is done with cubic splines, which can (very occasionally) go negative, which would not imply a valid CDF. If that happens, it’s probably a sign that this is a very poor model for your problem or that you have data which is quite small.</p>
 <p>So how do we do this? Let’s take our fit from above and interpolate it. Because our model is non-linear, the distance between quantiles will vary with the data. By default, the <code>distributional_effects</code> function performs this interpolation at the average level of the data, returning the pdf, cdf, quantile function, and a random number generator for the fitted density.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R">
-
-<span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/distributional_effects.html">distributional_effects</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>
   <span class="co"># evaluate the density at 0</span>
@@ -207,17 +205,17 @@
   <span class="va">d</span><span class="op">$</span><span class="fu">r</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span>
 <span class="op">)</span>
 <span class="co">#&gt; $pdf</span>
-<span class="co">#&gt; [1] 0.1398311</span>
+<span class="co">#&gt; [1] 0.1397495</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $cdf</span>
-<span class="co">#&gt; [1] 0.49907</span>
+<span class="co">#&gt; [1] 0.4990706</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $quantile</span>
-<span class="co">#&gt; [1] 0.006652383</span>
+<span class="co">#&gt; [1] 0.006652388</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; [[4]]</span>
-<span class="co">#&gt;  [1] -2.7029264  2.7412493  2.0955536  2.2638996 -4.1777103  6.0385755</span>
-<span class="co">#&gt;  [7]  0.6625209  0.8054141 -4.1649720 -0.7073926</span></code></pre></div>
+<span class="co">#&gt;  [1] -0.2663059  1.3667500 -1.4818322  5.2845205  1.8126936 -3.5019245</span>
+<span class="co">#&gt;  [7]  1.1443059 -2.6127307 -1.4457594 -0.1550923</span></code></pre></div>
 <p>We can also do this for various levels of the data. Let’s see how these change as we move up in the first dimension of our X variable.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
@@ -250,7 +248,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer>
