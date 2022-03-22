@@ -25,43 +25,6 @@ getRank = function(m, TOL = 1e-10) {
   return(sum(abs(diag(qr.R(qr(transp_prod)))) > TOL))
 }
 
-#' Returns the indices of the columns to remove to construct a full rank matrix
-#' @param m Rank-deficient M by N space matrix where M >= N in dgCMatrix format.
-#' @param TOL tolerance for column matching
-#' @returns Indices of columns to remove from m so that the remaining matrix is full rank.
-#' @details Given a rank-deficient M by N sparse matrix, where M >= N, in dgCMatrix format,
-#' returns the indices of columns to remove from the original matrix so that the
-#' resulting matrix is full rank.
-findRedundantCols = function(m, TOL = 0.000000001) {
-  decomp <- qr(m)
-  orig_col_names <- colnames(m)
-  R <- qr.R(decomp)
-  R_col_names <- colnames(R)
-  if(is.null(R_col_names)) {
-    R_col_names <- paste0("X", 1:ncol(R))
-  }
-  which(abs(diag(R)) < TOL)
-}
-
-#' Grab the last colinear column in a matrix
-#' @param x matrix to drop columns from
-#' @importFrom utils tail
-# taken from https://stackoverflow.com/questions/12304963/using-eigenvalues-to-test-for-singularity-identifying-collinear-columns
-findLastRedundantCol <- function(x) {
-  xtx <- crossprod(x)
-
-  ee <- eigen(xtx)
-  evals <- zapsmall(ee$values)
-  evecs <- split(zapsmall(ee$vectors),col(ee$vectors))
-
-  cols = mapply(function(val,vec) {
-    if (val!=0) NULL else which(vec!=0)
-  },zapsmall(ee$values),evecs)
-  l = Filter(f = function(cols) !is.null(cols), cols)
-  l = unlist(l[[which.max(sapply(l, max))]])
-  max(l)
-}
-
 
 #' Ensure that a regression specification is full rank
 #' @details Verifies if a regression specification is full-rank. If the input
@@ -74,73 +37,75 @@ findLastRedundantCol <- function(x) {
 #' from the input.
 #' @importFrom methods as
 ensureSpecFullRank = function(spec_mat, col_names) {
-
-  init_p = ncol(spec_mat)
-  p = init_p
-  r = getRank(spec_mat)
-  # Check if input is already matrix full rank
-  if (p == r) {
-    return(list(
-      "spec_matrix" = spec_mat,
-      "var_names" = col_names))
+  init_names <- col_names
+  p <- length(init_names)
+  if(is.matrix(spec_mat)) {
+    spec_mat <- qr_drop_colinear_columns(spec_mat)
+  } else {
+    spec_mat <- csrToDgc(spec_mat)
+    spec_mat <- sparse_qr_drop_colinear_columns(spec_mat)
+    spec_mat$spec_mat <- matrixTocsr(spec_mat$spec_mat)
   }
 
-  drop_cols = c()
-  while (r < p) {
-    drop_col = findLastRedundantCol(spec_mat)
-    spec_mat <- spec_mat[,-drop_col]
-    r = getRank(spec_mat)
-    p = ncol(spec_mat)
-    drop_cols = c(drop_cols, drop_col + sum(drop_col >= drop_cols))
+  if(length(spec_mat$drop_cols) > 1 || spec_mat$drop_cols > 0) {
+    col_names <- col_names[-spec_mat$drop_cols]
   }
-  if(length(drop_cols) > 0) {
-    nm = col_names
-    if(is.null(nm)) {
-      nm = 1:init_p
-    }
-    warning("Dropping column(s) ", paste0(nm[sort(drop_cols)], collapse = ", "),
-            " due to colinearity." )
+
+  r <- length(col_names)
+
+  if(r < p) {
+    warning("Dropping ", p - r, " colinear columns: ",
+             paste0(init_names[spec_mat$drop_cols], collapse = ", "), ".")
   }
+
   return(list(
-    "spec_matrix" = spec_mat,
-    "var_names" = col_names[-drop_cols]))
+    "spec_matrix" = spec_mat$spec_mat,
+    "var_names" = col_names))
+}
+
+#' Convert Matrix Sparse Matrix to SparseM row compressed matrix
+#' @param X column compressed matrix from Matrix package
+#' @importFrom SparseM as.matrix.csr
+#' @import SparseM
+matrixTocsc = function(X) {
+  X_csc <- new("matrix.csc", ra = X@x,
+               ja = X@i + 1L,
+               ia = X@p + 1L,
+               dimension = X@Dim)
+  X_csc
+}
+
+#' Convert Matrix Sparse Matrix to SparseM row compressed matrix
+#' @param X column compressed matrix from Matrix package
+#' @importFrom SparseM as.matrix.csr
+#' @import SparseM
+matrixTocsr = function(X) {
+  X_csc <- methods::new("matrix.csc", ra = X@x,
+               ja = X@i + 1L,
+               ia = X@p + 1L,
+               dimension = X@Dim)
+  SparseM::as.matrix.csr(X_csc)
+}
+
+#' Convert SparseM row compressed matrix to Matrix dgC matrix
+#' @param X column compressed matrix from Matrix package
+#' @importFrom SparseM as.matrix.csr
+#' @import SparseM
+csrToDgc = function(X) {
+  Matrix::sparseMatrix(
+    p = X@ia - 1L,
+    j = X@ja,
+    x = X@ra
+  )
 }
 
 #' Convert matrix to a SparseM csr matrix
 #' @param m a matrix in standard, dense format
 #' @return A matrix in SparseM csr format
+#' @importFrom Matrix Matrix
 denseMatrixToSparse = function(m) {
-
-  if (length(m) <= .Machine$integer.max) {
-    return(as.matrix.csr(m))
-  }
-
-  # as.matrix.csr cannot coerce a long vector to csr,
-  # so break the input into maximally-sized chunks with
-  # are coercible and then bind them into one sparse matrix
-
-  chunk_size <- floor(.Machine$integer.max / ncol(m)) * ncol(m)
-  num_chunks <- floor(length(m) / chunk_size)
-
-  items_to_cut <- chunk_size * num_chunks
-  sparse_chunks <- lapply(
-    split(t(m)[1:items_to_cut], sort(rep(1:num_chunks, chunk_size))),
-    FUN = function(x) {
-      return(as.matrix.csr(matrix(x, ncol=ncol(m), byrow=TRUE)))
-    })
-
-  combined <- do.call(rbind, sparse_chunks)
-
-  if (length(m) > items_to_cut) {
-    tail <- as.matrix.csr(
-      matrix(
-        t(m)[(items_to_cut + 1):length(m)],
-        ncol=ncol(m),
-        byrow=TRUE))
-    combined <- rbind(combined, tail)
-  }
-
-  return(combined)
+  m = Matrix::Matrix(m, sparse = T)
+  matrixTocsr(m)
 }
 
 #' Add missing columns for specification

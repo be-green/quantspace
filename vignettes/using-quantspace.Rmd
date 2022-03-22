@@ -66,7 +66,7 @@ regression_data <- data.frame(y = y, X)
 fit <- qs(y ~ X1 + X2, data = regression_data, 
           quantiles = c(0.1, 0.25, 0.5, 0.75,0.9), 
           baseline_quantile = 0.5,
-          algorithm = "sfn")
+          algorithm = "br")
 
 summary(fit)
 ```
@@ -121,8 +121,6 @@ Right now this is done with cubic splines, which can (very occasionally) go nega
 So how do we do this? Let's take our fit from above and interpolate it. Because our model is non-linear, the distance between quantiles will vary with the data. By default, the `distributional_effects` function performs this interpolation at the average level of the data, returning the pdf, cdf, quantile function, and a random number generator for the fitted density.
 
 ```{r my_first_de}
-
-
 d <- distributional_effects(fit)
 
 list(

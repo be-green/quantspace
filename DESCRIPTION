@@ -26,7 +26,7 @@ Imports:
     MASS,
     Rcpp,
     RcppParallel
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Roxygen: list(markdown = TRUE)
 Suggests: 
     mice,
@@ -37,5 +37,6 @@ VignetteBuilder: knitr
 LinkingTo: 
     RcppArmadillo,
     RcppParallel,
-    Rcpp
+    Rcpp,
+    RcppEigen
 URL: https://brice.green/quantspace
