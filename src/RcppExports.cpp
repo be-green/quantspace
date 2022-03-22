@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include <RcppArmadillo.h>
+#include <RcppEigen.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -11,6 +12,28 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// qr_drop_colinear_columns
+Rcpp::List qr_drop_colinear_columns(Eigen::Map<Eigen::MatrixXd>& X);
+RcppExport SEXP _quantspace_qr_drop_colinear_columns(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::Map<Eigen::MatrixXd>& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(qr_drop_colinear_columns(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sparse_qr_drop_colinear_columns
+Rcpp::List sparse_qr_drop_colinear_columns(Eigen::Map<Eigen::SparseMatrix<double>>& X);
+RcppExport SEXP _quantspace_sparse_qr_drop_colinear_columns(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::Map<Eigen::SparseMatrix<double>>& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(sparse_qr_drop_colinear_columns(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // checkfun
 double checkfun(arma::vec& res, double tau);
 RcppExport SEXP _quantspace_checkfun(SEXP resSEXP, SEXP tauSEXP) {
@@ -190,6 +213,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_quantspace_qr_drop_colinear_columns", (DL_FUNC) &_quantspace_qr_drop_colinear_columns, 1},
+    {"_quantspace_sparse_qr_drop_colinear_columns", (DL_FUNC) &_quantspace_sparse_qr_drop_colinear_columns, 1},
     {"_quantspace_checkfun", (DL_FUNC) &_quantspace_checkfun, 2},
     {"_quantspace_parallelVectorCheckFun", (DL_FUNC) &_quantspace_parallelVectorCheckFun, 2},
     {"_quantspace_reorder_columns", (DL_FUNC) &_quantspace_reorder_columns, 2},
