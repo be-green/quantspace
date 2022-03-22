@@ -4,11 +4,11 @@
 #include <RcppEigen.h>
 using namespace Rcpp;
 
-typedef Eigen::ColPivHouseholderQR<Eigen::MatrixXd> CPivQR;
-typedef CPivQR::PermutationType Permutation;
-
 // [[Rcpp::export]]
 Rcpp::List qr_drop_colinear_columns(Eigen::Map<Eigen::MatrixXd>& X) {
+
+  typedef Eigen::ColPivHouseholderQR<Eigen::MatrixXd> CPivQR;
+  typedef CPivQR::PermutationType Permutation;
   const CPivQR PQR(X);
   const Permutation Pmat(PQR.colsPermutation());
   const int p = X.cols();

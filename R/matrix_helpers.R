@@ -63,12 +63,17 @@ ensureSpecFullRank = function(spec_mat, col_names) {
     "var_names" = col_names))
 }
 
+#' @import methods
+#' @importFrom methods setClass setGeneric setMethod setRefClass
+NULL
+
 #' Convert Matrix Sparse Matrix to SparseM row compressed matrix
 #' @param X column compressed matrix from Matrix package
 #' @importFrom SparseM as.matrix.csr
-#' @import SparseM
+#' @importFrom methods new
+#' @importClassesFrom SparseM matrix.csc matrix.csr
 matrixTocsc = function(X) {
-  X_csc <- new("matrix.csc", ra = X@x,
+  X_csc <- methods::new("matrix.csc", ra = X@x,
                ja = X@i + 1L,
                ia = X@p + 1L,
                dimension = X@Dim)
@@ -78,7 +83,8 @@ matrixTocsc = function(X) {
 #' Convert Matrix Sparse Matrix to SparseM row compressed matrix
 #' @param X column compressed matrix from Matrix package
 #' @importFrom SparseM as.matrix.csr
-#' @import SparseM
+#' @importFrom methods new
+#' @importClassesFrom SparseM matrix.csc matrix.csr
 matrixTocsr = function(X) {
   X_csc <- methods::new("matrix.csc", ra = X@x,
                ja = X@i + 1L,
@@ -90,7 +96,7 @@ matrixTocsr = function(X) {
 #' Convert SparseM row compressed matrix to Matrix dgC matrix
 #' @param X column compressed matrix from Matrix package
 #' @importFrom SparseM as.matrix.csr
-#' @import SparseM
+#' @importFrom Matrix sparseMatrix
 csrToDgc = function(X) {
   Matrix::sparseMatrix(
     p = X@ia - 1L,
