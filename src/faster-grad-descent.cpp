@@ -118,6 +118,43 @@ void z_score(arma::mat& X, const arma::rowvec& colwise_avg_x, const arma::vec& c
 }
 
 // [[Rcpp::export]]
+Rcpp::List arma_qr_drop_colinear_columns(arma::mat& X) {
+  arma::mat Q;
+  arma::mat R;
+  arma::uvec P;
+
+  int p = X.n_cols;
+
+  // qr decomposition
+  qr(Q, R, P, X, "vector");
+
+  int r = arma::rank(R);
+
+  Rcpp::Rcout << "P rows: "<< P.n_rows << "\n";
+  Rcpp::Rcout << "P cols: "<< P.n_cols << "\n";
+
+  if(r == p) {
+    Rcpp::List lout = Rcpp::List::create(
+      Rcpp::Named("spec_mat") =  X,
+      Rcpp::Named("drop_cols") = 0
+    );
+    return(lout);
+  }
+
+  arma::uvec drop_cols = P.rows(r - 1, p - 1);
+  arma::uvec keep_cols = P.rows(0, r - 2);
+
+  X = X.cols(keep_cols);
+  Rcpp::List lout = Rcpp::List::create(
+    Rcpp::Named("spec_mat") =  X,
+    Rcpp::Named("drop_cols") = drop_cols + 1
+    );
+
+  return(lout);
+
+}
+
+// [[Rcpp::export]]
 arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X,
                              const arma::mat& X_t, arma::vec& beta,
                              arma::vec& grad, arma::vec& derivs,
@@ -125,7 +162,6 @@ arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X,
                              int p, int maxiter, double mu,
                              double beta_tol, double check_tol,
                              double min_delta = 1e-10) {
-
 
   // gradient vector
   arma::vec last_beta = beta;
@@ -145,7 +181,6 @@ arma::vec huber_grad_descent(const arma::colvec& y, const arma::mat& X,
   // arbitrary
   double c = 0.5;
   double reduction_factor = 0.8;
-
   double loss = parallelVectorCheckFun(resid, tau);
   double t = sum(c * grad);
   double loss_diff = -100;
