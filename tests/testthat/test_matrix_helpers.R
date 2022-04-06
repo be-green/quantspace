@@ -1,6 +1,6 @@
 set.seed(42)
 
-x = matrix(rnorm(1000), ncol = 10)
+x = matrix(rnorm(100000), ncol = 10)
 x <- cbind(1, x, x[,1] + x[,2])
 x <- cbind(x, rnorm(nrow(x)))
 x <- cbind(x, x[,3] * 0.2 - x[,4] * 1.3)

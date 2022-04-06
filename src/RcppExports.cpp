@@ -13,24 +13,26 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // qr_drop_colinear_columns
-Rcpp::List qr_drop_colinear_columns(Eigen::Map<Eigen::MatrixXd>& X);
-RcppExport SEXP _quantspace_qr_drop_colinear_columns(SEXP XSEXP) {
+Rcpp::List qr_drop_colinear_columns(Eigen::Map<Eigen::MatrixXd>& X, const double tol);
+RcppExport SEXP _quantspace_qr_drop_colinear_columns(SEXP XSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::Map<Eigen::MatrixXd>& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(qr_drop_colinear_columns(X));
+    Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(qr_drop_colinear_columns(X, tol));
     return rcpp_result_gen;
 END_RCPP
 }
 // sparse_qr_drop_colinear_columns
-Rcpp::List sparse_qr_drop_colinear_columns(Eigen::Map<Eigen::SparseMatrix<double>>& X);
-RcppExport SEXP _quantspace_sparse_qr_drop_colinear_columns(SEXP XSEXP) {
+Rcpp::List sparse_qr_drop_colinear_columns(Eigen::Map<Eigen::SparseMatrix<double>>& X, const double tol);
+RcppExport SEXP _quantspace_sparse_qr_drop_colinear_columns(SEXP XSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::Map<Eigen::SparseMatrix<double>>& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(sparse_qr_drop_colinear_columns(X));
+    Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(sparse_qr_drop_colinear_columns(X, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -108,6 +110,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type p(pSEXP);
     z_score(X, colwise_avg_x, colwise_sd_x, p);
     return R_NilValue;
+END_RCPP
+}
+// arma_qr_drop_colinear_columns
+Rcpp::List arma_qr_drop_colinear_columns(arma::mat& X);
+RcppExport SEXP _quantspace_arma_qr_drop_colinear_columns(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(arma_qr_drop_colinear_columns(X));
+    return rcpp_result_gen;
 END_RCPP
 }
 // huber_grad_descent
@@ -213,14 +226,15 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_quantspace_qr_drop_colinear_columns", (DL_FUNC) &_quantspace_qr_drop_colinear_columns, 1},
-    {"_quantspace_sparse_qr_drop_colinear_columns", (DL_FUNC) &_quantspace_sparse_qr_drop_colinear_columns, 1},
+    {"_quantspace_qr_drop_colinear_columns", (DL_FUNC) &_quantspace_qr_drop_colinear_columns, 2},
+    {"_quantspace_sparse_qr_drop_colinear_columns", (DL_FUNC) &_quantspace_sparse_qr_drop_colinear_columns, 2},
     {"_quantspace_checkfun", (DL_FUNC) &_quantspace_checkfun, 2},
     {"_quantspace_parallelVectorCheckFun", (DL_FUNC) &_quantspace_parallelVectorCheckFun, 2},
     {"_quantspace_reorder_columns", (DL_FUNC) &_quantspace_reorder_columns, 2},
     {"_quantspace_fast_rexp", (DL_FUNC) &_quantspace_fast_rexp, 1},
     {"_quantspace_update_huber_grad", (DL_FUNC) &_quantspace_update_huber_grad, 8},
     {"_quantspace_z_score", (DL_FUNC) &_quantspace_z_score, 4},
+    {"_quantspace_arma_qr_drop_colinear_columns", (DL_FUNC) &_quantspace_arma_qr_drop_colinear_columns, 1},
     {"_quantspace_huber_grad_descent", (DL_FUNC) &_quantspace_huber_grad_descent, 15},
     {"_quantspace_fit_approx_quantile_model", (DL_FUNC) &_quantspace_fit_approx_quantile_model, 16},
     {"_quantspace_fit_penalize_approx_quantile_model", (DL_FUNC) &_quantspace_fit_penalize_approx_quantile_model, 14},
