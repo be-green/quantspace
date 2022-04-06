@@ -100,7 +100,13 @@
     <loc>https://brice.green/quantspace/reference/fitQuantileRegression.html</loc>
   </url>
   <url>
+    <loc>https://brice.green/quantspace/reference/fit_approx_quantile_model.html</loc>
+  </url>
+  <url>
     <loc>https://brice.green/quantspace/reference/fit_lasso.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/fit_penalize_approx_quantile_model.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/getColNums.html</loc>
@@ -128,6 +134,12 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/get_underlying.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/glob_obs_mat.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/glob_obs_vec.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/index.html</loc>
@@ -197,6 +209,9 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/q_spline_R.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/qr_drop_colinear_columns.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/qs.html</loc>
@@ -272,6 +287,9 @@
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/spacings_to_quantiles.html</loc>
+  </url>
+  <url>
+    <loc>https://brice.green/quantspace/reference/sparse_qr_drop_colinear_columns.html</loc>
   </url>
   <url>
     <loc>https://brice.green/quantspace/reference/splint_R.html</loc>
