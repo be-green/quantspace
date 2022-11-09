@@ -4,12 +4,24 @@
 #include <RcppEigen.h>
 using namespace Rcpp;
 
+
+//' Drop Colinear Columns from dense matrix
+//' @param X matrix to drop colinear columns from
+//' @param tol tolerance for when pivot is zero in rank calculations
+//' @export
 // [[Rcpp::export]]
-Rcpp::List qr_drop_colinear_columns(Eigen::Map<Eigen::MatrixXd>& X) {
+Rcpp::List qr_drop_colinear_columns(Eigen::Map<Eigen::MatrixXd>& X,
+                                    const double tol = 0.000000001) {
 
   typedef Eigen::ColPivHouseholderQR<Eigen::MatrixXd> CPivQR;
   typedef CPivQR::PermutationType Permutation;
-  const CPivQR PQR(X);
+  CPivQR PQR(X);
+
+  // set tolerance for rank calculations
+  // it was too low in some cases before leading
+  // to inconsistent behavior
+  PQR.setThreshold(tol);
+
   const Permutation Pmat(PQR.colsPermutation());
   const int p = X.cols();
   const int r(PQR.rank());
@@ -45,10 +57,21 @@ Rcpp::List qr_drop_colinear_columns(Eigen::Map<Eigen::MatrixXd>& X) {
     );
 }
 
+
+//' Drop Colinear Columns from sparse matrix
+//' @param X matrix to drop colinear columns from
+//' @param tol tolerance for when pivot is zero in rank calculations
+//' @export
 // [[Rcpp::export]]
-Rcpp::List sparse_qr_drop_colinear_columns(Eigen::Map<Eigen::SparseMatrix<double>>& X) {
+Rcpp::List sparse_qr_drop_colinear_columns(Eigen::Map<Eigen::SparseMatrix<double>>& X,
+                                           const double tol = 0.000000001) {
   Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> PQR(X);
   const Eigen::ColPivHouseholderQR<Eigen::MatrixXd>::PermutationType Pmat(PQR.colsPermutation());
+
+  // set tolerance for rank calculations
+  // it was too low in some cases before leading
+  // to inconsistent behavior
+  PQR.setPivotThreshold(tol);
 
   const int p = X.cols();
   const int r(PQR.rank());
