@@ -4,7 +4,7 @@
 \alias{capture_output}
 \title{Capture print output}
 \usage{
-capture_output(x, ...)
+capture_output(code, print = FALSE, width = 80)
 }
 \arguments{
 \item{x}{object to capture}
