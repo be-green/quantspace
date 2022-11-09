@@ -332,9 +332,45 @@ summary.qs = function(object, ...){
 #' Capture print output
 #' @param x object to capture
 #' @param ... other argument to the print function
-#' @importFrom testthat capture_output
-capture_output <- function(x, ...) {
-  testthat::capture_output(print(x, ...))
+capture_output <- function(code, print = FALSE, width = 80) {
+  output <- capture_output_lines(code, print, width = width)
+  paste0(output, collapse = "\n")
+}
+
+#' Capture output lines
+capture_output_lines <- function (code, print = FALSE, width = 80)
+{
+  eval_with_output(code, print = print, width = width)$out
+}
+
+#' @importFrom withr local_options
+#' @importFrom withr local_envvar
+local_width <- function (width = 80, .env = parent.frame())
+{
+  withr::local_options(width = width, cli.width = width, .local_envir = .env)
+  withr::local_envvar(RSTUDIO_CONSOLE_WIDTH = width, .local_envir = .env)
+}
+
+#' Evaluate with output
+#' @importFrom withr with_output_sink
+eval_with_output <- function (code, print = FALSE, width = 80)
+{
+  temp <- file()
+  on.exit(close(temp), add = TRUE)
+  if (!is.null(width)) {
+    local_width(width)
+  }
+  result <- withr::with_output_sink(temp, withVisible(code))
+  if (result$visible && print) {
+    withr::with_output_sink(temp, testthat_print(result$value))
+  }
+  list(val = result$value, vis = result$visible,
+       out = read_lines(temp, encoding = "unknown"))
+}
+
+read_lines <- function (path, n = -1L, encoding = "UTF-8")
+{
+  base::readLines(path, n = n, encoding = encoding, warn = FALSE)
 }
 
 #' Round if x is numeric, otherwise don't
@@ -368,8 +404,8 @@ print.qs <- function(x, digits = 4, ...) {
     )
 
 
-  s_coefs <- capture_output(spacing_coefs)
-  b_coefs <- capture_output(round_if(x$baseline_coefs, d))
+  s_coefs <- capture_output(print(spacing_coefs))
+  b_coefs <- capture_output(print(round_if(x$baseline_coefs, d)))
 
   cat("Baseline Coefficients:\n",
       b_coefs, "\n\n")
@@ -385,7 +421,6 @@ print.qs <- function(x, digits = 4, ...) {
 #' Make matrix into a "standard error" matrix
 #' @param mat matrix to pass
 #' @param d number of significant digits
-#' @importFrom testthat capture_output
 #' @importFrom stringr str_replace_all
 make_se_mat <- function(mat, d) {
   mat <- signif(mat, d)
@@ -405,7 +440,7 @@ make_se_mat <- function(mat, d) {
   }
   colnames(msg) <- colnames(mat)
   rownames(msg) <- rownames(mat)
-  msg <- testthat::capture_output(print(msg))
+  msg <- capture_output(print(msg))
   stringr::str_replace_all(msg, "\"", " ")
 }
 
