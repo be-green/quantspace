@@ -17,7 +17,6 @@ Imports:
     SparseM,
     methods,
     RConics,
-    Matrix.utils,
     ggplot2,
     Matrix,
     purrr,
