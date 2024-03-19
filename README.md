@@ -83,16 +83,6 @@ You can do this like so:
     version of devtools available to your redhat system
 3.  Boot up R and install the package
 
-## Performance benefits for `agd`
-
-One of the algorithms (agd) available for fitting quantile regressions
-in the `quantspace` package uses the `Armadillo` C++ library for linear
-algebra. This library is able to leverage high-speed linear algebra
-packages such as [openblas](https://www.openblas.net/) or the [Intel MKL
-libraries](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html).
-
-The AGD method uses a Nesterov-smoothed accelerated gradient descent approach with back-tracking, where a window around the origin is smoothed w/ a least squares objective function. An earlier version used the step-size selection method from the [conquer package](https://github.com/XiaoouPan/conquer) and was based substantially on their gradient descent code.
-
 # Basic Usage
 
 Say we want to run a quantile regression. The easiest way to do this is
